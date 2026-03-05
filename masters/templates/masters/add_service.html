@@ -1,0 +1,50 @@
+{% extends 'masters/base.html' %}
+
+{% block title %}Добавить услугу{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h4 class="mb-0"><i class="fas fa-plus-circle me-2" style="color: #ff85b3;"></i>Добавить услугу</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Название услуги <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                        <small class="text-muted">Например: Маникюр, Стрижка, Макияж</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Описание</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                        <small class="text-muted">Подробно опишите, что входит в услугу</small>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="duration" class="form-label">Длительность (минут) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="duration" name="duration" min="5" step="5" value="60" required>
+                            <small class="text-muted">От 5 минут, с шагом 5 минут</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="price" class="form-label">Цена (₽) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="price" name="price" min="0" step="100" value="1000" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-pink">Сохранить услугу</button>
+                        <a href="{% url 'services' %}" class="btn btn-outline-pink ms-2">Отмена</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

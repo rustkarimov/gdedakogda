@@ -1,0 +1,103 @@
+{% extends 'masters/base.html' %}
+
+{% block title %}Выходные дни{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-umbrella-beach me-2" style="color: #ff85b3;"></i>Выходные дни</h2>
+    <a href="{% url 'add_day_off' %}" class="btn btn-pink">
+        <i class="fas fa-plus me-1"></i>Добавить выходной
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Предстоящие выходные -->
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Предстоящие выходные</h5>
+            </div>
+            <div class="card-body">
+                {% if days_off %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>День недели</th>
+                                    <th>Причина</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for day in days_off %}
+                                <tr>
+                                    <td>{{ day.date|date:"d.m.Y" }}</td>
+                                    <td>{{ day.date|date:"l" }}</td>
+                                    <td>{{ day.reason|default:"-" }}</td>
+                                    <td>
+                                        <a href="{% url 'delete_day_off' day.id %}" class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Удалить этот выходной день?')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">Нет предстоящих выходных</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Прошедшие выходные -->
+        {% if past_days_off %}
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Прошедшие выходные</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Дата</th>
+                                <th>Причина</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for day in past_days_off %}
+                            <tr>
+                                <td>{{ day.date|date:"d.m.Y" }}</td>
+                                <td>{{ day.reason|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">О выходных</h5>
+            </div>
+            <div class="card-body">
+                <p><i class="fas fa-info-circle me-2" style="color: #ff85b3;"></i>Здесь вы отмечаете дни, когда <strong>не работаете</strong>:</p>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check me-2 text-success"></i>Отпуск</li>
+                    <li><i class="fas fa-check me-2 text-success"></i>Больничный</li>
+                    <li><i class="fas fa-check me-2 text-success"></i>Личные дела</li>
+                    <li><i class="fas fa-check me-2 text-success"></i>Праздники</li>
+                </ul>
+                <p class="mb-0 text-muted small">В эти дни клиенты не смогут записаться.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

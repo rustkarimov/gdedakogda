@@ -1,0 +1,103 @@
+{% extends 'masters/base.html' %}
+
+{% block title %}Личный кабинет - {{ master.first_name }} {{ master.last_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-tachometer-alt me-2" style="color: #ff85b3;"></i>Личный кабинет</h2>
+    <div>
+        <a href="{% url 'profile' %}" class="btn btn-outline-pink me-2">
+            <i class="fas fa-user-edit me-1"></i>Профиль
+        </a>
+        <a href="{% url 'services' %}" class="btn btn-pink">
+            <i class="fas fa-cut me-1"></i>Услуги
+        </a>
+    </div>
+</div>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="dashboard-stat">
+            <i class="fas fa-calendar-check"></i>
+            <h3>{{ total_bookings }}</h3>
+            <p>Всего записей</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dashboard-stat">
+            <i class="fas fa-cut"></i>
+            <h3>{{ total_services }}</h3>
+            <p>Услуг</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dashboard-stat">
+            <i class="fas fa-link"></i>
+            <h3><i class="fas fa-copy copy-link" style="cursor: pointer;" onclick="copyPublicLink()"></i></h3>
+            <p>Ваша ссылка</p>
+        </div>
+    </div>
+</div>
+
+<!-- Ваша ссылка для клиентов (пока заглушка) -->
+<div class="card mb-4">
+    <div class="card-body">
+        <h5><i class="fas fa-share-alt me-2" style="color: #ff85b3;"></i>Ваша страница для записи</h5>
+        <div class="input-group">
+            <input type="text" class="form-control" id="publicLink" value="https://gdedakogda.ru/master/{{ master.slug }}" readonly>
+            <button class="btn btn-pink" type="button" onclick="copyPublicLink()">
+                <i class="fas fa-copy"></i> Копировать
+            </button>
+        </div>
+        <small class="text-muted">Отправьте эту ссылку клиентам, и они смогут записаться к вам</small>
+    </div>
+</div>
+
+<!-- Ближайшие записи -->
+<div class="card">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="fas fa-clock me-2" style="color: #ff85b3;"></i>Ближайшие записи</h5>
+    </div>
+    <div class="card-body">
+        {% if upcoming_bookings %}
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Время</th>
+                            <th>Клиент</th>
+                            <th>Услуга</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in upcoming_bookings %}
+                        <tr>
+                            <td>{{ booking.date|date:"d.m.Y" }}</td>
+                            <td>{{ booking.time|time:"H:i" }}</td>
+                            <td>{{ booking.client_name }}</td>
+                            <td>{{ booking.service.name }}</td>
+                            <td><span class="badge bg-success">Подтверждена</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p class="text-muted mb-0">Пока нет записей</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function copyPublicLink() {
+    var copyText = document.getElementById("publicLink");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(copyText.value);
+    alert("Ссылка скопирована!");
+}
+</script>
+{% endblock %}

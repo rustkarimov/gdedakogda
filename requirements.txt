@@ -1,0 +1,5 @@
+Django>=4.2,<5.0
+cryptography  # для шифрования
+python-dotenv  # для переменных окружения
+django-crispy-forms  # для красивых форм
+crispy-bootstrap5  # для Bootstrap 5

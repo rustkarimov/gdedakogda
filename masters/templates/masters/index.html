@@ -1,0 +1,72 @@
+{% extends 'masters/base.html' %}
+
+{% block title %}Где Да Когда - сервис для самозанятых мастеров{% endblock %}
+
+{% block content %}
+<div class="row min-vh-75 align-items-center">
+    <div class="col-lg-6">
+        <h1 class="display-4 fw-bold mb-4">Где Да Когда</h1>
+        <p class="lead mb-4">Сервис для самозанятых мастеров маникюра, парикмахеров, визажистов и других специалистов, работающих на дому.</p>
+        
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <div class="card p-3">
+                    <i class="fas fa-calendar-alt fa-2x mb-3" style="color: #ff85b3;"></i>
+                    <h5>Управляйте расписанием</h5>
+                    <p class="text-muted">Устанавливайте график работы, выходные дни и видите все записи</p>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="card p-3">
+                    <i class="fas fa-lock fa-2x mb-3" style="color: #ff85b3;"></i>
+                    <h5>Защита данных</h5>
+                    <p class="text-muted">Номера клиентов хранятся в зашифрованном виде</p>
+                </div>
+            </div>
+        </div>
+        
+        {% if not user.is_authenticated %}
+        <div class="mt-4">
+            <a href="{% url 'register' %}" class="btn btn-pink btn-lg me-3">Начать работу</a>
+            <a href="{% url 'login' %}" class="btn btn-outline-pink btn-lg">Войти</a>
+        </div>
+        {% endif %}
+    </div>
+    <div class="col-lg-6 text-center">
+        <img src="https://via.placeholder.com/500x400/f8f0ff/ff85b3?text=Где+Да+Когда" alt="Иллюстрация" class="img-fluid">
+    </div>
+</div>
+
+<div class="row mt-5 pt-5">
+    <div class="col-12 text-center mb-4">
+        <h2>Как это работает</h2>
+    </div>
+    <div class="col-md-4 text-center mb-4">
+        <div class="card p-4">
+            <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px;">
+                <span class="h2 mb-0" style="color: #ff85b3;">1</span>
+            </div>
+            <h5>Регистрация</h5>
+            <p class="text-muted">Создайте аккаунт и заполните свой профиль</p>
+        </div>
+    </div>
+    <div class="col-md-4 text-center mb-4">
+        <div class="card p-4">
+            <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px;">
+                <span class="h2 mb-0" style="color: #ff85b3;">2</span>
+            </div>
+            <h5>Настройка услуг</h5>
+            <p class="text-muted">Добавьте услуги, укажите цены и длительность (от 5 минут)</p>
+        </div>
+    </div>
+    <div class="col-md-4 text-center mb-4">
+        <div class="card p-4">
+            <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px;">
+                <span class="h2 mb-0" style="color: #ff85b3;">3</span>
+            </div>
+            <h5>Принимайте записи</h5>
+            <p class="text-muted">Отправьте клиентам ссылку и получайте бронирования</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

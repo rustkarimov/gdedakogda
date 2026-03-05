@@ -1,0 +1,70 @@
+
+{% extends 'masters/base.html' %}
+{% load custom_filters %}
+
+{% block title %}Расписание работы{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="far fa-calendar-alt me-2" style="color: #ff85b3;"></i>Расписание работы</h2>
+    <a href="{% url 'add_schedule' %}" class="btn btn-pink">
+        <i class="fas fa-plus me-1"></i>Добавить рабочий день
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Ваше регулярное расписание</h5>
+            </div>
+            <div class="card-body">
+                {% if schedules %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>День недели</th>
+                                    <th>Начало работы</th>
+                                    <th>Конец работы</th>
+                                    <th>Действия</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for schedule in schedules %}
+                                <tr>
+                                    <td><strong>{{ days|get_item:schedule.day_of_week }}</strong></td>
+                                    <td>{{ schedule.start_time|time:"H:i" }}</td>
+                                    <td>{{ schedule.end_time|time:"H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'delete_schedule' schedule.id %}" class="btn btn-sm btn-outline-danger" 
+                                           onclick="return confirm('Удалить расписание для этого дня?')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted mb-0">У вас пока нет настроенного расписания</p>
+                    <p class="text-muted small">Добавьте рабочие дни, чтобы клиенты могли записываться</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Подсказка</h5>
+            </div>
+            <div class="card-body">
+                <p><i class="fas fa-info-circle me-2" style="color: #ff85b3;"></i>Здесь вы настраиваете ваше <strong>регулярное</strong> расписание на неделю.</p>
+                <p class="mb-0">Для отгулов и отпусков используйте раздел <a href="{% url 'days_off' %}" style="color: #ff85b3;">Выходные дни</a>.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

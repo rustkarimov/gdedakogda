@@ -1,0 +1,143 @@
+:root {
+    --lavender: #f8f0ff;
+    --pink: #ff85b3;
+    --dark-pink: #ff6b9d;
+    --text-dark: #2d2d2d;
+    --text-light: #666;
+}
+
+body {
+    background-color: var(--lavender);
+    color: var(--text-dark);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    font-weight: 600;
+    font-size: 1.5rem;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-bottom: 20px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    background-color: white;
+    border-bottom: 2px solid var(--pink);
+    border-radius: 15px 15px 0 0 !important;
+    font-weight: 600;
+}
+
+.btn-pink {
+    background-color: var(--pink);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.btn-pink:hover {
+    background-color: var(--dark-pink);
+    color: white;
+}
+
+.btn-outline-pink {
+    border: 2px solid var(--pink);
+    color: var(--pink);
+    background: transparent;
+    padding: 8px 20px;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-outline-pink:hover {
+    background-color: var(--pink);
+    color: white;
+}
+
+.form-control, .form-select {
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    padding: 10px 15px;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--pink);
+    box-shadow: 0 0 0 0.2rem rgba(255, 133, 179, 0.25);
+}
+
+.dashboard-stat {
+    text-align: center;
+    padding: 20px;
+    background: white;
+    border-radius: 15px;
+}
+
+.dashboard-stat i {
+    font-size: 2.5rem;
+    color: var(--pink);
+    margin-bottom: 10px;
+}
+
+.dashboard-stat h3 {
+    font-size: 2rem;
+    margin-bottom: 5px;
+}
+
+.dashboard-stat p {
+    color: var(--text-light);
+    margin: 0;
+}
+
+.service-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.service-item:last-child {
+    border-bottom: none;
+}
+
+.service-duration {
+    background: var(--lavender);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+.service-price {
+    font-weight: 600;
+    color: var(--pink);
+    font-size: 1.2rem;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .dashboard-stat {
+        margin-bottom: 15px;
+    }
+    
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+}
