@@ -4,9 +4,15 @@ from . import views
 
 urlpatterns = [
     path('', views.home, name='home'),
+    
+    # Аутентификация
     path('login/', views.CustomLoginView.as_view(), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    path('register/', views.register, name='register'),
+    path('logout/', views.logout_view, name='logout'),
+    path('register/', views.register_step1, name='register'),
+    path('verify/', views.verify_phone, name='verify_phone'),
+    path('resend-code/', views.resend_code, name='resend_code'),
+
+    # Личный кабинет
     path('dashboard/', views.dashboard, name='dashboard'),
     path('profile/', views.profile, name='profile'),
     

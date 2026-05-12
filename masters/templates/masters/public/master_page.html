@@ -19,110 +19,108 @@
             </div>
         </div>
         
-        <!-- Выбор услуги -->
-        <div class="card mb-4">
-            <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="fas fa-cut me-2" style="color: #ff85b3;"></i>Выберите услугу</h5>
-            </div>
-            <div class="card-body">
-                <div class="row" id="services-list">
-                    {% for service in services %}
-                    <div class="col-md-6 mb-3">
-                        <div class="card service-card" 
-                             data-service-id="{{ service.id }}"
-                             data-service-duration="{{ service.duration }}"
-                             onclick="selectService(this)">
-                            <div class="card-body">
-                                <h6 class="card-title">{{ service.name }}</h6>
-                                <p class="card-text small text-muted">{{ service.description|truncatechars:50 }}</p>
-                                <div class="d-flex justify-content-between">
-                                    <span class="badge bg-light text-dark">
-                                        <i class="far fa-clock me-1"></i>{{ service.duration }} мин
-                                    </span>
-                                    <span class="fw-bold" style="color: #ff85b3;">{{ service.price }} ₽</span>
+        <!-- Контейнер для динамических блоков -->
+        <div id="booking-container">
+            <!-- Блок выбора услуги всегда виден -->
+            <div class="card mb-4" id="services-card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-cut me-2" style="color: #ff85b3;"></i>Шаг 1: Выберите услугу</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row" id="services-list">
+                        {% for service in services %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card service-card h-100" 
+                                 data-service-id="{{ service.id }}"
+                                 data-service-duration="{{ service.duration }}"
+                                 onclick="selectService(this)">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ service.name }}</h6>
+                                    <p class="card-text small text-muted">{{ service.description|truncatechars:50 }}</p>
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <span class="badge bg-light text-dark">
+                                            <i class="far fa-clock me-1"></i>{{ service.duration }} мин
+                                        </span>
+                                        <span class="fw-bold" style="color: #ff85b3;">{{ service.price }} ₽</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    {% empty %}
-                    <div class="col-12 text-center">
-                        <p class="text-muted">У мастера пока нет услуг</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-        
-        <!-- Выбор даты (появляется после выбора услуги) -->
-        <div class="card mb-4" id="date-section" style="display: none;">
-            <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="far fa-calendar-alt me-2" style="color: #ff85b3;"></i>Выберите дату</h5>
-            </div>
-            <div class="card-body">
-                <div class="row" id="dates-container">
-                    <!-- Даты будут подгружаться через JS -->
-                    <div class="col-12 text-center">
-                        <div class="spinner-border" style="color: #ff85b3;" role="status">
-                            <span class="visually-hidden">Загрузка...</span>
+                        {% empty %}
+                        <div class="col-12 text-center">
+                            <p class="text-muted">У мастера пока нет услуг</p>
                         </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Выбор времени (появляется после выбора даты) -->
-        <div class="card mb-4" id="time-section" style="display: none;">
-            <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="far fa-clock me-2" style="color: #ff85b3;"></i>Выберите время</h5>
-            </div>
-            <div class="card-body">
-                <div class="row" id="slots-container">
-                    <!-- Слоты будут подгружаться через JS -->
+            
+            <!-- Блок выбора даты (появляется после выбора услуги) -->
+            <div class="card mb-4" id="date-card" style="display: none;">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="far fa-calendar-alt me-2" style="color: #ff85b3;"></i>Шаг 2: Выберите дату</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row" id="dates-container">
+                        <!-- Даты будут подгружаться через JS -->
+                    </div>
                 </div>
             </div>
-        </div>
-        
-        <!-- Форма записи (появляется после выбора времени) -->
-        <div class="card mb-4" id="booking-form-section" style="display: none;">
-            <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="fas fa-pencil-alt me-2" style="color: #ff85b3;"></i>Ваши данные</h5>
+            
+            <!-- Блок выбора времени (появляется после выбора даты) -->
+            <div class="card mb-4" id="time-card" style="display: none;">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="far fa-clock me-2" style="color: #ff85b3;"></i>Шаг 3: Выберите время</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row" id="slots-container">
+                        <!-- Слоты будут подгружаться через JS -->
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <form id="booking-form">
-                    {% csrf_token %}
-                    <input type="hidden" id="selected-service-id" name="service_id">
-                    <input type="hidden" id="selected-date" name="date">
-                    <input type="hidden" id="selected-time" name="time">
-                    
-                    <div class="mb-3">
-                        <label for="client-name" class="form-label">Ваше имя</label>
-                        <input type="text" class="form-control" id="client-name" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="client-phone" class="form-label">Телефон</label>
-                        <input type="tel" class="form-control" id="client-phone" 
-                               placeholder="+7 (999) 123-45-67" required>
-                        <small class="text-muted">Номер будет виден только мастеру</small>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="client-comment" class="form-label">Комментарий (необязательно)</label>
-                        <textarea class="form-control" id="client-comment" rows="2"></textarea>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-pink w-100">Записаться</button>
-                </form>
+            
+            <!-- Блок формы записи (появляется после выбора времени) -->
+            <div class="card mb-4" id="booking-card" style="display: none;">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-pencil-alt me-2" style="color: #ff85b3;"></i>Шаг 4: Ваши данные</h5>
+                </div>
+                <div class="card-body">
+                    <form id="booking-form">
+                        {% csrf_token %}
+                        <input type="hidden" id="selected-service-id" name="service_id">
+                        <input type="hidden" id="selected-date" name="date">
+                        <input type="hidden" id="selected-time" name="time">
+                        
+                        <div class="mb-3">
+                            <label for="client-name" class="form-label">Ваше имя</label>
+                            <input type="text" class="form-control" id="client-name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="client-phone" class="form-label">Телефон</label>
+                            <input type="tel" class="form-control" id="client-phone" 
+                                   placeholder="+7 (999) 123-45-67" required>
+                            <small class="text-muted">Номер будет виден только мастеру</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="client-comment" class="form-label">Комментарий (необязательно)</label>
+                            <textarea class="form-control" id="client-comment" rows="2"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-pink w-100">Записаться</button>
+                    </form>
+                </div>
             </div>
-        </div>
-        
-        <!-- Подтверждение записи -->
-        <div class="card mb-4" id="confirmation-section" style="display: none;">
-            <div class="card-body text-center py-5">
-                <i class="fas fa-check-circle fa-4x mb-3" style="color: #28a745;"></i>
-                <h4>Запись подтверждена!</h4>
-                <p id="confirmation-details"></p>
-                <button class="btn btn-pink mt-3" onclick="resetBooking()">Записаться еще</button>
+            
+            <!-- Блок подтверждения -->
+            <div class="card mb-4" id="confirmation-card" style="display: none;">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-check-circle fa-4x mb-3" style="color: #28a745;"></i>
+                    <h4>Запись подтверждена!</h4>
+                    <p id="confirmation-details"></p>
+                    <button class="btn btn-pink mt-3" onclick="resetBooking()">Записаться еще</button>
+                </div>
             </div>
         </div>
     </div>
@@ -133,6 +131,14 @@ let selectedServiceId = null;
 let selectedDate = null;
 let selectedTime = null;
 let currentSlug = "{{ master.slug }}";
+
+// Плавный скролл к элементу
+function smoothScrollTo(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
 
 function selectService(element) {
     // Убираем выделение у всех карточек
@@ -145,10 +151,17 @@ function selectService(element) {
     
     selectedServiceId = element.dataset.serviceId;
     
-    // Показываем секцию с датами
-    document.getElementById('date-section').style.display = 'block';
-    document.getElementById('time-section').style.display = 'none';
-    document.getElementById('booking-form-section').style.display = 'none';
+    // Показываем блок с датами
+    const dateCard = document.getElementById('date-card');
+    dateCard.style.display = 'block';
+    
+    // Скрываем последующие блоки
+    document.getElementById('time-card').style.display = 'none';
+    document.getElementById('booking-card').style.display = 'none';
+    document.getElementById('confirmation-card').style.display = 'none';
+    
+    // Плавно скроллим к блоку с датами
+    setTimeout(() => smoothScrollTo('date-card'), 100);
     
     // Загружаем доступные даты
     loadAvailableDates();
@@ -171,11 +184,11 @@ function loadAvailableDates() {
                 let html = '';
                 data.dates.forEach(item => {
                     html += `
-                        <div class="col-md-4 col-6 mb-3">
-                            <div class="card date-card" 
+                        <div class="col-md-3 col-4 mb-3">
+                            <div class="card date-card text-center" 
                                  data-date="${item.date}"
-                                 onclick="selectDate('${item.date}')">
-                                <div class="card-body text-center">
+                                 onclick="selectDate('${item.date}', this)">
+                                <div class="card-body py-2">
                                     <div class="small text-muted">${item.day_of_week}</div>
                                     <div class="fw-bold">${item.display}</div>
                                 </div>
@@ -201,20 +214,27 @@ function loadAvailableDates() {
         });
 }
 
-function selectDate(date) {
+function selectDate(date, element) {
     // Убираем выделение у всех карточек дат
     document.querySelectorAll('.date-card').forEach(card => {
         card.classList.remove('border-pink', 'border-2');
     });
     
     // Выделяем выбранную
-    event.currentTarget.classList.add('border-pink', 'border-2');
+    element.classList.add('border-pink', 'border-2');
     
     selectedDate = date;
     
-    // Показываем секцию с временем
-    document.getElementById('time-section').style.display = 'block';
-    document.getElementById('booking-form-section').style.display = 'none';
+    // Показываем блок с временем
+    const timeCard = document.getElementById('time-card');
+    timeCard.style.display = 'block';
+    
+    // Скрываем блок формы
+    document.getElementById('booking-card').style.display = 'none';
+    document.getElementById('confirmation-card').style.display = 'none';
+    
+    // Плавно скроллим к блоку с временем
+    setTimeout(() => smoothScrollTo('time-card'), 100);
     
     // Загружаем свободные слоты
     loadAvailableSlots();
@@ -237,11 +257,11 @@ function loadAvailableSlots() {
                 let html = '';
                 data.slots.forEach(slot => {
                     html += `
-                        <div class="col-md-3 col-4 mb-3">
-                            <div class="card slot-card" 
+                        <div class="col-md-2 col-3 mb-3">
+                            <div class="card slot-card text-center" 
                                  data-time="${slot.start}"
-                                 onclick="selectTime('${slot.start}')">
-                                <div class="card-body text-center py-2">
+                                 onclick="selectTime('${slot.start}', this)">
+                                <div class="card-body py-2">
                                     ${slot.start}
                                 </div>
                             </div>
@@ -266,14 +286,14 @@ function loadAvailableSlots() {
         });
 }
 
-function selectTime(time) {
+function selectTime(time, element) {
     // Убираем выделение у всех карточек времени
     document.querySelectorAll('.slot-card').forEach(card => {
         card.classList.remove('border-pink', 'border-2', 'bg-light');
     });
     
     // Выделяем выбранную
-    event.currentTarget.classList.add('border-pink', 'border-2', 'bg-light');
+    element.classList.add('border-pink', 'border-2', 'bg-light');
     
     selectedTime = time;
     
@@ -282,8 +302,12 @@ function selectTime(time) {
     document.getElementById('selected-date').value = selectedDate;
     document.getElementById('selected-time').value = selectedTime;
     
-    // Показываем форму записи
-    document.getElementById('booking-form-section').style.display = 'block';
+    // Показываем блок с формой
+    const bookingCard = document.getElementById('booking-card');
+    bookingCard.style.display = 'block';
+    
+    // Плавно скроллим к блоку с формой
+    setTimeout(() => smoothScrollTo('booking-card'), 100);
 }
 
 // Обработка отправки формы
@@ -311,11 +335,14 @@ document.getElementById('booking-form').addEventListener('submit', function(e) {
     .then(data => {
         if (data.success) {
             // Показываем подтверждение
-            document.getElementById('booking-form-section').style.display = 'none';
-            document.getElementById('confirmation-section').style.display = 'block';
+            document.getElementById('booking-card').style.display = 'none';
+            document.getElementById('confirmation-card').style.display = 'block';
             document.getElementById('confirmation-details').innerHTML = 
                 `Вы записаны на ${data.booking.date} в ${data.booking.time}<br>
                  Услуга: ${data.booking.service}`;
+            
+            // Плавно скроллим к подтверждению
+            smoothScrollTo('confirmation-card');
         } else {
             alert('Ошибка: ' + data.error);
         }
@@ -326,43 +353,64 @@ document.getElementById('booking-form').addEventListener('submit', function(e) {
 });
 
 function resetBooking() {
-    // Сбрасываем все выделения
+    // Снимаем выделение с выбранной услуги
     document.querySelectorAll('.service-card').forEach(card => {
         card.classList.remove('border-pink', 'border-2');
     });
     
+    // Сбрасываем переменные
     selectedServiceId = null;
     selectedDate = null;
     selectedTime = null;
     
-    // Скрываем все секции кроме первой
-    document.getElementById('date-section').style.display = 'none';
-    document.getElementById('time-section').style.display = 'none';
-    document.getElementById('booking-form-section').style.display = 'none';
-    document.getElementById('confirmation-section').style.display = 'none';
+    // Скрываем все дополнительные блоки
+    document.getElementById('date-card').style.display = 'none';
+    document.getElementById('time-card').style.display = 'none';
+    document.getElementById('booking-card').style.display = 'none';
+    document.getElementById('confirmation-card').style.display = 'none';
     
     // Очищаем форму
     document.getElementById('booking-form').reset();
+    
+    // Плавно скроллим к услугам
+    smoothScrollTo('services-card');
 }
 </script>
 
 <style>
 .service-card, .date-card, .slot-card {
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
 }
 
 .service-card:hover, .date-card:hover, .slot-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(255, 133, 179, 0.2);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(255, 133, 179, 0.15);
 }
 
 .border-pink {
     border: 2px solid #ff85b3 !important;
+    background-color: #fff9fb !important;
 }
 
-.slot-card .card-body {
+.slot-card .card-body, .date-card .card-body {
     padding: 8px !important;
+}
+
+/* Анимация появления блоков */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#date-card, #time-card, #booking-card, #confirmation-card {
+    animation: fadeInUp 0.4s ease-out;
 }
 </style>
 {% endblock %}

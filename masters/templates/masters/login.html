@@ -14,8 +14,9 @@
                     {% csrf_token %}
                     
                     <div class="mb-3">
-                        <label for="id_username" class="form-label">Телефон или email</label>
-                        <input type="text" name="username" id="id_username" class="form-control" required>
+                        <label for="id_username" class="form-label">Номер телефона</label>
+                        <input type="tel" name="username" id="id_username" class="form-control" 
+                               placeholder="+7 (999) 123-45-67" required autofocus>
                     </div>
                     
                     <div class="mb-3">
@@ -34,3 +35,5 @@
     </div>
 </div>
 {% endblock %}
+
+

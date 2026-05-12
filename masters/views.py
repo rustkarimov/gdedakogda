@@ -1,56 +1,169 @@
+# from django.shortcuts import render, redirect, get_object_or_404
+# from django.contrib.auth import login, authenticate
+# from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+# from django.contrib.auth.decorators import login_required
+# from django.contrib import messages
+# from django.contrib.auth.views import LoginView
+# from django.urls import reverse_lazy
+# from .models import Master, Service, Booking, Schedule, DayOff
+# from django.contrib.auth.models import User
+# from django.utils import timezone
+# from datetime import datetime, time, timedelta
+
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
-from .models import Master, Service, Booking, Schedule, DayOff
-from django.contrib.auth.models import User
-from django.utils import timezone
-from datetime import datetime, time, timedelta
+from django.contrib.auth import logout as auth_logout
+from .models import Master, Service, Booking, Schedule, DayOff, PhoneVerification, CustomUser
+from .forms import PhoneRegistrationForm, PhoneVerificationForm
+import random
+from datetime import datetime, timedelta
 
-# Create your views here.
+# Регистрация шаг 1
+def register_step1(request):
+    if request.method == 'POST':
+        form = PhoneRegistrationForm(request.POST)
+        if form.is_valid():
+            request.session['registration_data'] = {
+                'phone': form.cleaned_data['phone'],
+                'first_name': form.cleaned_data.get('first_name', ''),
+                'last_name': form.cleaned_data.get('last_name', ''),
+                'password': form.cleaned_data['password'],
+            }
+            
+            verification_code = str(random.randint(100000, 999999))
+            
+            PhoneVerification.objects.create(
+                phone=form.cleaned_data['phone'],
+                code=verification_code
+            )
+            
+            request.session['test_code'] = verification_code
+            
+            return redirect('verify_phone')
+        else:
+            for error in form.non_field_errors():
+                messages.error(request, error)
+            for field, errors in form.errors.items():
+                if field != '__all__':
+                    for error in errors:
+                        messages.error(request, f'{error}')
+    else:
+        form = PhoneRegistrationForm()
+    
+    return render(request, 'masters/register_step1.html', {'form': form})
 
-def home(request):
-    """Главная страница"""
-    return render(request, 'masters/index.html')
+# Регистрация шаг 2 - подтверждение кода
+def verify_phone(request):
+    registration_data = request.session.get('registration_data')
+    if not registration_data:
+        return redirect('register')
+    
+    test_code = request.session.get('test_code')
+    
+    if request.method == 'POST':
+        form = PhoneVerificationForm(request.POST)
+        if form.is_valid():
+            code = form.cleaned_data['code']
+            
+            verification = PhoneVerification.objects.filter(
+                phone=registration_data['phone'],
+                code=code,
+                is_used=False
+            ).first()
+            
+            if verification or (test_code and code == test_code):
+                if verification:
+                    verification.is_used = True
+                    verification.save()
+                
+                user = CustomUser.objects.create_user(
+                    phone=registration_data['phone'],
+                    password=registration_data['password'],
+                    first_name=registration_data.get('first_name', ''),
+                    last_name=registration_data.get('last_name', '')
+                )
+                
+                Master.objects.create(
+                    user=user,
+                    phone=registration_data['phone'],
+                    first_name=registration_data.get('first_name', ''),
+                    last_name=registration_data.get('last_name', '')
+                )
+                
+                login(request, user)
+                
+                del request.session['registration_data']
+                if 'test_code' in request.session:
+                    del request.session['test_code']
+                
+                messages.success(request, 'Регистрация прошла успешно!')
+                return redirect('dashboard')
+            else:
+                messages.error(request, 'Неверный код подтверждения')
+        else:
+            messages.error(request, 'Введите код подтверждения')
+    else:
+        form = PhoneVerificationForm()
+    
+    return render(request, 'masters/verify_phone.html', {
+        'form': form,
+        'phone': registration_data['phone'],
+        'test_code': test_code
+    })
 
+# Повторная отправка кода
+def resend_code(request):
+    registration_data = request.session.get('registration_data')
+    if not registration_data:
+        return redirect('register')
+    
+    verification_code = str(random.randint(100000, 999999))
+    
+    PhoneVerification.objects.create(
+        phone=registration_data['phone'],
+        code=verification_code
+    )
+    
+    request.session['test_code'] = verification_code
+    
+    messages.success(request, 'Новый код отправлен!')
+    return redirect('verify_phone')
+
+# Кастомный вход
 class CustomLoginView(LoginView):
-    """Кастомная страница входа"""
     template_name = 'masters/login.html'
     redirect_authenticated_user = True
+    
+    def form_invalid(self, form):
+        messages.error(self.request, 'Неверный телефон или пароль')
+        return super().form_invalid(form)
     
     def get_success_url(self):
         return reverse_lazy('dashboard')
 
-def register(request):
-    """Регистрация нового мастера"""
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            # Автоматически логиним пользователя
-            login(request, user)
-            messages.success(request, 'Регистрация прошла успешно!')
-            return redirect('dashboard')
-        else:
-            messages.error(request, 'Исправьте ошибки в форме')
-    else:
-        form = UserCreationForm()
-    
-    return render(request, 'masters/register.html', {'form': form})
+# Выход
+def logout_view(request):
+    auth_logout(request)
+    messages.success(request, 'Вы вышли из системы')
+    return redirect('home')
 
+# Главная страница
+def home(request):
+    return render(request, 'masters/index.html')
+
+# Личный кабинет
 @login_required
 def dashboard(request):
-    """Личный кабинет мастера"""
     try:
         master = request.user.master
     except Master.DoesNotExist:
-        # Если по какой-то причине нет мастера, создаем
         master = Master.objects.create(user=request.user)
     
-    # Получаем статистику
     total_bookings = Booking.objects.filter(master=master).count()
     upcoming_bookings = Booking.objects.filter(
         master=master, 
@@ -67,43 +180,35 @@ def dashboard(request):
     }
     return render(request, 'masters/dashboard.html', context)
 
+# Профиль
 @login_required
 def profile(request):
-    """Редактирование профиля"""
     try:
         master = request.user.master
     except Master.DoesNotExist:
         master = Master.objects.create(user=request.user)
     
     if request.method == 'POST':
-        # Обновляем данные
         master.phone = request.POST.get('phone', '')
         master.first_name = request.POST.get('first_name', '')
         master.last_name = request.POST.get('last_name', '')
         master.bio = request.POST.get('bio', '')
         master.save()
         
-        # Обновляем имя пользователя в User
-        user = request.user
-        user.first_name = master.first_name
-        user.last_name = master.last_name
-        user.save()
-        
         messages.success(request, 'Профиль обновлен!')
         return redirect('profile')
     
     return render(request, 'masters/profile.html', {'master': master})
 
+# Услуги
 @login_required
 def services(request):
-    """Список услуг мастера"""
     master = request.user.master
     services_list = Service.objects.filter(master=master)
     return render(request, 'masters/services.html', {'services': services_list})
 
 @login_required
 def add_service(request):
-    """Добавление услуги"""
     if request.method == 'POST':
         master = request.user.master
         name = request.POST.get('name')
@@ -129,7 +234,6 @@ def add_service(request):
 
 @login_required
 def edit_service(request, service_id):
-    """Редактирование услуги"""
     service = get_object_or_404(Service, id=service_id, master=request.user.master)
     
     if request.method == 'POST':
@@ -145,11 +249,11 @@ def edit_service(request, service_id):
 
 @login_required
 def delete_service(request, service_id):
-    """Удаление услуги"""
     service = get_object_or_404(Service, id=service_id, master=request.user.master)
     service.delete()
     messages.success(request, 'Услуга удалена!')
     return redirect('services')
+
 
 @login_required
 def schedule(request):
@@ -157,31 +261,29 @@ def schedule(request):
     master = request.user.master
     schedules = Schedule.objects.filter(master=master).order_by('day_of_week')
     
-    # Словарь для названий дней недели
-    days = dict(Schedule.DAYS_OF_WEEK)
+    # Создаем словарь для дней недели
+    days_dict = dict(Schedule.DAYS_OF_WEEK)
     
     return render(request, 'masters/schedule.html', {
         'schedules': schedules,
-        'days': days
+        'days': days_dict  # передаем словарь в шаблон
     })
+
 
 @login_required
 def add_schedule(request):
-    """Добавление рабочего дня в расписание"""
     if request.method == 'POST':
         master = request.user.master
         day_of_week = request.POST.get('day_of_week')
         start_time = request.POST.get('start_time')
         end_time = request.POST.get('end_time')
         
-        # Проверяем, не существует ли уже запись для этого дня
         existing = Schedule.objects.filter(master=master, day_of_week=day_of_week).first()
         if existing:
             messages.error(request, 'Расписание для этого дня уже существует')
             return redirect('schedule')
         
         if day_of_week and start_time and end_time:
-            # Преобразуем строки времени в объекты time
             start = datetime.strptime(start_time, '%H:%M').time()
             end = datetime.strptime(end_time, '%H:%M').time()
             
@@ -201,18 +303,17 @@ def add_schedule(request):
 
 @login_required
 def delete_schedule(request, schedule_id):
-    """Удаление расписания"""
     schedule = get_object_or_404(Schedule, id=schedule_id, master=request.user.master)
     schedule.delete()
     messages.success(request, 'Расписание удалено')
     return redirect('schedule')
 
+# Выходные дни
 @login_required
 def days_off(request):
-    """Список выходных дней"""
     master = request.user.master
-    days_off_list = DayOff.objects.filter(master=master, date__gte=timezone.now().date()).order_by('date')
-    past_days_off = DayOff.objects.filter(master=master, date__lt=timezone.now().date()).order_by('-date')[:5]
+    days_off_list = DayOff.objects.filter(master=master, date__gte=datetime.now().date()).order_by('date')
+    past_days_off = DayOff.objects.filter(master=master, date__lt=datetime.now().date()).order_by('-date')[:5]
     
     return render(request, 'masters/days_off.html', {
         'days_off': days_off_list,
@@ -221,7 +322,6 @@ def days_off(request):
 
 @login_required
 def add_day_off(request):
-    """Добавление выходного дня"""
     if request.method == 'POST':
         master = request.user.master
         date_str = request.POST.get('date')
@@ -230,7 +330,6 @@ def add_day_off(request):
         if date_str:
             date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
             
-            # Проверяем, не выходной ли уже этот день
             existing = DayOff.objects.filter(master=master, date=date_obj).first()
             if existing:
                 messages.error(request, 'Этот день уже отмечен как выходной')
@@ -251,7 +350,6 @@ def add_day_off(request):
 
 @login_required
 def delete_day_off(request, dayoff_id):
-    """Удаление выходного дня"""
     day_off = get_object_or_404(DayOff, id=dayoff_id, master=request.user.master)
     day_off.delete()
     messages.success(request, 'Выходной день удален')

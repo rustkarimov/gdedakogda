@@ -5,23 +5,55 @@ from cryptography.fernet import Fernet
 import os
 import base64  # тоже может пригодиться
 
+from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.base_user import BaseUserManager
+from django.utils.text import slugify
+from cryptography.fernet import Fernet
+import random
+
+# Кастомный менеджер пользователей
+class CustomUserManager(BaseUserManager):
+    def create_user(self, phone, password=None, **extra_fields):
+        if not phone:
+            raise ValueError('Телефон обязателен')
+        user = self.model(phone=phone, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+    
+    def create_superuser(self, phone, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(phone, password, **extra_fields)
+
+# Кастомная модель пользователя (вход по телефону)
+class CustomUser(AbstractUser):
+    username = None
+    phone = models.CharField(max_length=20, unique=True, verbose_name="Телефон")
+    
+    USERNAME_FIELD = 'phone'
+    REQUIRED_FIELDS = []
+    
+    objects = CustomUserManager()
+    
+    class Meta:
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
+    
+    def __str__(self):
+        return self.phone
+
+# Модель мастера
 class Master(models.Model):
-    """
-    Модель самозанятого мастера (не салон!)
-    """
-    user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name="Пользователь")
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, verbose_name="Пользователь")
     phone = models.CharField(max_length=20, verbose_name="Телефон мастера")
-    # Убираем salon_name, оставляем только личное
     first_name = models.CharField(max_length=50, verbose_name="Имя", blank=True)
     last_name = models.CharField(max_length=50, verbose_name="Фамилия", blank=True)
     bio = models.TextField(verbose_name="О себе", blank=True)
     
-    # Ключ шифрования
     encryption_key = models.BinaryField(verbose_name="Ключ шифрования", null=True, blank=True, editable=False)
-    
-    # Slug для публичной ссылки (например, /master/ivanov/)
-    slug = models.SlugField(unique=True, verbose_name="Ссылка", blank=True) 
-    
+    slug = models.SlugField(unique=True, verbose_name="Ссылка", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -30,43 +62,45 @@ class Master(models.Model):
         verbose_name_plural = "Самозанятые мастера"
     
     def __str__(self):
-        return f"{self.first_name} {self.last_name}".strip() or self.user.username
+        return f"{self.first_name} {self.last_name}".strip() or self.user.phone
     
     def save(self, *args, **kwargs):
-    # Автоматическое создание slug, если его нет
         if not self.slug:
-            # Берем username как основу
-            base_slug = slugify(self.user.username)
+            base_slug = slugify(self.user.phone)
             slug = base_slug
             counter = 1
-            # Проверяем уникальность
             while Master.objects.filter(slug=slug).exclude(pk=self.pk).exists():
                 slug = f"{base_slug}-{counter}"
                 counter += 1
             self.slug = slug
         
-        # Если нет ключа шифрования - генерируем
         if not self.encryption_key:
             self.generate_encryption_key()
             
-        try:
-            super().save(*args, **kwargs)
-        except Exception as e:
-            print(f"Ошибка при сохранении мастера: {e}")
-            raise
+        super().save(*args, **kwargs)
     
     def generate_encryption_key(self):
-        """Генерирует ключ шифрования для мастера"""
         key = Fernet.generate_key()
         self.encryption_key = key
         return key
     
     def get_encryption_key(self):
-        """Возвращает ключ шифрования"""
         return self.encryption_key
 
     
-
+# Модель для кодов подтверждения
+class PhoneVerification(models.Model):
+    phone = models.CharField(max_length=20, verbose_name="Телефон")
+    code = models.CharField(max_length=6, verbose_name="Код подтверждения")
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+    
+    class Meta:
+        verbose_name = "Код подтверждения"
+        verbose_name_plural = "Коды подтверждения"
+    
+    def __str__(self):
+        return f"{self.phone} - {self.code}"
 
 class Service(models.Model):
     """
