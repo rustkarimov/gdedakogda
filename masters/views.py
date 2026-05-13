@@ -1,16 +1,3 @@
-# from django.shortcuts import render, redirect, get_object_or_404
-# from django.contrib.auth import login, authenticate
-# from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-# from django.contrib.auth.decorators import login_required
-# from django.contrib import messages
-# from django.contrib.auth.views import LoginView
-# from django.urls import reverse_lazy
-# from .models import Master, Service, Booking, Schedule, DayOff
-# from django.contrib.auth.models import User
-# from django.utils import timezone
-# from datetime import datetime, time, timedelta
-
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
@@ -18,10 +5,20 @@ from django.contrib import messages
 from django.contrib.auth.views import LoginView
 from django.urls import reverse_lazy
 from django.contrib.auth import logout as auth_logout
-from .models import Master, Service, Booking, Schedule, DayOff, PhoneVerification, CustomUser
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from .models import Master, Service, Booking, Schedule, DayOff, PhoneVerification, CustomUser, Break
 from .forms import PhoneRegistrationForm, PhoneVerificationForm
+from .utils.schedule_utils import ScheduleCalculator
+from datetime import datetime, timedelta, date
 import random
-from datetime import datetime, timedelta
+import json
+
+# В начале файла добавь импорты
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+import json
 
 # Регистрация шаг 1
 def register_step1(request):
@@ -180,6 +177,37 @@ def dashboard(request):
     }
     return render(request, 'masters/dashboard.html', context)
 
+@login_required
+def get_calendar_schedule(request):
+    """API для получения расписания мастера для календаря"""
+    master = request.user.master
+    
+    # Получаем регулярное расписание
+    schedules = Schedule.objects.filter(master=master)
+    schedules_data = {}
+    for schedule in schedules:
+        schedules_data[schedule.day_of_week] = {
+            'start': schedule.start_time.strftime('%H:%M'),
+            'end': schedule.end_time.strftime('%H:%M'),
+            'breaks': [{
+                'start': b.start_time.strftime('%H:%M'),
+                'end': b.end_time.strftime('%H:%M')
+            } for b in schedule.breaks.all()]
+        }
+    
+    # Получаем выходные дни (только будущие)
+    days_off = DayOff.objects.filter(
+        master=master,
+        date__gte=date.today()
+    ).values_list('date', flat=True)
+    
+    days_off_list = [d.strftime('%Y-%m-%d') for d in days_off]
+    
+    return JsonResponse({
+        'schedules': schedules_data,
+        'days_off': days_off_list
+    })
+
 # Профиль
 @login_required
 def profile(request):
@@ -257,63 +285,265 @@ def delete_service(request, service_id):
 
 @login_required
 def schedule(request):
-    """Настройка регулярного расписания"""
+    """Настройка регулярного расписания (AJAX версия)"""
     master = request.user.master
     schedules = Schedule.objects.filter(master=master).order_by('day_of_week')
     
-    # Создаем словарь для дней недели
-    days_dict = dict(Schedule.DAYS_OF_WEEK)
-    
     return render(request, 'masters/schedule.html', {
         'schedules': schedules,
-        'days': days_dict  # передаем словарь в шаблон
     })
 
 
 @login_required
-def add_schedule(request):
-    if request.method == 'POST':
-        master = request.user.master
-        day_of_week = request.POST.get('day_of_week')
-        start_time = request.POST.get('start_time')
-        end_time = request.POST.get('end_time')
-        
-        existing = Schedule.objects.filter(master=master, day_of_week=day_of_week).first()
-        if existing:
-            messages.error(request, 'Расписание для этого дня уже существует')
-            return redirect('schedule')
-        
-        if day_of_week and start_time and end_time:
-            start = datetime.strptime(start_time, '%H:%M').time()
-            end = datetime.strptime(end_time, '%H:%M').time()
-            
-            Schedule.objects.create(
-                master=master,
-                day_of_week=day_of_week,
-                start_time=start,
-                end_time=end
-            )
-            messages.success(request, 'Расписание добавлено')
-        else:
-            messages.error(request, 'Заполните все поля')
-        
-        return redirect('schedule')
-    
-    return render(request, 'masters/add_schedule.html')
-
-@login_required
 def delete_schedule(request, schedule_id):
+    """Удаление расписания"""
     schedule = get_object_or_404(Schedule, id=schedule_id, master=request.user.master)
     schedule.delete()
     messages.success(request, 'Расписание удалено')
     return redirect('schedule')
 
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+import json
+
+@login_required
+@require_http_methods(["POST"])
+def api_add_schedule(request):
+    """API добавления расписания"""
+    master = request.user.master
+    data = json.loads(request.body)
+    
+    day_of_week = data.get('day_of_week')
+    start_time = data.get('start_time')
+    end_time = data.get('end_time')
+    breaks = data.get('breaks', [])
+    
+    # Проверяем, не существует ли уже
+    if Schedule.objects.filter(master=master, day_of_week=day_of_week).exists():
+        return JsonResponse({'error': 'Расписание для этого дня уже существует'}, status=400)
+    
+    # Создаем расписание
+    schedule = Schedule.objects.create(
+        master=master,
+        day_of_week=day_of_week,
+        start_time=datetime.strptime(start_time, '%H:%M').time(),
+        end_time=datetime.strptime(end_time, '%H:%M').time()
+    )
+    
+    # Добавляем перерывы
+    for break_data in breaks:
+        if break_data.get('start') and break_data.get('end'):
+            Break.objects.create(
+                schedule=schedule,
+                start_time=datetime.strptime(break_data['start'], '%H:%M').time(),
+                end_time=datetime.strptime(break_data['end'], '%H:%M').time()
+            )
+    
+    return JsonResponse({
+        'success': True,
+        'message': 'Расписание добавлено',
+        'schedule': {
+            'id': schedule.id,
+            'day_of_week': schedule.day_of_week,
+            'day_name': schedule.get_day_of_week_display(),
+            'start_time': schedule.start_time.strftime('%H:%M'),
+            'end_time': schedule.end_time.strftime('%H:%M'),
+            'breaks': [{
+                'start': b.start_time.strftime('%H:%M'),
+                'end': b.end_time.strftime('%H:%M')
+            } for b in schedule.breaks.all()]
+        }
+    })
+
+@login_required
+@require_http_methods(["POST"])
+def api_edit_schedule(request, schedule_id):
+    """API редактирования расписания"""
+    schedule = get_object_or_404(Schedule, id=schedule_id, master=request.user.master)
+    data = json.loads(request.body)
+    
+    start_time = data.get('start_time')
+    end_time = data.get('end_time')
+    breaks = data.get('breaks', [])
+    
+    # Обновляем основные часы
+    if start_time and end_time:
+        schedule.start_time = datetime.strptime(start_time, '%H:%M').time()
+        schedule.end_time = datetime.strptime(end_time, '%H:%M').time()
+        schedule.save()
+    
+    # Обновляем перерывы
+    schedule.breaks.all().delete()
+    for break_data in breaks:
+        if break_data.get('start') and break_data.get('end'):
+            Break.objects.create(
+                schedule=schedule,
+                start_time=datetime.strptime(break_data['start'], '%H:%M').time(),
+                end_time=datetime.strptime(break_data['end'], '%H:%M').time()
+            )
+    
+    return JsonResponse({
+        'success': True,
+        'message': 'Расписание обновлено',
+        'schedule': {
+            'id': schedule.id,
+            'day_of_week': schedule.day_of_week,
+            'day_name': schedule.get_day_of_week_display(),
+            'start_time': schedule.start_time.strftime('%H:%M'),
+            'end_time': schedule.end_time.strftime('%H:%M'),
+            'breaks': [{
+                'start': b.start_time.strftime('%H:%M'),
+                'end': b.end_time.strftime('%H:%M')
+            } for b in schedule.breaks.all()]
+        }
+    })
+
+@login_required
+@require_http_methods(["POST"])
+def api_delete_schedule(request, schedule_id):
+    """API удаления расписания"""
+    schedule = get_object_or_404(Schedule, id=schedule_id, master=request.user.master)
+    schedule.delete()
+    
+    return JsonResponse({
+        'success': True,
+        'message': 'Расписание удалено'
+    })
+
+
+@login_required
+def add_manual_booking(request):
+    """Ручное добавление записи мастером"""
+    master = request.user.master
+    
+    if request.method == 'POST':
+        client_name = request.POST.get('client_name')
+        client_phone = request.POST.get('client_phone')
+        service_id = request.POST.get('service')
+        date_str = request.POST.get('date')
+        time_str = request.POST.get('time')
+        comment = request.POST.get('comment', '')
+        
+        if not all([client_name, client_phone, service_id, date_str, time_str]):
+            messages.error(request, 'Заполните все обязательные поля')
+            return redirect('add_manual_booking')
+        
+        service = get_object_or_404(Service, id=service_id, master=master)
+        booking_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        booking_time = datetime.strptime(time_str, '%H:%M').time()
+        
+        # Проверяем, не занято ли время
+        calculator = ScheduleCalculator(master)
+        slots = calculator.generate_time_slots(booking_date, service.duration)
+        
+        is_available = any(slot['start'] == time_str for slot in slots)
+        if not is_available and not request.POST.get('force', False):
+            messages.error(request, 'Это время уже занято. Нажмите "Записать принудительно", чтобы подтвердить.')
+            return redirect('add_manual_booking')
+        
+        # Шифруем телефон (пока временно)
+        encrypted_phone = client_phone.encode()
+        
+        booking = Booking.objects.create(
+            master=master,
+            service=service,
+            client_name=client_name,
+            encrypted_phone=encrypted_phone,
+            client_comment=comment,
+            date=booking_date,
+            time=booking_time,
+            status='confirmed'
+        )
+        
+        messages.success(request, f'Запись для {client_name} добавлена!')
+        return redirect('dashboard')
+    
+    # GET запрос - показываем форму
+    services = Service.objects.filter(master=master, is_active=True)
+    today = date.today()
+    
+    return render(request, 'masters/add_manual_booking.html', {
+        'services': services,
+        'today': today,
+        'master': master
+    })
+
+@login_required
+def get_booking_slots_for_master(request):
+    """API для получения слотов при ручном добавлении"""
+    master = request.user.master
+    service_id = request.GET.get('service_id')
+    date_str = request.GET.get('date')
+    
+    if not service_id or not date_str:
+        return JsonResponse({'error': 'Не указаны параметры'}, status=400)
+    
+    try:
+        service = Service.objects.get(id=service_id, master=master)
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except (Service.DoesNotExist, ValueError):
+        return JsonResponse({'error': 'Неверные параметры'}, status=404)
+    
+    calculator = ScheduleCalculator(master)
+    slots = calculator.generate_time_slots(target_date, service.duration)
+    
+    return JsonResponse({'slots': slots})
+
 # Выходные дни
+# @login_required
+# def days_off(request):
+#     master = request.user.master
+#     days_off_list = DayOff.objects.filter(master=master, date__gte=datetime.now().date()).order_by('date')
+#     past_days_off = DayOff.objects.filter(master=master, date__lt=datetime.now().date()).order_by('-date')[:5]
+    
+#     return render(request, 'masters/days_off.html', {
+#         'days_off': days_off_list,
+#         'past_days_off': past_days_off
+#     })
+
+# @login_required
+# def add_day_off(request):
+#     if request.method == 'POST':
+#         master = request.user.master
+#         date_str = request.POST.get('date')
+#         reason = request.POST.get('reason', '')
+        
+#         if date_str:
+#             date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
+            
+#             existing = DayOff.objects.filter(master=master, date=date_obj).first()
+#             if existing:
+#                 messages.error(request, 'Этот день уже отмечен как выходной')
+#                 return redirect('days_off')
+            
+#             DayOff.objects.create(
+#                 master=master,
+#                 date=date_obj,
+#                 reason=reason
+#             )
+#             messages.success(request, 'Выходной день добавлен')
+#         else:
+#             messages.error(request, 'Выберите дату')
+        
+#         return redirect('days_off')
+    
+#     return render(request, 'masters/add_day_off.html')
+
+# @login_required
+# def delete_day_off(request, dayoff_id):
+#     day_off = get_object_or_404(DayOff, id=dayoff_id, master=request.user.master)
+#     day_off.delete()
+#     messages.success(request, 'Выходной день удален')
+#     return redirect('days_off')
+
+
+
 @login_required
 def days_off(request):
+    """Страница выходных дней (AJAX версия)"""
     master = request.user.master
-    days_off_list = DayOff.objects.filter(master=master, date__gte=datetime.now().date()).order_by('date')
-    past_days_off = DayOff.objects.filter(master=master, date__lt=datetime.now().date()).order_by('-date')[:5]
+    days_off_list = DayOff.objects.filter(master=master, date__gte=date.today()).order_by('date')
+    past_days_off = DayOff.objects.filter(master=master, date__lt=date.today()).order_by('-date')[:5]
     
     return render(request, 'masters/days_off.html', {
         'days_off': days_off_list,
@@ -321,39 +551,53 @@ def days_off(request):
     })
 
 @login_required
-def add_day_off(request):
-    if request.method == 'POST':
-        master = request.user.master
-        date_str = request.POST.get('date')
-        reason = request.POST.get('reason', '')
-        
-        if date_str:
-            date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
-            
-            existing = DayOff.objects.filter(master=master, date=date_obj).first()
-            if existing:
-                messages.error(request, 'Этот день уже отмечен как выходной')
-                return redirect('days_off')
-            
-            DayOff.objects.create(
-                master=master,
-                date=date_obj,
-                reason=reason
-            )
-            messages.success(request, 'Выходной день добавлен')
-        else:
-            messages.error(request, 'Выберите дату')
-        
-        return redirect('days_off')
+@require_http_methods(["POST"])
+def api_add_day_off(request):
+    """API добавления выходного дня"""
+    master = request.user.master
+    data = json.loads(request.body)
     
-    return render(request, 'masters/add_day_off.html')
+    date_str = data.get('date')
+    reason = data.get('reason', '')
+    
+    if not date_str:
+        return JsonResponse({'error': 'Выберите дату'}, status=400)
+    
+    target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    
+    # Проверяем на дубликат
+    if DayOff.objects.filter(master=master, date=target_date).exists():
+        return JsonResponse({'error': 'Этот день уже отмечен как выходной'}, status=400)
+    
+    day_off = DayOff.objects.create(
+        master=master,
+        date=target_date,
+        reason=reason
+    )
+    
+    return JsonResponse({
+        'success': True,
+        'message': 'Выходной день добавлен',
+        'day_off': {
+            'id': day_off.id,
+            'date': day_off.date.strftime('%d.%m.%Y'),
+            'date_iso': day_off.date.isoformat(),
+            'weekday': day_off.date.strftime('%A'),
+            'reason': day_off.reason
+        }
+    })
 
 @login_required
-def delete_day_off(request, dayoff_id):
+@require_http_methods(["POST"])
+def api_delete_day_off(request, dayoff_id):
+    """API удаления выходного дня"""
     day_off = get_object_or_404(DayOff, id=dayoff_id, master=request.user.master)
     day_off.delete()
-    messages.success(request, 'Выходной день удален')
-    return redirect('days_off')
+    
+    return JsonResponse({
+        'success': True,
+        'message': 'Выходной день удален'
+    })
 
 
 

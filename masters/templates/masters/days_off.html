@@ -5,9 +5,9 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="fas fa-umbrella-beach me-2" style="color: #ff85b3;"></i>Выходные дни</h2>
-    <a href="{% url 'add_day_off' %}" class="btn btn-pink">
+    <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#dayOffModal" onclick="openAddDayOffModal()">
         <i class="fas fa-plus me-1"></i>Добавить выходной
-    </a>
+    </button>
 </div>
 
 <div class="row">
@@ -18,37 +18,9 @@
                 <h5 class="mb-0">Предстоящие выходные</h5>
             </div>
             <div class="card-body">
-                {% if days_off %}
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Дата</th>
-                                    <th>День недели</th>
-                                    <th>Причина</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for day in days_off %}
-                                <tr>
-                                    <td>{{ day.date|date:"d.m.Y" }}</td>
-                                    <td>{{ day.date|date:"l" }}</td>
-                                    <td>{{ day.reason|default:"-" }}</td>
-                                    <td>
-                                        <a href="{% url 'delete_day_off' day.id %}" class="btn btn-sm btn-outline-danger"
-                                           onclick="return confirm('Удалить этот выходной день?')">
-                                            <i class="fas fa-trash"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <p class="text-muted mb-0">Нет предстоящих выходных</p>
-                {% endif %}
+                <div id="upcoming-days-container">
+                    {% include 'masters/_days_off_list.html' with days_off=days_off %}
+                </div>
             </div>
         </div>
         
@@ -62,17 +34,11 @@
                 <div class="table-responsive">
                     <table class="table table-sm">
                         <thead>
-                            <tr>
-                                <th>Дата</th>
-                                <th>Причина</th>
-                            </tr>
+                            <tr><th>Дата</th><th>Причина</th></tr>
                         </thead>
                         <tbody>
                             {% for day in past_days_off %}
-                            <tr>
-                                <td>{{ day.date|date:"d.m.Y" }}</td>
-                                <td>{{ day.reason|default:"-" }}</td>
-                            </tr>
+                            <tr><td>{{ day.date|date:"d.m.Y" }}</td><td>{{ day.reason|default:"-" }}</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
@@ -88,16 +54,101 @@
                 <h5 class="mb-0">О выходных</h5>
             </div>
             <div class="card-body">
-                <p><i class="fas fa-info-circle me-2" style="color: #ff85b3;"></i>Здесь вы отмечаете дни, когда <strong>не работаете</strong>:</p>
-                <ul class="list-unstyled">
-                    <li><i class="fas fa-check me-2 text-success"></i>Отпуск</li>
-                    <li><i class="fas fa-check me-2 text-success"></i>Больничный</li>
-                    <li><i class="fas fa-check me-2 text-success"></i>Личные дела</li>
-                    <li><i class="fas fa-check me-2 text-success"></i>Праздники</li>
+                <p><i class="fas fa-info-circle me-2" style="color: #ff85b3;"></i>Отмечайте дни, когда не работаете:</p>
+                <ul>
+                    <li>Отпуск</li>
+                    <li>Больничный</li>
+                    <li>Личные дела</li>
+                    <li>Праздники</li>
                 </ul>
-                <p class="mb-0 text-muted small">В эти дни клиенты не смогут записаться.</p>
+                <p class="text-muted small">В эти дни клиенты не смогут записаться.</p>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Модальное окно для добавления выходного -->
+<div class="modal fade" id="dayOffModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить выходной день</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="dayOffForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Дата</label>
+                        <input type="date" class="form-control" id="dayOffDate" 
+                               min="{{ today|date:'Y-m-d' }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Причина (необязательно)</label>
+                        <input type="text" class="form-control" id="dayOffReason" 
+                               placeholder="Например: Отпуск, больничный">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-pink" onclick="saveDayOff()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openAddDayOffModal() {
+    document.getElementById('dayOffForm').reset();
+}
+
+function saveDayOff() {
+    const date = document.getElementById('dayOffDate').value;
+    const reason = document.getElementById('dayOffReason').value;
+    
+    if (!date) {
+        alert('Выберите дату');
+        return;
+    }
+    
+    fetch('/api/days-off/add/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ date: date, reason: reason })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('dayOffModal')).hide();
+            location.reload(); // Простая перезагрузка, можно сделать динамическую
+        } else {
+            alert(data.error);
+        }
+    });
+}
+
+function deleteDayOff(id) {
+    if (confirm('Удалить этот выходной день?')) {
+        fetch(`/api/days-off/${id}/delete/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.error);
+            }
+        });
+    }
+}
+</script>
 {% endblock %}

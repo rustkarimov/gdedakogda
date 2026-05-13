@@ -1,0 +1,308 @@
+{% extends 'masters/base.html' %}
+{% load static %}
+
+{% block title %}Добавить запись вручную{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-pen-alt me-2" style="color: #ff85b3;"></i>
+                    Добавить запись вручную
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Используйте эту форму, если клиент записался по телефону или лично.
+                </div>
+            </div>
+        </div>
+        
+        <!-- Контейнер для динамических блоков (как у клиента) -->
+        <div id="booking-container">
+            <!-- Шаг 1: Выбор услуги -->
+            <div class="card mb-4" id="step-services">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-cut me-2" style="color: #ff85b3;"></i>Шаг 1: Выберите услугу</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row" id="services-list">
+                        {% for service in services %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card service-card h-100" 
+                                 data-service-id="{{ service.id }}"
+                                 data-service-duration="{{ service.duration }}"
+                                 onclick="selectService(this)">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ service.name }}</h6>
+                                    <p class="card-text small text-muted">{{ service.description|truncatechars:50 }}</p>
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <span class="badge bg-light text-dark">
+                                            <i class="far fa-clock me-1"></i>{{ service.duration }} мин
+                                        </span>
+                                        <span class="fw-bold" style="color: #ff85b3;">{{ service.price }} ₽</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12 text-center">
+                            <p class="text-muted">У вас пока нет услуг. <a href="{% url 'services' %}">Добавьте услугу</a></p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Шаг 2: Выбор даты -->
+            <div class="card mb-4" id="step-dates" style="display: none;">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="far fa-calendar-alt me-2" style="color: #ff85b3;"></i>Шаг 2: Выберите дату</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row" id="dates-container"></div>
+                </div>
+            </div>
+            
+            <!-- Шаг 3: Выбор времени -->
+            <div class="card mb-4" id="step-times" style="display: none;">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="far fa-clock me-2" style="color: #ff85b3;"></i>Шаг 3: Выберите время</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row" id="slots-container"></div>
+                </div>
+            </div>
+            
+            <!-- Шаг 4: Данные клиента -->
+            <div class="card mb-4" id="step-form" style="display: none;">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-pencil-alt me-2" style="color: #ff85b3;"></i>Шаг 4: Данные клиента</h5>
+                </div>
+                <div class="card-body">
+                    <form id="manual-booking-form">
+                        {% csrf_token %}
+                        <input type="hidden" id="selected-service-id" name="service_id">
+                        <input type="hidden" id="selected-date" name="date">
+                        <input type="hidden" id="selected-time" name="time">
+                        
+                        <div class="mb-3">
+                            <label for="client-name" class="form-label">Имя клиента <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="client-name" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="client-phone" class="form-label">Телефон клиента <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="client-phone" 
+                                   placeholder="+7 (999) 123-45-67" required>
+                            <small class="text-muted">Номер будет зашифрован</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="client-comment" class="form-label">Комментарий</label>
+                            <textarea class="form-control" id="client-comment" rows="2" 
+                                      placeholder="Дополнительная информация"></textarea>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="force-booking">
+                            <label class="form-check-label" for="force-booking">
+                                Записать принудительно (даже если время занято)
+                            </label>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-pink">Добавить запись</button>
+                            <a href="{% url 'dashboard' %}" class="btn btn-outline-pink">Отмена</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedServiceId = null;
+let selectedDate = null;
+let selectedTime = null;
+let historyStack = [];
+
+function showStep(stepId) {
+    const steps = ['services', 'dates', 'times', 'form'];
+    steps.forEach(step => {
+        const element = document.getElementById(`step-${step}`);
+        if (element) element.style.display = 'none';
+    });
+    
+    const currentStep = document.getElementById(`step-${stepId}`);
+    if (currentStep) currentStep.style.display = 'block';
+    
+    document.getElementById('booking-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function selectService(element) {
+    document.querySelectorAll('.service-card').forEach(card => {
+        card.classList.remove('border-pink', 'border-2');
+    });
+    element.classList.add('border-pink', 'border-2');
+    
+    selectedServiceId = element.dataset.serviceId;
+    historyStack = ['services'];
+    showStep('dates');
+    loadAvailableDates();
+}
+
+function loadAvailableDates() {
+    const datesContainer = document.getElementById('dates-container');
+    datesContainer.innerHTML = `<div class="col-12 text-center"><div class="spinner-border" style="color: #ff85b3;"></div></div>`;
+    
+    fetch(`/api/master/{{ master.slug }}/dates/?service_id=${selectedServiceId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.dates && data.dates.length > 0) {
+                let html = '';
+                data.dates.forEach(item => {
+                    html += `
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="card date-card text-center" data-date="${item.date}" onclick="selectDate('${item.date}', this)">
+                                <div class="card-body py-2">
+                                    <div class="small text-muted">${item.day_of_week}</div>
+                                    <div class="fw-bold">${item.display}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                datesContainer.innerHTML = html;
+            } else {
+                datesContainer.innerHTML = `<div class="col-12 text-center"><p class="text-muted">Нет свободных дат</p></div>`;
+            }
+        });
+}
+
+function selectDate(date, element) {
+    document.querySelectorAll('.date-card').forEach(card => {
+        card.classList.remove('border-pink', 'border-2');
+    });
+    element.classList.add('border-pink', 'border-2');
+    
+    selectedDate = date;
+    historyStack.push('dates');
+    showStep('times');
+    loadAvailableSlots();
+}
+
+function loadAvailableSlots() {
+    const slotsContainer = document.getElementById('slots-container');
+    slotsContainer.innerHTML = `<div class="col-12 text-center"><div class="spinner-border" style="color: #ff85b3;"></div></div>`;
+    
+    fetch(`/api/master/{{ master.slug }}/slots/?service_id=${selectedServiceId}&date=${selectedDate}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.slots && data.slots.length > 0) {
+                let html = '';
+                data.slots.forEach(slot => {
+                    html += `
+                        <div class="col-md-2 col-3 mb-3">
+                            <div class="card slot-card text-center" data-time="${slot.start}" onclick="selectTime('${slot.start}', this)">
+                                <div class="card-body py-2">${slot.start}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                slotsContainer.innerHTML = html;
+            } else {
+                slotsContainer.innerHTML = `<div class="col-12 text-center"><p class="text-muted">Нет свободного времени</p></div>`;
+            }
+        });
+}
+
+function selectTime(time, element) {
+    document.querySelectorAll('.slot-card').forEach(card => {
+        card.classList.remove('border-pink', 'border-2', 'bg-light');
+    });
+    element.classList.add('border-pink', 'border-2', 'bg-light');
+    
+    selectedTime = time;
+    historyStack.push('times');
+    
+    document.getElementById('selected-service-id').value = selectedServiceId;
+    document.getElementById('selected-date').value = selectedDate;
+    document.getElementById('selected-time').value = selectedTime;
+    
+    showStep('form');
+}
+
+document.getElementById('manual-booking-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const clientName = document.getElementById('client-name').value.trim();
+    const clientPhone = document.getElementById('client-phone').value.trim();
+    const force = document.getElementById('force-booking').checked;
+    
+    if (!clientName || !clientPhone) {
+        alert('Заполните имя и телефон клиента');
+        return;
+    }
+    
+    const formData = {
+        service_id: selectedServiceId,
+        client_name: clientName,
+        client_phone: clientPhone,
+        date: selectedDate,
+        time: selectedTime,
+        comment: document.getElementById('client-comment').value,
+        force: force
+    };
+    
+    fetch(`/api/master/{{ master.slug }}/book/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Запись добавлена!');
+            window.location.href = "{% url 'dashboard' %}";
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Произошла ошибка');
+    });
+});
+</script>
+
+<style>
+.service-card, .date-card, .slot-card {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.service-card:hover, .date-card:hover, .slot-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(255, 133, 179, 0.15);
+}
+.border-pink {
+    border: 2px solid #ff85b3 !important;
+    background-color: #fff9fb !important;
+}
+.btn-outline-pink {
+    border: 1px solid #ff85b3;
+    color: #ff85b3;
+    background: transparent;
+}
+.btn-outline-pink:hover {
+    background-color: #ff85b3;
+    color: white;
+}
+</style>
+{% endblock %}

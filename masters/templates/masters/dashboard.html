@@ -6,6 +6,9 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="fas fa-tachometer-alt me-2" style="color: #ff85b3;"></i>Личный кабинет</h2>
     <div>
+        <a href="{% url 'add_manual_booking' %}" class="btn btn-outline-pink me-2">
+            <i class="fas fa-pen-alt me-1"></i>Добавить запись вручную
+        </a>
         <a href="{% url 'profile' %}" class="btn btn-outline-pink me-2">
             <i class="fas fa-user-edit me-1"></i>Профиль
         </a>
@@ -40,12 +43,14 @@
     </div>
 </div>
 
-<!-- Ваша ссылка для клиентов (пока заглушка) -->
+<!-- Ваша ссылка -->
 <div class="card mb-4">
     <div class="card-body">
         <h5><i class="fas fa-share-alt me-2" style="color: #ff85b3;"></i>Ваша страница для записи</h5>
         <div class="input-group">
-            <input type="text" class="form-control" id="publicLink" value="https://gdedakogda.ru/master/{{ master.slug }}" readonly>
+            <input type="text" class="form-control" id="publicLink" 
+                   value="{{ request.scheme }}://{{ request.get_host }}{% url 'master_public' master.slug %}" 
+                   readonly>
             <button class="btn btn-pink" type="button" onclick="copyPublicLink()">
                 <i class="fas fa-copy"></i> Копировать
             </button>
@@ -55,7 +60,7 @@
 </div>
 
 <!-- Ближайшие записи -->
-<div class="card">
+<div class="card mb-4">
     <div class="card-header bg-white">
         <h5 class="mb-0"><i class="fas fa-clock me-2" style="color: #ff85b3;"></i>Ближайшие записи</h5>
     </div>
@@ -64,13 +69,7 @@
             <div class="table-responsive">
                 <table class="table">
                     <thead>
-                        <tr>
-                            <th>Дата</th>
-                            <th>Время</th>
-                            <th>Клиент</th>
-                            <th>Услуга</th>
-                            <th>Статус</th>
-                        </tr>
+                        <tr><th>Дата</th><th>Время</th><th>Клиент</th><th>Услуга</th><th>Статус</th></tr>
                     </thead>
                     <tbody>
                         {% for booking in upcoming_bookings %}
@@ -91,13 +90,212 @@
     </div>
 </div>
 
+<!-- Календарь с рабочими часами -->
+<div class="card">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="far fa-calendar-alt me-2" style="color: #ff85b3;"></i>Ваше рабочее расписание</h5>
+    </div>
+    <div class="card-body">
+        <div class="text-center mb-3">
+            <button class="btn btn-sm btn-outline-pink" onclick="changeMonth(-1)">←</button>
+            <span class="mx-3 fw-bold" id="current-month"></span>
+            <button class="btn btn-sm btn-outline-pink" onclick="changeMonth(1)">→</button>
+        </div>
+        <div id="calendar-grid"></div>
+        <div class="mt-3 small text-muted text-center">
+            <span class="badge bg-success me-2">Рабочий день</span>
+            <span class="badge bg-secondary me-2">Выходной</span>
+            <span class="badge bg-warning text-dark">Есть перерыв</span>
+        </div>
+    </div>
+</div>
+
 <script>
 function copyPublicLink() {
-    var copyText = document.getElementById("publicLink");
+    const copyText = document.getElementById("publicLink");
     copyText.select();
     copyText.setSelectionRange(0, 99999);
     navigator.clipboard.writeText(copyText.value);
     alert("Ссылка скопирована!");
 }
+
+// Календарь с рабочими часами
+let currentDate = new Date();
+
+function changeMonth(delta) {
+    currentDate.setMonth(currentDate.getMonth() + delta);
+    loadCalendar();
+}
+
+function loadCalendar() {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startWeekday = firstDay.getDay();
+    
+    const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+    document.getElementById('current-month').innerText = `${monthNames[month]} ${year}`;
+    
+    // Получаем расписание мастера
+    fetch(`/api/schedule/calendar/`)
+        .then(response => response.json())
+        .then(data => {
+            let html = '<div class="calendar-weekdays">';
+            ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].forEach(day => {
+                html += `<div class="calendar-weekday">${day}</div>`;
+            });
+            html += '</div><div class="calendar-dates">';
+            
+            // Пустые ячейки до первого дня
+            let adjustedStartWeekday = startWeekday === 0 ? 6 : startWeekday - 1;
+            for (let i = 0; i < adjustedStartWeekday; i++) {
+                html += '<div class="calendar-date empty"></div>';
+            }
+            
+            // Дни месяца
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const dayOfWeek = new Date(year, month, d).getDay();
+                const dayOfWeekAdjusted = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+                
+                const schedule = data.schedules ? data.schedules[dayOfWeekAdjusted] : null;
+                const isDayOff = data.days_off ? data.days_off.includes(dateStr) : false;
+                
+                let statusClass = '';
+                let statusText = '';
+                let tooltip = '';
+                
+                if (isDayOff) {
+                    statusClass = 'day-off';
+                    statusText = 'Выходной';
+                    tooltip = 'Выходной день';
+                } else if (schedule) {
+                    statusClass = 'working';
+                    const hasBreak = schedule.breaks && schedule.breaks.length > 0;
+                    if (hasBreak) {
+                        statusClass = 'working-with-break';
+                        tooltip = `${schedule.start} - ${schedule.end}\nПерерывы: ${schedule.breaks.map(b => `${b.start}-${b.end}`).join(', ')}`;
+                    } else {
+                        tooltip = `${schedule.start} - ${schedule.end}`;
+                    }
+                    statusText = `${schedule.start} - ${schedule.end}`;
+                } else {
+                    statusClass = 'day-off';
+                    statusText = 'Выходной';
+                    tooltip = 'Выходной день';
+                }
+                
+                const isToday = new Date().toDateString() === new Date(year, month, d).toDateString();
+                const todayClass = isToday ? 'today' : '';
+                
+                html += `<div class="calendar-date ${statusClass} ${todayClass}" title="${tooltip}">
+                            ${d}
+                            <div class="calendar-time">${statusText}</div>
+                        </div>`;
+            }
+            
+            html += '</div>';
+            document.getElementById('calendar-grid').innerHTML = html;
+        });
+}
+
+loadCalendar();
 </script>
+
+<style>
+.dashboard-stat {
+    text-align: center;
+    padding: 20px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.dashboard-stat i {
+    font-size: 2.5rem;
+    color: #ff85b3;
+    margin-bottom: 10px;
+}
+.dashboard-stat h3 {
+    font-size: 2rem;
+    margin-bottom: 5px;
+}
+
+.btn-outline-pink {
+    border: 1px solid #ff85b3;
+    color: #ff85b3;
+    background: transparent;
+}
+.btn-outline-pink:hover {
+    background-color: #ff85b3;
+    color: white;
+}
+
+/* Стили для календаря */
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+    text-align: center;
+}
+.calendar-weekday {
+    font-weight: 600;
+    padding: 8px;
+    background-color: #f8f0ff;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+.calendar-dates {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+.calendar-date {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 10px 5px;
+    text-align: center;
+    min-height: 70px;
+    position: relative;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+.calendar-date.empty {
+    background-color: transparent;
+    min-height: auto;
+}
+.calendar-date.working {
+    background-color: #d4edda;
+    border: 1px solid #28a745;
+}
+.calendar-date.working-with-break {
+    background-color: #fff3cd;
+    border: 1px solid #ffc107;
+}
+.calendar-date.day-off {
+    background-color: #f8d7da;
+    border: 1px solid #dc3545;
+    opacity: 0.6;
+}
+.calendar-date.today {
+    border: 2px solid #ff85b3;
+    box-shadow: 0 0 0 2px rgba(255, 133, 179, 0.3);
+}
+.calendar-time {
+    font-size: 0.7rem;
+    margin-top: 5px;
+    color: #666;
+    font-weight: normal;
+    word-break: break-word;
+}
+.calendar-date.working .calendar-time {
+    color: #155724;
+}
+.calendar-date.working-with-break .calendar-time {
+    color: #856404;
+}
+</style>
 {% endblock %}

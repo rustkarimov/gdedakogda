@@ -15,6 +15,8 @@ urlpatterns = [
     # Личный кабинет
     path('dashboard/', views.dashboard, name='dashboard'),
     path('profile/', views.profile, name='profile'),
+
+    path('api/schedule/calendar/', views.get_calendar_schedule, name='api_calendar_schedule'),
     
     # Услуги
     path('services/', views.services, name='services'),
@@ -24,13 +26,26 @@ urlpatterns = [
     
     # Расписание
     path('schedule/', views.schedule, name='schedule'),
-    path('schedule/add/', views.add_schedule, name='add_schedule'),
     path('schedule/<int:schedule_id>/delete/', views.delete_schedule, name='delete_schedule'),
+
+    # API для расписания (AJAX)
+    path('api/schedule/add/', views.api_add_schedule, name='api_add_schedule'),
+    path('api/schedule/<int:schedule_id>/edit/', views.api_edit_schedule, name='api_edit_schedule'),
+    path('api/schedule/<int:schedule_id>/delete/', views.api_delete_schedule, name='api_delete_schedule'),
+    
+    # Ручное добавление записи
+    path('add-booking/', views.add_manual_booking, name='add_manual_booking'),
+    path('api/get-slots/', views.get_booking_slots_for_master, name='api_get_slots'),
     
     # Выходные дни
+    # path('days-off/', views.days_off, name='days_off'),
+    # path('days-off/add/', views.add_day_off, name='add_day_off'),
+    # path('days-off/<int:dayoff_id>/delete/', views.delete_day_off, name='delete_day_off'),
+
+    # Выходные дни (заменяем старые URL на API)
     path('days-off/', views.days_off, name='days_off'),
-    path('days-off/add/', views.add_day_off, name='add_day_off'),
-    path('days-off/<int:dayoff_id>/delete/', views.delete_day_off, name='delete_day_off'),
+    path('api/days-off/add/', views.api_add_day_off, name='api_add_day_off'),
+    path('api/days-off/<int:dayoff_id>/delete/', views.api_delete_day_off, name='api_delete_day_off'),
 
     # Публичная страница мастера
     path('master/<slug:slug>/', views.master_public_page, name='master_public'),

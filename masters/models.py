@@ -149,6 +149,18 @@ class Schedule(models.Model):
     def __str__(self):
         return f"{self.get_day_of_week_display()}: {self.start_time} - {self.end_time}"
 
+class Break(models.Model):
+    """Перерыв в рабочем дне"""
+    schedule = models.ForeignKey(Schedule, on_delete=models.CASCADE, related_name='breaks')
+    start_time = models.TimeField(verbose_name="Начало перерыва")
+    end_time = models.TimeField(verbose_name="Конец перерыва")
+    
+    class Meta:
+        verbose_name = "Перерыв"
+        verbose_name_plural = "Перерывы"
+    
+    def __str__(self):
+        return f"{self.start_time} - {self.end_time}"
 
 class DayOff(models.Model):
     """

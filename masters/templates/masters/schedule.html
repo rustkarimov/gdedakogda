@@ -1,15 +1,13 @@
-
 {% extends 'masters/base.html' %}
-{% load custom_filters %}
 
 {% block title %}Расписание работы{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="far fa-calendar-alt me-2" style="color: #ff85b3;"></i>Расписание работы</h2>
-    <a href="{% url 'add_schedule' %}" class="btn btn-pink">
+    <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#scheduleModal" onclick="openAddModal()">
         <i class="fas fa-plus me-1"></i>Добавить рабочий день
-    </a>
+    </button>
 </div>
 
 <div class="row">
@@ -19,38 +17,9 @@
                 <h5 class="mb-0">Ваше регулярное расписание</h5>
             </div>
             <div class="card-body">
-                {% if schedules %}
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>День недели</th>
-                                    <th>Начало работы</th>
-                                    <th>Конец работы</th>
-                                    <th>Действия</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for schedule in schedules %}
-                                <tr>
-                                    <td><strong>{{ days|get_item:schedule.day_of_week }}</strong></td>
-                                    <td>{{ schedule.start_time|time:"H:i" }}</td>
-                                    <td>{{ schedule.end_time|time:"H:i" }}</td>
-                                    <td>
-                                        <a href="{% url 'delete_schedule' schedule.id %}" class="btn btn-sm btn-outline-danger" 
-                                           onclick="return confirm('Удалить расписание для этого дня?')">
-                                            <i class="fas fa-trash"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <p class="text-muted mb-0">У вас пока нет настроенного расписания</p>
-                    <p class="text-muted small">Добавьте рабочие дни, чтобы клиенты могли записываться</p>
-                {% endif %}
+                <div id="schedules-container">
+                    {% include 'masters/_schedules_list.html' %}
+                </div>
             </div>
         </div>
     </div>
@@ -61,10 +30,266 @@
                 <h5 class="mb-0">Подсказка</h5>
             </div>
             <div class="card-body">
-                <p><i class="fas fa-info-circle me-2" style="color: #ff85b3;"></i>Здесь вы настраиваете ваше <strong>регулярное</strong> расписание на неделю.</p>
+                <p><i class="fas fa-info-circle me-2" style="color: #ff85b3;"></i>Вы можете добавить <strong>несколько перерывов</strong> в течение дня.</p>
                 <p class="mb-0">Для отгулов и отпусков используйте раздел <a href="{% url 'days_off' %}" style="color: #ff85b3;">Выходные дни</a>.</p>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Модальное окно для добавления/редактирования -->
+<div class="modal fade" id="scheduleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Добавить рабочий день</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="scheduleForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="scheduleId" name="schedule_id">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">День недели</label>
+                        <select class="form-select" id="dayOfWeek" required>
+                            <option value="">Выберите день</option>
+                            <option value="0">Понедельник</option>
+                            <option value="1">Вторник</option>
+                            <option value="2">Среда</option>
+                            <option value="3">Четверг</option>
+                            <option value="4">Пятница</option>
+                            <option value="5">Суббота</option>
+                            <option value="6">Воскресенье</option>
+                        </select>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Начало работы</label>
+                            <input type="time" class="form-control" id="startTime" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Конец работы</label>
+                            <input type="time" class="form-control" id="endTime" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Перерывы</label>
+                        <div id="breaksContainer">
+                            <div class="break-item row mb-2">
+                                <div class="col-md-5">
+                                    <input type="time" class="form-control break-start" placeholder="Начало">
+                                </div>
+                                <div class="col-md-5">
+                                    <input type="time" class="form-control break-end" placeholder="Конец">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-danger btn-sm remove-break" style="display: none;">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-pink mt-2" onclick="addBreakField()">
+                            <i class="fas fa-plus me-1"></i>Добавить перерыв
+                        </button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-pink" onclick="saveSchedule()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let editingId = null;
+
+function openAddModal() {
+    editingId = null;
+    document.getElementById('modalTitle').innerText = 'Добавить рабочий день';
+    document.getElementById('scheduleForm').reset();
+    document.getElementById('dayOfWeek').disabled = false;
+    document.getElementById('scheduleId').value = '';
+    
+    // Сброс перерывов
+    const container = document.getElementById('breaksContainer');
+    container.innerHTML = `
+        <div class="break-item row mb-2">
+            <div class="col-md-5">
+                <input type="time" class="form-control break-start" placeholder="Начало">
+            </div>
+            <div class="col-md-5">
+                <input type="time" class="form-control break-end" placeholder="Конец">
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-danger btn-sm remove-break" style="display: none;">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+function editSchedule(button) {
+    const id = button.dataset.id;
+    const dayOfWeek = button.dataset.day;
+    const dayName = button.dataset.dayName;
+    const startTime = button.dataset.start;
+    const endTime = button.dataset.end;
+    let breaks = [];
+    
+    try {
+        breaks = JSON.parse(button.dataset.breaks);
+    } catch(e) {
+        breaks = [];
+    }
+    
+    editingId = id;
+    document.getElementById('modalTitle').innerText = `Редактировать расписание - ${dayName}`;
+    document.getElementById('scheduleId').value = id;
+    document.getElementById('dayOfWeek').value = dayOfWeek;
+    document.getElementById('dayOfWeek').disabled = true;
+    document.getElementById('startTime').value = startTime;
+    document.getElementById('endTime').value = endTime;
+    
+    // Заполняем перерывы
+    const container = document.getElementById('breaksContainer');
+    container.innerHTML = '';
+    
+    if (breaks.length === 0) {
+        addBreakField();
+    } else {
+        breaks.forEach(breakItem => {
+            addBreakField(breakItem.start, breakItem.end);
+        });
+    }
+    
+    new bootstrap.Modal(document.getElementById('scheduleModal')).show();
+}
+
+function addBreakField(start = '', end = '') {
+    const container = document.getElementById('breaksContainer');
+    const breakDiv = document.createElement('div');
+    breakDiv.className = 'break-item row mb-2';
+    breakDiv.innerHTML = `
+        <div class="col-md-5">
+            <input type="time" class="form-control break-start" value="${start}" placeholder="Начало">
+        </div>
+        <div class="col-md-5">
+            <input type="time" class="form-control break-end" value="${end}" placeholder="Конец">
+        </div>
+        <div class="col-md-2">
+            <button type="button" class="btn btn-danger btn-sm remove-break" onclick="this.closest('.break-item').remove()">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+    container.appendChild(breakDiv);
+}
+
+function saveSchedule() {
+    const id = document.getElementById('scheduleId').value;
+    const dayOfWeek = document.getElementById('dayOfWeek').value;
+    const startTime = document.getElementById('startTime').value;
+    const endTime = document.getElementById('endTime').value;
+    
+    if (!dayOfWeek || !startTime || !endTime) {
+        alert('Заполните все обязательные поля');
+        return;
+    }
+    
+    // Собираем перерывы
+    const breaks = [];
+    document.querySelectorAll('.break-item').forEach(item => {
+        const start = item.querySelector('.break-start').value;
+        const end = item.querySelector('.break-end').value;
+        if (start && end) {
+            breaks.push({ start, end });
+        }
+    });
+    
+    const url = id ? `/api/schedule/${id}/edit/` : '/api/schedule/add/';
+    const data = { day_of_week: dayOfWeek, start_time: startTime, end_time: endTime, breaks: breaks };
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('scheduleModal')).hide();
+            loadSchedules();
+        } else {
+            alert(data.error || 'Ошибка при сохранении');
+        }
+    })
+    .catch(error => {
+        alert('Произошла ошибка');
+    });
+}
+
+function deleteSchedule(id, dayName) {
+    if (confirm(`Удалить расписание для ${dayName}?`)) {
+        fetch(`/api/schedule/${id}/delete/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadSchedules();
+            } else {
+                alert(data.error || 'Ошибка при удалении');
+            }
+        });
+    }
+}
+
+function loadSchedules() {
+    fetch('/schedule/')
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newList = doc.getElementById('schedules-container').innerHTML;
+            document.getElementById('schedules-container').innerHTML = newList;
+        });
+}
+</script>
+
+<style>
+.btn-outline-pink {
+    border: 1px solid #ff85b3;
+    color: #ff85b3;
+    background: transparent;
+}
+
+.btn-outline-pink:hover {
+    background-color: #ff85b3;
+    color: white;
+}
+
+.btn-pink {
+    background-color: #ff85b3;
+    color: white;
+}
+
+.btn-pink:hover {
+    background-color: #e06e9e;
+    color: white;
+}
+</style>
 {% endblock %}
