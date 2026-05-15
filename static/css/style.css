@@ -141,3 +141,488 @@ body {
         font-size: 1.2rem;
     }
 }
+
+
+/* ========== НОВАЯ ГЛАВНАЯ СТРАНИЦА (стиль Figma/Miro) ========== */
+
+/* Hero секция с градиентом */
+.hero-section {
+    background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 50%, #4C1D95 100%);
+    position: relative;
+    overflow: hidden;
+    color: white;
+}
+
+.hero-wave {
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    line-height: 0;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #FFFFFF 0%, #E9D5FF 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.hero-description {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    opacity: 0.95;
+    line-height: 1.6;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.btn-primary-gradient {
+    background: linear-gradient(135deg, #F59E0B, #D97706);
+    border: none;
+    color: white;
+    padding: 12px 32px;
+    border-radius: 100px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
+}
+
+.btn-primary-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 35px -5px rgba(0,0,0,0.3);
+    color: white;
+}
+
+.btn-outline-light {
+    border: 2px solid rgba(255,255,255,0.5);
+    background: transparent;
+    color: white;
+    padding: 10px 28px;
+    border-radius: 100px;
+    font-weight: 500;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.btn-outline-light:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: white;
+    color: white;
+}
+
+.hero-stats {
+    display: flex;
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-number {
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    opacity: 0.8;
+}
+
+/* Hero изображение с плавающими карточками */
+.hero-image {
+    position: relative;
+}
+
+.floating-image {
+    animation: float 3s ease-in-out infinite;
+    filter: drop-shadow(0 20px 25px -5px rgba(0,0,0,0.2));
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+.floating-card {
+    position: absolute;
+    background: white;
+    padding: 10px 18px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #1f2937;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+    animation: floatCard 4s ease-in-out infinite;
+}
+
+.card-1 {
+    top: 20%;
+    right: 0;
+    animation-delay: 0s;
+}
+
+.card-2 {
+    bottom: 20%;
+    left: 0;
+    animation-delay: 1s;
+}
+
+.card-1 i, .card-2 i {
+    color: #8B5CF6;
+}
+
+@keyframes floatCard {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+}
+
+/* Секция с преимуществами */
+.features-grid {
+    margin: 4rem 0;
+}
+
+.feature-card {
+    background: white;
+    padding: 2rem 1.5rem;
+    border-radius: 24px;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -12px rgba(139, 92, 246, 0.15);
+    border-color: rgba(139, 92, 246, 0.2);
+}
+
+.feature-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    font-size: 28px;
+}
+
+.feature-icon.purple {
+    background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+    color: white;
+}
+
+.feature-icon.pink {
+    background: linear-gradient(135deg, #FF85B3, #FF6B9D);
+    color: white;
+}
+
+.feature-icon.blue {
+    background: linear-gradient(135deg, #3B82F6, #1E40AF);
+    color: white;
+}
+
+.feature-icon.green {
+    background: linear-gradient(135deg, #10B981, #047857);
+    color: white;
+}
+
+.feature-card h4 {
+    font-size: 1.3rem;
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+}
+
+.feature-card p {
+    color: #6b7280;
+    line-height: 1.5;
+}
+
+/* Секция профессий */
+.professions-section {
+    background: #faf5ff;
+    padding: 5rem 0;
+    margin: 3rem 0;
+}
+
+.profession-card {
+    background: white;
+    padding: 1.5rem 0.5rem;
+    text-align: center;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 1px solid rgba(139, 92, 246, 0.1);
+}
+
+.profession-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px -12px rgba(139, 92, 246, 0.2);
+    border-color: #8B5CF6;
+}
+
+.profession-emoji {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.profession-card span {
+    font-weight: 500;
+    color: #374151;
+}
+
+/* Секция "Как это работает" */
+.steps-row {
+    position: relative;
+    margin: 4rem 0;
+}
+
+.step-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 24px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+    border: 1px solid rgba(139, 92, 246, 0.1);
+    transition: all 0.3s ease;
+}
+
+.step-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -12px rgba(139, 92, 246, 0.15);
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+    color: white;
+    border-radius: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin: 0 auto 1rem;
+}
+
+.step-icon {
+    font-size: 2.5rem;
+    color: #8B5CF6;
+    margin-bottom: 1rem;
+}
+
+.step-card h4 {
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+}
+
+.step-card p {
+    color: #6b7280;
+    margin: 0;
+}
+
+.step-arrow {
+    font-size: 2rem;
+    color: #8B5CF6;
+    display: flex;
+    justify-content: center;
+    margin: 1rem 0;
+}
+
+@media (min-width: 768px) {
+    .step-arrow {
+        position: absolute;
+        right: -2rem;
+        top: 50%;
+        transform: translateY(-50%);
+        margin: 0;
+    }
+    .col-md-4:last-child .step-arrow {
+        display: none;
+    }
+}
+
+/* Тарифы */
+.pricing-section {
+    background: linear-gradient(135deg, #1E1B4B, #2E1065);
+    padding: 5rem 0;
+    margin: 3rem 0 0;
+}
+
+.pricing-card {
+    background: white;
+    border-radius: 28px;
+    padding: 2rem;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.pricing-card.popular {
+    transform: scale(1.05);
+    box-shadow: 0 25px 40px -12px rgba(0,0,0,0.3);
+}
+
+.popular-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #F59E0B, #D97706);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 100px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.pricing-badge {
+    display: inline-block;
+    background: #f3e8ff;
+    color: #6D28D9;
+    padding: 5px 12px;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.pricing-card h3 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.pricing-price {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #8B5CF6;
+    margin-bottom: 1.5rem;
+}
+
+.pricing-price span {
+    font-size: 1rem;
+    font-weight: 400;
+    color: #6b7280;
+}
+
+.pricing-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2rem 0;
+}
+
+.pricing-features li {
+    padding: 0.6rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #374151;
+}
+
+.pricing-features li i.fa-check {
+    color: #10B981;
+    width: 20px;
+}
+
+.pricing-features li i.fa-times {
+    color: #EF4444;
+    width: 20px;
+}
+
+.pricing-features li.disabled {
+    color: #9CA3AF;
+}
+
+.btn-outline-pricing {
+    border: 2px solid #E5E7EB;
+    background: transparent;
+    padding: 12px;
+    border-radius: 100px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-pricing:hover {
+    border-color: #8B5CF6;
+    background: #faf5ff;
+}
+
+/* CTA секция */
+.cta-section {
+    background: #faf5ff;
+    padding: 5rem 0;
+}
+
+/* Общие стили */
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #1f2937, #4B5563);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.section-subtitle {
+    font-size: 1.1rem;
+    color: #6b7280;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 2.2rem;
+    }
+    
+    .hero-description {
+        font-size: 1rem;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+    }
+    
+    .hero-buttons .btn {
+        width: 100%;
+    }
+    
+    .pricing-card.popular {
+        transform: scale(1);
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
+    }
+    
+    .step-arrow {
+        display: none;
+    }
+    
+    .hero-stats {
+        justify-content: center;
+    }
+}
