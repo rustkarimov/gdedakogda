@@ -179,6 +179,36 @@ class DayOff(models.Model):
         return f"{self.date}: {self.reason or 'Выходной'}"
 
 
+class ExtraWorkingDay(models.Model):
+    """Дополнительный рабочий день (вне регулярного расписания)"""
+    master = models.ForeignKey(Master, on_delete=models.CASCADE, related_name='extra_days')
+    date = models.DateField(verbose_name="Дата")
+    start_time = models.TimeField(verbose_name="Начало работы")
+    end_time = models.TimeField(verbose_name="Конец работы")
+    
+    class Meta:
+        verbose_name = "Дополнительный рабочий день"
+        verbose_name_plural = "Дополнительные рабочие дни"
+        unique_together = ['master', 'date']
+    
+    def __str__(self):
+        return f"{self.date}: {self.start_time} - {self.end_time}"
+
+
+class ExtraWorkingDayBreak(models.Model):
+    """Перерыв в дополнительном рабочем дне"""
+    extra_day = models.ForeignKey(ExtraWorkingDay, on_delete=models.CASCADE, related_name='breaks')
+    start_time = models.TimeField(verbose_name="Начало перерыва")
+    end_time = models.TimeField(verbose_name="Конец перерыва")
+    
+    class Meta:
+        verbose_name = "Перерыв (доп. день)"
+        verbose_name_plural = "Перерывы (доп. дни)"
+    
+    def __str__(self):
+        return f"{self.start_time} - {self.end_time}"
+
+
 class Booking(models.Model):
     """
     Запись клиента

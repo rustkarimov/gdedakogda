@@ -8,17 +8,24 @@ from django.contrib.auth import logout as auth_logout
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from .models import Master, Service, Booking, Schedule, DayOff, PhoneVerification, CustomUser, Break
+from .models import Master, Service, Booking, Schedule, DayOff, PhoneVerification, CustomUser, Break, ExtraWorkingDay, ExtraWorkingDayBreak
 from .forms import PhoneRegistrationForm, PhoneVerificationForm
 from .utils.schedule_utils import ScheduleCalculator
 from datetime import datetime, timedelta, date
 import random
 import json
 
-# В начале файла добавь импорты
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
-import json
+
+def get_weekday_ru(date_obj):
+    weekdays = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
+    return weekdays[date_obj.weekday()]
+
+def get_month_ru(date_obj):
+    months = [
+        'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+        'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+    ]
+    return months[date_obj.month - 1]
 
 # Регистрация шаг 1
 def register_step1(request):
@@ -179,7 +186,7 @@ def dashboard(request):
 
 @login_required
 def get_calendar_schedule(request):
-    """API для получения расписания мастера для календаря"""
+    """API для получения расписания мастера для календаря (с учетом доп. дней)"""
     master = request.user.master
     
     # Получаем регулярное расписание
@@ -195,18 +202,65 @@ def get_calendar_schedule(request):
             } for b in schedule.breaks.all()]
         }
     
-    # Получаем выходные дни (только будущие)
+    # Получаем выходные дни
     days_off = DayOff.objects.filter(
         master=master,
         date__gte=date.today()
     ).values_list('date', flat=True)
-    
     days_off_list = [d.strftime('%Y-%m-%d') for d in days_off]
+    
+    # Получаем дополнительные рабочие дни
+    extra_days = ExtraWorkingDay.objects.filter(
+        master=master,
+        date__gte=date.today()
+    )
+    extra_days_data = {}
+    for day in extra_days:
+        extra_days_data[day.date.strftime('%Y-%m-%d')] = {
+            'start': day.start_time.strftime('%H:%M'),
+            'end': day.end_time.strftime('%H:%M'),
+            'breaks': [{
+                'start': b.start_time.strftime('%H:%M'),
+                'end': b.end_time.strftime('%H:%M')
+            } for b in day.breaks.all()]
+        }
     
     return JsonResponse({
         'schedules': schedules_data,
-        'days_off': days_off_list
+        'days_off': days_off_list,
+        'extra_days': extra_days_data
     })
+
+# @login_required
+# def get_calendar_schedule(request):
+#     """API для получения расписания мастера для календаря"""
+#     master = request.user.master
+    
+#     # Получаем регулярное расписание
+#     schedules = Schedule.objects.filter(master=master)
+#     schedules_data = {}
+#     for schedule in schedules:
+#         schedules_data[schedule.day_of_week] = {
+#             'start': schedule.start_time.strftime('%H:%M'),
+#             'end': schedule.end_time.strftime('%H:%M'),
+#             'breaks': [{
+#                 'start': b.start_time.strftime('%H:%M'),
+#                 'end': b.end_time.strftime('%H:%M')
+#             } for b in schedule.breaks.all()]
+#         }
+    
+#     # Получаем выходные дни (только будущие)
+#     days_off = DayOff.objects.filter(
+#         master=master,
+#         date__gte=date.today()
+#     ).values_list('date', flat=True)
+    
+#     days_off_list = [d.strftime('%Y-%m-%d') for d in days_off]
+    
+#     return JsonResponse({
+#         'schedules': schedules_data,
+#         'days_off': days_off_list
+#     })
 
 # Профиль
 @login_required
@@ -408,6 +462,86 @@ def api_delete_schedule(request, schedule_id):
     return JsonResponse({
         'success': True,
         'message': 'Расписание удалено'
+    })
+
+
+
+@login_required
+def get_extra_days(request):
+    """API для получения дополнительных рабочих дней"""
+    master = request.user.master
+    extra_days = ExtraWorkingDay.objects.filter(master=master).order_by('-date')
+    
+    data = []
+    for day in extra_days:
+        data.append({
+            'id': day.id,
+            'date': day.date.strftime('%Y-%m-%d'),
+            'date_display': day.date.strftime('%d.%m.%Y'),
+            'weekday': day.date.strftime('%A'),
+            'start_time': day.start_time.strftime('%H:%M'),
+            'end_time': day.end_time.strftime('%H:%M'),
+            'breaks': [{
+                'start': b.start_time.strftime('%H:%M'),
+                'end': b.end_time.strftime('%H:%M')
+            } for b in day.breaks.all()]
+        })
+    
+    return JsonResponse({'extra_days': data})
+
+@login_required
+@require_http_methods(["POST"])
+def api_add_extra_day(request):
+    """API добавления дополнительного рабочего дня"""
+    master = request.user.master
+    data = json.loads(request.body)
+    
+    date_str = data.get('date')
+    start_time = data.get('start_time')
+    end_time = data.get('end_time')
+    breaks = data.get('breaks', [])
+    
+    if not date_str or not start_time or not end_time:
+        return JsonResponse({'error': 'Заполните все обязательные поля'}, status=400)
+    
+    target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    
+    # Проверяем, не существует ли уже
+    if ExtraWorkingDay.objects.filter(master=master, date=target_date).exists():
+        return JsonResponse({'error': 'Этот день уже добавлен'}, status=400)
+    
+    # Создаем дополнительный рабочий день
+    extra_day = ExtraWorkingDay.objects.create(
+        master=master,
+        date=target_date,
+        start_time=datetime.strptime(start_time, '%H:%M').time(),
+        end_time=datetime.strptime(end_time, '%H:%M').time()
+    )
+    
+    # Добавляем перерывы
+    for break_data in breaks:
+        if break_data.get('start') and break_data.get('end'):
+            ExtraWorkingDayBreak.objects.create(
+                extra_day=extra_day,
+                start_time=datetime.strptime(break_data['start'], '%H:%M').time(),
+                end_time=datetime.strptime(break_data['end'], '%H:%M').time()
+            )
+    
+    return JsonResponse({
+        'success': True,
+        'message': 'Дополнительный рабочий день добавлен'
+    })
+
+@login_required
+@require_http_methods(["POST"])
+def api_delete_extra_day(request, extra_day_id):
+    """API удаления дополнительного рабочего дня"""
+    extra_day = get_object_or_404(ExtraWorkingDay, id=extra_day_id, master=request.user.master)
+    extra_day.delete()
+    
+    return JsonResponse({
+        'success': True,
+        'message': 'Дополнительный рабочий день удален'
     })
 
 
@@ -617,8 +751,37 @@ def master_public_page(request, slug):
         'services': services
     })
 
+# def get_available_dates(request, slug):
+#     """API для получения доступных дат (без перезагрузки страницы)"""
+#     master = get_object_or_404(Master, slug=slug)
+#     service_id = request.GET.get('service_id')
+    
+#     if not service_id:
+#         return JsonResponse({'error': 'Выберите услугу'}, status=400)
+    
+#     try:
+#         service = Service.objects.get(id=service_id, master=master)
+#     except Service.DoesNotExist:
+#         return JsonResponse({'error': 'Услуга не найдена'}, status=404)
+    
+#     # Рассчитываем доступные даты
+#     calculator = ScheduleCalculator(master)
+#     available_dates = calculator.get_available_dates(
+#         days_ahead=30, 
+#         min_service_duration=service.duration
+#     )
+    
+#     # Форматируем даты для JSON
+#     dates_list = [{
+#         'date': d.strftime('%Y-%m-%d'),
+#         'display': d.strftime('%d %B %Y'),  # например: "15 марта 2026"
+#         'day_of_week': d.strftime('%A')  # день недели
+#     } for d in available_dates]
+    
+#     return JsonResponse({'dates': dates_list})
+
 def get_available_dates(request, slug):
-    """API для получения доступных дат (без перезагрузки страницы)"""
+    """API для получения доступных дат"""
     master = get_object_or_404(Master, slug=slug)
     service_id = request.GET.get('service_id')
     
@@ -630,21 +793,21 @@ def get_available_dates(request, slug):
     except Service.DoesNotExist:
         return JsonResponse({'error': 'Услуга не найдена'}, status=404)
     
-    # Рассчитываем доступные даты
     calculator = ScheduleCalculator(master)
     available_dates = calculator.get_available_dates(
-        days_ahead=30, 
+        days_ahead=60,
         min_service_duration=service.duration
     )
     
-    # Форматируем даты для JSON
     dates_list = [{
         'date': d.strftime('%Y-%m-%d'),
-        'display': d.strftime('%d %B %Y'),  # например: "15 марта 2026"
-        'day_of_week': d.strftime('%A')  # день недели
+        'display': f"{d.day} {get_month_ru(d)} {d.year}",
+        'day_of_week': get_weekday_ru(d)
     } for d in available_dates]
     
     return JsonResponse({'dates': dates_list})
+
+
 
 def get_available_slots(request, slug):
     """API для получения свободных слотов на выбранную дату"""

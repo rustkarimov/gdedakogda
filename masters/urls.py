@@ -37,12 +37,12 @@ urlpatterns = [
     path('add-booking/', views.add_manual_booking, name='add_manual_booking'),
     path('api/get-slots/', views.get_booking_slots_for_master, name='api_get_slots'),
     
-    # Выходные дни
-    # path('days-off/', views.days_off, name='days_off'),
-    # path('days-off/add/', views.add_day_off, name='add_day_off'),
-    # path('days-off/<int:dayoff_id>/delete/', views.delete_day_off, name='delete_day_off'),
+    # Дополнительные рабочие дни
+    path('api/extra-days/', views.get_extra_days, name='api_extra_days'),
+    path('api/extra-days/add/', views.api_add_extra_day, name='api_add_extra_day'),
+    path('api/extra-days/<int:extra_day_id>/delete/', views.api_delete_extra_day, name='api_delete_extra_day'),
 
-    # Выходные дни (заменяем старые URL на API)
+    # Выходные дни
     path('days-off/', views.days_off, name='days_off'),
     path('api/days-off/add/', views.api_add_day_off, name='api_add_day_off'),
     path('api/days-off/<int:dayoff_id>/delete/', views.api_delete_day_off, name='api_delete_day_off'),

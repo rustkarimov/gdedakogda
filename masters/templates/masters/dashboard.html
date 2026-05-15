@@ -120,89 +120,114 @@ function copyPublicLink() {
 }
 
 // Календарь с рабочими часами
+// В самом начале, после объявления переменных
 let currentDate = new Date();
 
-function changeMonth(delta) {
-    currentDate.setMonth(currentDate.getMonth() + delta);
-    loadCalendar();
-}
-
+// Функция загрузки календаря
 function loadCalendar() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
     
+    const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+    document.getElementById('current-month').innerHTML = `${monthNames[month]} ${year}`;
+    
+    // Показываем индикатор загрузки
+    const grid = document.getElementById('calendar-grid');
+    grid.innerHTML = '<div class="text-center"><div class="spinner-border" style="color: #ff85b3;"></div></div>';
+    
+    fetch('/api/schedule/calendar/')
+        .then(response => response.json())
+        .then(data => {
+            renderCalendar(data, year, month);
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки календаря:', error);
+            grid.innerHTML = '<div class="text-center text-danger">Ошибка загрузки</div>';
+        });
+}
+
+// Выносим рендеринг в отдельную функцию
+function renderCalendar(data, year, month) {
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
     const startWeekday = firstDay.getDay();
     
-    const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
-    document.getElementById('current-month').innerText = `${monthNames[month]} ${year}`;
+    let html = '<div class="calendar-weekdays">';
+    ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].forEach(day => {
+        html += `<div class="calendar-weekday">${day}</div>`;
+    });
+    html += '</div><div class="calendar-dates">';
     
-    // Получаем расписание мастера
-    fetch(`/api/schedule/calendar/`)
-        .then(response => response.json())
-        .then(data => {
-            let html = '<div class="calendar-weekdays">';
-            ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].forEach(day => {
-                html += `<div class="calendar-weekday">${day}</div>`;
-            });
-            html += '</div><div class="calendar-dates">';
-            
-            // Пустые ячейки до первого дня
-            let adjustedStartWeekday = startWeekday === 0 ? 6 : startWeekday - 1;
-            for (let i = 0; i < adjustedStartWeekday; i++) {
-                html += '<div class="calendar-date empty"></div>';
+    let adjustedStartWeekday = startWeekday === 0 ? 6 : startWeekday - 1;
+    for (let i = 0; i < adjustedStartWeekday; i++) {
+        html += '<div class="calendar-date empty"></div>';
+    }
+    
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const dayOfWeek = new Date(year, month, d).getDay();
+        const dayOfWeekAdjusted = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+        
+        let statusClass = '';
+        let statusText = '';
+        let tooltip = '';
+        
+        if (data.extra_days && data.extra_days[dateStr]) {
+            const extra = data.extra_days[dateStr];
+            statusClass = 'extra-day';
+            const hasBreak = extra.breaks && extra.breaks.length > 0;
+            if (hasBreak) {
+                statusClass = 'extra-day-with-break';
+                tooltip = `🟢 ДОП. ДЕНЬ: ${extra.start} - ${extra.end}\nПерерывы: ${extra.breaks.map(b => `${b.start}-${b.end}`).join(', ')}`;
+            } else {
+                tooltip = `🟢 ДОП. ДЕНЬ: ${extra.start} - ${extra.end}`;
             }
-            
-            // Дни месяца
-            for (let d = 1; d <= daysInMonth; d++) {
-                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-                const dayOfWeek = new Date(year, month, d).getDay();
-                const dayOfWeekAdjusted = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-                
-                const schedule = data.schedules ? data.schedules[dayOfWeekAdjusted] : null;
-                const isDayOff = data.days_off ? data.days_off.includes(dateStr) : false;
-                
-                let statusClass = '';
-                let statusText = '';
-                let tooltip = '';
-                
-                if (isDayOff) {
-                    statusClass = 'day-off';
-                    statusText = 'Выходной';
-                    tooltip = 'Выходной день';
-                } else if (schedule) {
-                    statusClass = 'working';
-                    const hasBreak = schedule.breaks && schedule.breaks.length > 0;
-                    if (hasBreak) {
-                        statusClass = 'working-with-break';
-                        tooltip = `${schedule.start} - ${schedule.end}\nПерерывы: ${schedule.breaks.map(b => `${b.start}-${b.end}`).join(', ')}`;
-                    } else {
-                        tooltip = `${schedule.start} - ${schedule.end}`;
-                    }
-                    statusText = `${schedule.start} - ${schedule.end}`;
-                } else {
-                    statusClass = 'day-off';
-                    statusText = 'Выходной';
-                    tooltip = 'Выходной день';
-                }
-                
-                const isToday = new Date().toDateString() === new Date(year, month, d).toDateString();
-                const todayClass = isToday ? 'today' : '';
-                
-                html += `<div class="calendar-date ${statusClass} ${todayClass}" title="${tooltip}">
-                            ${d}
-                            <div class="calendar-time">${statusText}</div>
-                        </div>`;
+            statusText = `${extra.start} - ${extra.end}`;
+        } else if (data.days_off && data.days_off.includes(dateStr)) {
+            statusClass = 'day-off';
+            statusText = 'Выходной';
+            tooltip = 'Выходной день';
+        } else if (data.schedules && data.schedules[dayOfWeekAdjusted]) {
+            const schedule = data.schedules[dayOfWeekAdjusted];
+            const hasBreak = schedule.breaks && schedule.breaks.length > 0;
+            if (hasBreak) {
+                statusClass = 'working-with-break';
+                tooltip = `${schedule.start} - ${schedule.end}\nПерерывы: ${schedule.breaks.map(b => `${b.start}-${b.end}`).join(', ')}`;
+            } else {
+                statusClass = 'working';
+                tooltip = `${schedule.start} - ${schedule.end}`;
             }
-            
-            html += '</div>';
-            document.getElementById('calendar-grid').innerHTML = html;
-        });
+            statusText = `${schedule.start} - ${schedule.end}`;
+        } else {
+            statusClass = 'day-off';
+            statusText = 'Выходной';
+            tooltip = 'Нерабочий день';
+        }
+        
+        const isToday = new Date().toDateString() === new Date(year, month, d).toDateString();
+        const todayClass = isToday ? 'today' : '';
+        
+        html += `<div class="calendar-date ${statusClass} ${todayClass}" title="${tooltip}">
+                    ${d}
+                    <div class="calendar-time">${statusText}</div>
+                </div>`;
+    }
+    
+    html += '</div>';
+    document.getElementById('calendar-grid').innerHTML = html;
 }
 
-loadCalendar();
+// Функция смены месяца
+function changeMonth(delta) {
+    currentDate.setMonth(currentDate.getMonth() + delta);
+    loadCalendar();
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    loadCalendar();
+});
 </script>
 
 <style>
@@ -297,5 +322,21 @@ loadCalendar();
 .calendar-date.working-with-break .calendar-time {
     color: #856404;
 }
+
+
+.calendar-date.extra-day {
+    background-color: #d1ecf1;
+    border: 1px solid #17a2b8;
+}
+.calendar-date.extra-day-with-break {
+    background-color: #d4edda;
+    border: 1px solid #28a745;
+}
+.calendar-date.extra-day .calendar-time,
+.calendar-date.extra-day-with-break .calendar-time {
+    font-weight: bold;
+}
+
+
 </style>
 {% endblock %}

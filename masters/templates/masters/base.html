@@ -1,3 +1,6 @@
+{% load static %}
+
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -5,13 +8,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Где Да Когда{% endblock %}</title>
     
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome для иконок -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Bootstrap 5 CSS (локально) -->
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+
+    <!-- Font Awesome (локально) -->
+    <link rel="stylesheet" href="{% static 'css/all.min.css' %}">
+
     <!-- Наш CSS -->
-    {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
 </head>
 <body>
     <!-- Навигация -->
@@ -98,7 +103,9 @@
     </footer>
 
     <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
     <!-- Наш JS -->
     <script src="{% static 'js/main.js' %}"></script>
     {% block extra_js %}{% endblock %}

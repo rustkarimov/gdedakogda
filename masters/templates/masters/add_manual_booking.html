@@ -21,9 +21,9 @@
             </div>
         </div>
         
-        <!-- Контейнер для динамических блоков (как у клиента) -->
+        <!-- Контейнер для последовательных блоков -->
         <div id="booking-container">
-            <!-- Шаг 1: Выбор услуги -->
+            <!-- Шаг 1: Услуги (всегда виден) -->
             <div class="card mb-4" id="step-services">
                 <div class="card-header bg-white">
                     <h5 class="mb-0"><i class="fas fa-cut me-2" style="color: #ff85b3;"></i>Шаг 1: Выберите услугу</h5>
@@ -57,27 +57,31 @@
                 </div>
             </div>
             
-            <!-- Шаг 2: Выбор даты -->
+            <!-- Шаг 2: Даты (появляется после выбора услуги) -->
             <div class="card mb-4" id="step-dates" style="display: none;">
                 <div class="card-header bg-white">
                     <h5 class="mb-0"><i class="far fa-calendar-alt me-2" style="color: #ff85b3;"></i>Шаг 2: Выберите дату</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row" id="dates-container"></div>
+                    <div class="row" id="dates-container">
+                        <!-- Даты загрузятся через JS -->
+                    </div>
                 </div>
             </div>
             
-            <!-- Шаг 3: Выбор времени -->
+            <!-- Шаг 3: Время (появляется после выбора даты) -->
             <div class="card mb-4" id="step-times" style="display: none;">
                 <div class="card-header bg-white">
                     <h5 class="mb-0"><i class="far fa-clock me-2" style="color: #ff85b3;"></i>Шаг 3: Выберите время</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row" id="slots-container"></div>
+                    <div class="row" id="slots-container">
+                        <!-- Слоты загрузятся через JS -->
+                    </div>
                 </div>
             </div>
             
-            <!-- Шаг 4: Данные клиента -->
+            <!-- Шаг 4: Данные клиента (появляется после выбора времени) -->
             <div class="card mb-4" id="step-form" style="display: none;">
                 <div class="card-header bg-white">
                     <h5 class="mb-0"><i class="fas fa-pencil-alt me-2" style="color: #ff85b3;"></i>Шаг 4: Данные клиента</h5>
@@ -116,7 +120,6 @@
                         
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-pink">Добавить запись</button>
-                            <a href="{% url 'dashboard' %}" class="btn btn-outline-pink">Отмена</a>
                         </div>
                     </form>
                 </div>
@@ -129,36 +132,48 @@
 let selectedServiceId = null;
 let selectedDate = null;
 let selectedTime = null;
-let historyStack = [];
-
-function showStep(stepId) {
-    const steps = ['services', 'dates', 'times', 'form'];
-    steps.forEach(step => {
-        const element = document.getElementById(`step-${step}`);
-        if (element) element.style.display = 'none';
-    });
-    
-    const currentStep = document.getElementById(`step-${stepId}`);
-    if (currentStep) currentStep.style.display = 'block';
-    
-    document.getElementById('booking-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
 
 function selectService(element) {
+    // Снимаем выделение со всех услуг
     document.querySelectorAll('.service-card').forEach(card => {
         card.classList.remove('border-pink', 'border-2');
     });
+    
+    // Выделяем выбранную
     element.classList.add('border-pink', 'border-2');
     
     selectedServiceId = element.dataset.serviceId;
-    historyStack = ['services'];
-    showStep('dates');
+    
+    // Показываем блок с датами (если скрыт)
+    const datesCard = document.getElementById('step-dates');
+    datesCard.style.display = 'block';
+    
+    // Прячем последующие блоки если они были показаны
+    document.getElementById('step-times').style.display = 'none';
+    document.getElementById('step-form').style.display = 'none';
+    
+    // Очищаем выбранные дату и время
+    selectedDate = null;
+    selectedTime = null;
+    
+    // Загружаем доступные даты
     loadAvailableDates();
+    
+    // Скроллим к блоку с датами
+    setTimeout(() => {
+        datesCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
 }
 
 function loadAvailableDates() {
     const datesContainer = document.getElementById('dates-container');
-    datesContainer.innerHTML = `<div class="col-12 text-center"><div class="spinner-border" style="color: #ff85b3;"></div></div>`;
+    datesContainer.innerHTML = `
+        <div class="col-12 text-center">
+            <div class="spinner-border" style="color: #ff85b3;" role="status">
+                <span class="visually-hidden">Загрузка...</span>
+            </div>
+        </div>
+    `;
     
     fetch(`/api/master/{{ master.slug }}/dates/?service_id=${selectedServiceId}`)
         .then(response => response.json())
@@ -168,7 +183,9 @@ function loadAvailableDates() {
                 data.dates.forEach(item => {
                     html += `
                         <div class="col-md-3 col-6 mb-3">
-                            <div class="card date-card text-center" data-date="${item.date}" onclick="selectDate('${item.date}', this)">
+                            <div class="card date-card text-center" 
+                                 data-date="${item.date}" 
+                                 onclick="selectDate('${item.date}', this)">
                                 <div class="card-body py-2">
                                     <div class="small text-muted">${item.day_of_week}</div>
                                     <div class="fw-bold">${item.display}</div>
@@ -179,26 +196,61 @@ function loadAvailableDates() {
                 });
                 datesContainer.innerHTML = html;
             } else {
-                datesContainer.innerHTML = `<div class="col-12 text-center"><p class="text-muted">Нет свободных дат</p></div>`;
+                datesContainer.innerHTML = `
+                    <div class="col-12 text-center">
+                        <p class="text-muted">Нет свободных дат в ближайший месяц</p>
+                    </div>
+                `;
             }
+        })
+        .catch(error => {
+            datesContainer.innerHTML = `
+                <div class="col-12 text-center">
+                    <p class="text-danger">Ошибка загрузки дат</p>
+                </div>
+            `;
         });
 }
 
 function selectDate(date, element) {
+    // Снимаем выделение со всех дат
     document.querySelectorAll('.date-card').forEach(card => {
         card.classList.remove('border-pink', 'border-2');
     });
+    
+    // Выделяем выбранную
     element.classList.add('border-pink', 'border-2');
     
     selectedDate = date;
-    historyStack.push('dates');
-    showStep('times');
+    
+    // Показываем блок с временем (если скрыт)
+    const timesCard = document.getElementById('step-times');
+    timesCard.style.display = 'block';
+    
+    // Прячем блок формы если был показан
+    document.getElementById('step-form').style.display = 'none';
+    
+    // Сбрасываем выбранное время
+    selectedTime = null;
+    
+    // Загружаем доступные слоты
     loadAvailableSlots();
+    
+    // Скроллим к блоку с временем
+    setTimeout(() => {
+        timesCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
 }
 
 function loadAvailableSlots() {
     const slotsContainer = document.getElementById('slots-container');
-    slotsContainer.innerHTML = `<div class="col-12 text-center"><div class="spinner-border" style="color: #ff85b3;"></div></div>`;
+    slotsContainer.innerHTML = `
+        <div class="col-12 text-center">
+            <div class="spinner-border" style="color: #ff85b3;" role="status">
+                <span class="visually-hidden">Загрузка...</span>
+            </div>
+        </div>
+    `;
     
     fetch(`/api/master/{{ master.slug }}/slots/?service_id=${selectedServiceId}&date=${selectedDate}`)
         .then(response => response.json())
@@ -208,35 +260,61 @@ function loadAvailableSlots() {
                 data.slots.forEach(slot => {
                     html += `
                         <div class="col-md-2 col-3 mb-3">
-                            <div class="card slot-card text-center" data-time="${slot.start}" onclick="selectTime('${slot.start}', this)">
-                                <div class="card-body py-2">${slot.start}</div>
+                            <div class="card slot-card text-center" 
+                                 data-time="${slot.start}"
+                                 onclick="selectTime('${slot.start}', this)">
+                                <div class="card-body py-2">
+                                    ${slot.start}
+                                </div>
                             </div>
                         </div>
                     `;
                 });
                 slotsContainer.innerHTML = html;
             } else {
-                slotsContainer.innerHTML = `<div class="col-12 text-center"><p class="text-muted">Нет свободного времени</p></div>`;
+                slotsContainer.innerHTML = `
+                    <div class="col-12 text-center">
+                        <p class="text-muted">Нет свободного времени в этот день</p>
+                    </div>
+                `;
             }
+        })
+        .catch(error => {
+            slotsContainer.innerHTML = `
+                <div class="col-12 text-center">
+                    <p class="text-danger">Ошибка загрузки времени</p>
+                </div>
+            `;
         });
 }
 
 function selectTime(time, element) {
+    // Снимаем выделение со всех слотов
     document.querySelectorAll('.slot-card').forEach(card => {
         card.classList.remove('border-pink', 'border-2', 'bg-light');
     });
+    
+    // Выделяем выбранную
     element.classList.add('border-pink', 'border-2', 'bg-light');
     
     selectedTime = time;
-    historyStack.push('times');
     
+    // Заполняем скрытые поля формы
     document.getElementById('selected-service-id').value = selectedServiceId;
     document.getElementById('selected-date').value = selectedDate;
     document.getElementById('selected-time').value = selectedTime;
     
-    showStep('form');
+    // Показываем блок с формой
+    const formCard = document.getElementById('step-form');
+    formCard.style.display = 'block';
+    
+    // Скроллим к форме
+    setTimeout(() => {
+        formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
 }
 
+// Отправка формы
 document.getElementById('manual-booking-form').addEventListener('submit', function(e) {
     e.preventDefault();
     
@@ -271,7 +349,8 @@ document.getElementById('manual-booking-form').addEventListener('submit', functi
     .then(data => {
         if (data.success) {
             alert('Запись добавлена!');
-            window.location.href = "{% url 'dashboard' %}";
+            // Очищаем всё и возвращаемся в начало
+            resetBooking();
         } else {
             alert('Ошибка: ' + data.error);
         }
@@ -280,6 +359,29 @@ document.getElementById('manual-booking-form').addEventListener('submit', functi
         alert('Произошла ошибка');
     });
 });
+
+function resetBooking() {
+    // Снимаем выделение с услуги
+    document.querySelectorAll('.service-card').forEach(card => {
+        card.classList.remove('border-pink', 'border-2');
+    });
+    
+    // Скрываем все дополнительные блоки
+    document.getElementById('step-dates').style.display = 'none';
+    document.getElementById('step-times').style.display = 'none';
+    document.getElementById('step-form').style.display = 'none';
+    
+    // Сбрасываем переменные
+    selectedServiceId = null;
+    selectedDate = null;
+    selectedTime = null;
+    
+    // Очищаем форму
+    document.getElementById('manual-booking-form').reset();
+    
+    // Скроллим к услугам
+    document.getElementById('step-services').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 </script>
 
 <style>
@@ -287,22 +389,45 @@ document.getElementById('manual-booking-form').addEventListener('submit', functi
     cursor: pointer;
     transition: all 0.2s ease;
 }
+
 .service-card:hover, .date-card:hover, .slot-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 6px 12px rgba(255, 133, 179, 0.15);
 }
+
 .border-pink {
     border: 2px solid #ff85b3 !important;
     background-color: #fff9fb !important;
 }
-.btn-outline-pink {
-    border: 1px solid #ff85b3;
-    color: #ff85b3;
-    background: transparent;
-}
-.btn-outline-pink:hover {
+
+.btn-pink {
     background-color: #ff85b3;
     color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: 500;
+}
+
+.btn-pink:hover {
+    background-color: #e06e9e;
+    color: white;
+}
+
+/* Анимация появления */
+#step-dates, #step-times, #step-form {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 </style>
 {% endblock %}
