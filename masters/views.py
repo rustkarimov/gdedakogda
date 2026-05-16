@@ -29,11 +29,20 @@ def get_month_ru(date_obj):
 
 # Регистрация шаг 1
 def register_step1(request):
+    """Шаг 1 регистрации: ввод телефона и пароля"""
     if request.method == 'POST':
         form = PhoneRegistrationForm(request.POST)
         if form.is_valid():
+            # Очищаем и проверяем телефон
+            import re
+            phone_cleaned = re.sub(r'\D', '', form.cleaned_data['phone'])
+            
+            if len(phone_cleaned) != 11 or not phone_cleaned.startswith('7'):
+                messages.error(request, 'Неверный формат телефона. Нужен номер 7XXXXXXXXXX (11 цифр)')
+                return render(request, 'masters/register_step1.html', {'form': form})
+            
             request.session['registration_data'] = {
-                'phone': form.cleaned_data['phone'],
+                'phone': phone_cleaned,  # сохраняем очищенный
                 'first_name': form.cleaned_data.get('first_name', ''),
                 'last_name': form.cleaned_data.get('last_name', ''),
                 'password': form.cleaned_data['password'],
@@ -42,7 +51,7 @@ def register_step1(request):
             verification_code = str(random.randint(100000, 999999))
             
             PhoneVerification.objects.create(
-                phone=form.cleaned_data['phone'],
+                phone=phone_cleaned,
                 code=verification_code
             )
             
@@ -557,9 +566,23 @@ def add_manual_booking(request):
         date_str = request.POST.get('date')
         time_str = request.POST.get('time')
         comment = request.POST.get('comment', '')
+        force = request.POST.get('force', False)
         
         if not all([client_name, client_phone, service_id, date_str, time_str]):
             messages.error(request, 'Заполните все обязательные поля')
+            return redirect('add_manual_booking')
+        
+        # ОЧИЩАЕМ И ВАЛИДИРУЕМ ТЕЛЕФОН
+        import re
+        client_phone_cleaned = re.sub(r'\D', '', client_phone)
+        
+        # Проверяем формат российского номера
+        if len(client_phone_cleaned) != 11:
+            messages.error(request, 'Номер телефона должен содержать 11 цифр')
+            return redirect('add_manual_booking')
+        
+        if not client_phone_cleaned.startswith('7'):
+            messages.error(request, 'Номер должен начинаться с 7')
             return redirect('add_manual_booking')
         
         service = get_object_or_404(Service, id=service_id, master=master)
@@ -571,12 +594,18 @@ def add_manual_booking(request):
         slots = calculator.generate_time_slots(booking_date, service.duration)
         
         is_available = any(slot['start'] == time_str for slot in slots)
-        if not is_available and not request.POST.get('force', False):
-            messages.error(request, 'Это время уже занято. Нажмите "Записать принудительно", чтобы подтвердить.')
+        if not is_available and not force:
+            messages.error(request, 'Это время уже занято. Отметьте "Записать принудительно", чтобы подтвердить.')
             return redirect('add_manual_booking')
         
-        # Шифруем телефон (пока временно)
-        encrypted_phone = client_phone.encode()
+        # Шифруем ОЧИЩЕННЫЙ телефон
+        from cryptography.fernet import Fernet
+        key = master.get_encryption_key()
+        if key:
+            f = Fernet(key)
+            encrypted_phone = f.encrypt(client_phone_cleaned.encode())
+        else:
+            encrypted_phone = client_phone_cleaned.encode()
         
         booking = Booking.objects.create(
             master=master,
@@ -845,10 +874,22 @@ def create_booking(request, slug):
         date_str = data.get('date')
         time_str = data.get('time')
         comment = data.get('comment', '')
+        force = data.get('force', False)
         
         # Проверяем обязательные поля
         if not all([service_id, client_name, client_phone, date_str, time_str]):
             return JsonResponse({'error': 'Заполните все поля'}, status=400)
+        
+        # ОЧИЩАЕМ И ВАЛИДИРУЕМ ТЕЛЕФОН
+        import re
+        client_phone_cleaned = re.sub(r'\D', '', client_phone)
+        
+        # Проверяем формат российского номера
+        if len(client_phone_cleaned) != 11:
+            return JsonResponse({'error': 'Номер телефона должен содержать 11 цифр'}, status=400)
+        
+        if not client_phone_cleaned.startswith('7'):
+            return JsonResponse({'error': 'Номер должен начинаться с 7'}, status=400)
         
         service = Service.objects.get(id=service_id, master=master)
         booking_date = datetime.strptime(date_str, '%Y-%m-%d').date()
@@ -859,21 +900,29 @@ def create_booking(request, slug):
         slots = calculator.generate_time_slots(booking_date, service.duration)
         
         is_available = any(slot['start'] == time_str for slot in slots)
-        if not is_available:
+        if not is_available and not force:
             return JsonResponse({'error': 'Это время уже занято'}, status=400)
         
-        # Шифруем телефон (пока просто заглушка)
-        # TODO: добавить реальное шифрование
+        # Шифруем ОЧИЩЕННЫЙ телефон
+        from cryptography.fernet import Fernet
+        key = master.get_encryption_key()
+        if key:
+            f = Fernet(key)
+            encrypted_phone = f.encrypt(client_phone_cleaned.encode())
+        else:
+            # Временное решение, если ключа нет
+            encrypted_phone = client_phone_cleaned.encode()
         
         # Создаем запись
         booking = Booking.objects.create(
             master=master,
             service=service,
             client_name=client_name,
-            encrypted_phone=client_phone.encode(),  # временно, потом заменим на шифрование
+            encrypted_phone=encrypted_phone,
             client_comment=comment,
             date=booking_date,
-            time=booking_time
+            time=booking_time,
+            status='confirmed' if not force else 'confirmed'
         )
         
         return JsonResponse({
@@ -889,3 +938,10 @@ def create_booking(request, slug):
         
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+# В views.py добавим функцию форматирования
+def format_phone(phone):
+    """Форматирует 79991234567 -> 7 999 123-45-67"""
+    if not phone or len(phone) != 11:
+        return phone
+    return f"{phone[0]} {phone[1:4]} {phone[4:7]}-{phone[7:9]}-{phone[9:11]}"

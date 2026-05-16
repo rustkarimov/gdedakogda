@@ -4,31 +4,28 @@
 {% block title %}Где Да Когда — умное расписание для самозанятых мастеров{% endblock %}
 
 {% block content %}
-<!-- Hero секция с градиентом -->
+<!-- Hero секция -->
 <div class="hero-section">
     <div class="container">
         <div class="row min-vh-100 align-items-center">
             <div class="col-lg-6 hero-content">
-                <!-- <div class="badge-gradient mb-4">🔥 #1 для самозанятых</div> -->
                 <h1 class="hero-title">
-                    Умное расписание<br>
-                    для вашего бизнеса
+                    Записывайте клиентов<br>
+                    в 2 клика
                 </h1>
                 <p class="hero-description">
-                    Принимайте записи 24/7, получайте больше клиентов и забудьте<br>
-                    о путанице в блокнотах. Всё, что нужно самозанятому мастеру.
+                    Сервис для самозанятых мастеров: маникюр, парикмахерские,<br>
+                    стоматологии, тренировки и репетиторство. Всё в одном месте.
                 </p>
-                
                 <div class="hero-buttons">
                     <a href="{% url 'register' %}" class="btn btn-primary-gradient btn-lg">
-                        Начать 14 дней бесплатно
+                        Попробовать бесплатно
                         <i class="fas fa-arrow-right ms-2"></i>
                     </a>
-                    <a href="#how-it-works" class="btn btn-outline-light btn-lg">
+                    <a href="#how-it-works" class="btn btn-outline-dark btn-lg">
                         <i class="fas fa-play-circle me-2"></i>Смотреть видео
                     </a>
                 </div>
-                
                 <div class="hero-stats">
                     <div class="stat-item">
                         <span class="stat-number">500+</span>
@@ -40,15 +37,12 @@
                     </div>
                     <div class="stat-item">
                         <span class="stat-number">99%</span>
-                        <span class="stat-label">довольны</span>
+                        <span class="stat-label">рекомендуют</span>
                     </div>
                 </div>
             </div>
             <div class="col-lg-6 hero-image">
-                <!-- TODO: Вставить фото улыбающегося человека с телефоном/ноутбуком -->
-                <img src="https://placehold.co/600x500/7C3AED/FFFFFF?text=Your+Photo+Here" 
-                     alt="Мастер за работой" 
-                     class="img-fluid floating-image">
+                <img src="" alt="Иллюстрация работы" class="img-fluid floating-image">
                 <div class="floating-card card-1">
                     <i class="fas fa-calendar-check"></i>
                     <span>Новая запись: сегодня 15:00</span>
@@ -60,22 +54,16 @@
             </div>
         </div>
     </div>
-    <div class="hero-wave">
-        <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M0 64L60 74.7C120 85 240 107 360 106.7C480 107 600 85 720 80C840 75 960 85 1080 90.7C1200 96 1320 96 1380 96L1440 96L1440 120L1380 120C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120L0 120Z" fill="white"/>
-        </svg>
-    </div>
 </div>
 
-<!-- Секция преимуществ -->
+<!-- Преимущества (ключевые фишки) -->
 <div class="container">
     <div class="row text-center mb-5">
         <div class="col-12">
-            <h2 class="section-title">Всё для комфортной работы</h2>
-            <p class="section-subtitle">Инструменты, которые реально помогают развивать бизнес</p>
+            <h2 class="section-title">Всё для вашего бизнеса</h2>
+            <p class="section-subtitle">Инструменты, которые помогают расти</p>
         </div>
     </div>
-    
     <div class="row g-4 features-grid">
         <div class="col-md-6 col-lg-3">
             <div class="feature-card">
@@ -83,210 +71,425 @@
                     <i class="fas fa-calendar-alt"></i>
                 </div>
                 <h4>Умное расписание</h4>
-                <p>Автоматически подбирает свободные окна, учитывая ваши услуги и перерывы</p>
+                <p>Автоматически подбирает свободные окна для клиентов</p>
             </div>
         </div>
         <div class="col-md-6 col-lg-3">
             <div class="feature-card">
                 <div class="feature-icon pink">
-                    <i class="fas fa-bell"></i>
+                    <i class="fas fa-lock"></i>
                 </div>
-                <h4>Автонапоминания</h4>
-                <p>Клиенты получают SMS и Telegram напоминания — меньше неявок</p>
+                <h4>Шифрование данных</h4>
+                <p>Телефоны клиентов в зашифрованном виде — только вы имеете к ним доступ</p>
             </div>
         </div>
         <div class="col-md-6 col-lg-3">
             <div class="feature-card">
                 <div class="feature-icon blue">
-                    <i class="fas fa-lock"></i>
+                    <i class="fas fa-chart-bar"></i>
                 </div>
-                <h4>Защита данных</h4>
-                <p>Номера клиентов в зашифрованном виде — безопасность на 100%</p>
+                <h4>Детальная статистика</h4>
+                <p>Доход, загруженность, популярные услуги — в реальном времени</p>
             </div>
         </div>
         <div class="col-md-6 col-lg-3">
             <div class="feature-card">
                 <div class="feature-icon green">
-                    <i class="fas fa-chart-simple"></i>
+                    <i class="fas fa-bell"></i>
                 </div>
-                <h4>Аналитика</h4>
-                <p>Отслеживайте доход, загруженность и любимые услуги клиентов</p>
+                <h4>Автонапоминания</h4>
+                <p>SMS и Telegram уведомления — сокращаем количество неявок на 70%</p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Секция "Идеально подходит для" -->
-<div class="professions-section">
+<!-- Как работает запись (сценарий иконками) -->
+<div class="scenario-section">
     <div class="container">
         <div class="row text-center mb-5">
             <div class="col-12">
-                <h2 class="section-title">Идеально подходит для</h2>
-                <p class="section-subtitle">Присоединяйтесь к 500+ мастерам, которые уже используют сервис</p>
+                <h2 class="section-title">Как это работает</h2>
+                <p class="section-subtitle">3 простых шага, и вы принимаете записи 24/7</p>
+            </div>
+        </div>
+        <div class="row g-0 scenario-flow">
+            <div class="col-md-3">
+                <div class="scenario-step">
+                    <div class="step-circle">1</div>
+                    <div class="step-icon"><i class="fas fa-user-plus"></i></div>
+                    <h4>Регистрация</h4>
+                    <p>Создайте аккаунт — это бесплатно и быстро</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="scenario-step">
+                    <div class="step-circle">2</div>
+                    <div class="step-icon"><i class="fas fa-sliders-h"></i></div>
+                    <h4>Настройка</h4>
+                    <p>Добавьте услуги, цены и рабочие часы</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="scenario-step">
+                    <div class="step-circle">3</div>
+                    <div class="step-icon"><i class="fas fa-link"></i></div>
+                    <h4>Поделитесь ссылкой</h4>
+                    <p>Отправьте клиентам ссылку на вашу страницу</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="scenario-step">
+                    <div class="step-circle">4</div>
+                    <div class="step-icon"><i class="fas fa-check-circle"></i></div>
+                    <h4>Принимайте записи</h4>
+                    <p>Клиенты сами выбирают свободное время</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Экономия времени (график/визуализация) -->
+<div class="time-saving-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <div class="time-saving-content">
+                    <div class="badge-gradient mb-3">Экономия времени</div>
+                    <h2>На 15 часов в месяц больше для работы</h2>
+                    <p class="mt-3">Ваши клиенты видят свободные окна и записываются сами. Вы больше не тратите время на согласование — только подтверждаете записи.</p>
+                    <div class="time-stats mt-4">
+                        <div class="time-stat-item">
+                            <span class="time-number">2 мин</span>
+                            <span class="time-label">на запись через сервис</span>
+                        </div>
+                        <div class="time-stat-item">
+                            <span class="time-number">15 мин</span>
+                            <span class="time-label">в среднем без сервиса</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="time-chart">
+                    <img src="" alt="График экономии времени">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Цитаты мастеров -->
+<div class="testimonials-section">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="section-title">Мастера уже с нами</h2>
+                <p class="section-subtitle">Что говорят те, кто перешёл на Где Да Когда</p>
             </div>
         </div>
         <div class="row g-4">
-            <div class="col-6 col-md-4 col-lg-2">
-                <div class="profession-card">
-                    <div class="profession-emoji">💅</div>
-                    <span>Маникюр</span>
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-avatar">
+                        <img src="" alt="Аватар">
+                    </div>
+                    <div class="stars">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">"Клиенты теперь записываются сами, даже ночью. Я просто просыпаюсь и вижу занятые слоты. Гениально!"</p>
+                    <h5>Анна С.</h5>
+                    <span class="testimonial-prof">Мастер маникюра, 5 лет стажа</span>
                 </div>
             </div>
-            <div class="col-6 col-md-4 col-lg-2">
-                <div class="profession-card">
-                    <div class="profession-emoji">✂️</div>
-                    <span>Парикмахеры</span>
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-avatar">
+                        <img src="" alt="Аватар">
+                    </div>
+                    <div class="stars">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">"Напоминания клиентам — это магия. Неявок стало в 3 раза меньше. Очень довольна сервисом."</p>
+                    <h5>Дмитрий В.</h5>
+                    <span class="testimonial-prof">Парикмахер-барбер</span>
                 </div>
             </div>
-            <div class="col-6 col-md-4 col-lg-2">
-                <div class="profession-card">
-                    <div class="profession-emoji">💆‍♀️</div>
-                    <span>Косметологи</span>
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-avatar">
+                        <img src="" alt="Аватар">
+                    </div>
+                    <div class="stars">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">"Статистика помогла понять, что вечерние слоты самые прибыльные. Скорректировала график и доход вырос на 30%."</p>
+                    <h5>Екатерина М.</h5>
+                    <span class="testimonial-prof">Косметолог</span>
                 </div>
-            </div>
-            <div class="col-6 col-md-4 col-lg-2">
-                <div class="profession-card">
-                    <div class="profession-emoji">🦷</div>
-                    <span>Стоматологи</span>
-                </div>
-            </div>
-            <div class="col-6 col-md-4 col-lg-2">
-                <div class="profession-card">
-                    <div class="profession-emoji">🏋️</div>
-                    <span>Тренеры</span>
-                </div>
-            </div>
-            <div class="col-6 col-md-4 col-lg-2">
-                <div class="profession-card">
-                    <div class="profession-emoji">📚</div>
-                    <span>Преподаватели</span>
-                </div>
-            </div>
-        </div>
-        <!-- TODO: Вставить фото людей - разнообразие специалистов -->
-        <div class="professions-photo text-center mt-5">
-            <img src="https://placehold.co/900x300/7C3AED/FFFFFF?text=Photos+of+real+masters" 
-                 alt="Наши мастера" 
-                 class="img-fluid rounded-4 shadow-lg">
-        </div>
-    </div>
-</div>
-
-<!-- Как это работает (3 шага) -->
-<div class="container" id="how-it-works">
-    <div class="row text-center mb-5">
-        <div class="col-12">
-            <h2 class="section-title">Начните за 5 минут</h2>
-            <p class="section-subtitle">Простая настройка — сразу после регистрации</p>
-        </div>
-    </div>
-    <div class="row g-4 steps-row">
-        <div class="col-md-4">
-            <div class="step-card">
-                <div class="step-number">1</div>
-                <div class="step-icon">
-                    <i class="fas fa-user-plus"></i>
-                </div>
-                <h4>Регистрация</h4>
-                <p>Создайте аккаунт — это бесплатно и займет 30 секунд</p>
-            </div>
-            <div class="step-arrow">→</div>
-        </div>
-        <div class="col-md-4">
-            <div class="step-card">
-                <div class="step-number">2</div>
-                <div class="step-icon">
-                    <i class="fas fa-sliders-h"></i>
-                </div>
-                <h4>Настройка услуг</h4>
-                <p>Добавьте услуги, цены, длительность и рабочие часы</p>
-            </div>
-            <div class="step-arrow">→</div>
-        </div>
-        <div class="col-md-4">
-            <div class="step-card">
-                <div class="step-number">3</div>
-                <div class="step-icon">
-                    <i class="fas fa-share-alt"></i>
-                </div>
-                <h4>Принимайте записи</h4>
-                <p>Отправьте клиентам ссылку и получайте бронирования</p>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Блок с тарифами -->
+<!-- Импорт из других сервисов -->
+<div class="import-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-7">
+                <div class="import-content">
+                    <div class="badge-gradient mb-3">Переходите легко</div>
+                    <h2>Перенесите данные из других сервисов</h2>
+                    <p>Уже пользуетесь расписанием в другом месте? Мы поможем перенести ваши услуги, график и историю клиентов. Без боли и потери данных.</p>
+                    <div class="import-list">
+                        <div class="import-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>YCLIENTS</span>
+                        </div>
+                        <div class="import-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Profi.ru</span>
+                        </div>
+                        <div class="import-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Google Таблицы</span>
+                        </div>
+                        <div class="import-item">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Excel / CSV</span>
+                        </div>
+                    </div>
+                    <a href="#" class="btn btn-outline-primary mt-4">Узнать подробнее</a>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <img src="" alt="Импорт данных" class="img-fluid">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Тарифы (светлые, нежные) -->
 <div class="pricing-section">
     <div class="container">
         <div class="row text-center mb-5">
             <div class="col-12">
-                <h2 class="section-title text-white">Простые тарифы</h2>
-                <p class="section-subtitle text-white opacity-75">Выберите подходящий для вашего бизнеса</p>
+                <h2 class="section-title-light">Выберите свой тариф</h2>
+                <p class="section-subtitle-light">Никаких скрытых платежей</p>
             </div>
         </div>
         <div class="row g-4 align-items-center justify-content-center">
             <div class="col-md-4">
-                <div class="pricing-card">
-                    <div class="pricing-badge">Для старта</div>
+                <div class="pricing-card-light">
                     <h3>Базовый</h3>
-                    <div class="pricing-price">₽0 <span>/ месяц</span></div>
-                    <ul class="pricing-features">
+                    <div class="pricing-price-light">₽0 <span>/ месяц</span></div>
+                    <ul class="pricing-features-light">
                         <li><i class="fas fa-check"></i> До 50 записей</li>
                         <li><i class="fas fa-check"></i> Базовое расписание</li>
                         <li><i class="fas fa-check"></i> Email напоминания</li>
                         <li class="disabled"><i class="fas fa-times"></i> SMS напоминания</li>
-                        <li class="disabled"><i class="fas fa-times"></i> Telegram бот</li>
+                        <li class="disabled"><i class="fas fa-times"></i> Статистика</li>
                     </ul>
-                    <a href="{% url 'register' %}" class="btn btn-outline-pricing w-100">Начать бесплатно</a>
+                    <a href="{% url 'register' %}" class="btn btn-outline-light-price w-100">Начать</a>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="pricing-card popular">
-                    <div class="popular-badge">🔥 Самый популярный</div>
-                    <h3>Профессионал</h3>
-                    <div class="pricing-price">₱990 <span>/ месяц</span></div>
-                    <ul class="pricing-features">
+                <div class="pricing-card-light popular-light">
+                    <div class="popular-badge-light">🔥 Популярный</div>
+                    <h3>Профи</h3>
+                    <div class="pricing-price-light">₽690 <span>/ месяц</span></div>
+                    <ul class="pricing-features-light">
                         <li><i class="fas fa-check"></i> Неограниченно записей</li>
-                        <li><i class="fas fa-check"></i> Умное расписание + повторы</li>
+                        <li><i class="fas fa-check"></i> Умное расписание</li>
                         <li><i class="fas fa-check"></i> SMS + Telegram напоминания</li>
-                        <li><i class="fas fa-check"></i> Аналитика и отчеты</li>
-                        <li><i class="fas fa-check"></i> Приоритетная поддержка</li>
+                        <li><i class="fas fa-check"></i> Полная статистика</li>
+                        <li><i class="fas fa-check"></i> Импорт данных</li>
                     </ul>
                     <a href="{% url 'register' %}" class="btn btn-primary-gradient w-100">Попробовать 14 дней</a>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="pricing-card">
-                    <div class="pricing-badge">Для сетей</div>
-                    <h3>Безлимит</h3>
-                    <div class="pricing-price">₱1 990 <span>/ месяц</span></div>
-                    <ul class="pricing-features">
-                        <li><i class="fas fa-check"></i> Всё из Профессионал</li>
-                        <li><i class="fas fa-check"></i> До 10 сотрудников</li>
+                <div class="pricing-card-light">
+                    <h3>Бизнес</h3>
+                    <div class="pricing-price-light">₽1 490 <span>/ месяц</span></div>
+                    <ul class="pricing-features-light">
+                        <li><i class="fas fa-check"></i> Всё из Профи</li>
+                        <li><i class="fas fa-check"></i> До 5 сотрудников</li>
+                        <li><i class="fas fa-check"></i> Приоритетная поддержка</li>
                         <li><i class="fas fa-check"></i> API доступ</li>
                         <li><i class="fas fa-check"></i> Белые этикетки</li>
-                        <li><i class="fas fa-check"></i> Персональный менеджер</li>
                     </ul>
-                    <a href="{% url 'register' %}" class="btn btn-outline-pricing w-100">Связаться с нами</a>
+                    <a href="{% url 'register' %}" class="btn btn-outline-light-price w-100">Связаться</a>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- CTA секция -->
+<!-- FAQ -->
+<div class="faq-section">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="section-title">Частые вопросы</h2>
+                <p class="section-subtitle">Всё, что вы хотели знать о сервисе</p>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="accordion" id="faqAccordion">
+                    <div class="faq-item">
+                        <div class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq1">
+                            <span>Можно ли попробовать бесплатно?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div id="faq1" class="collapse show" data-bs-parent="#faqAccordion">
+                            <div class="faq-answer">
+                                Да, у нас есть 14-дневный бесплатный период. Никаких обязательств и карты не требуется.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question collapsed" data-bs-toggle="collapse" data-bs-target="#faq2">
+                            <span>Безопасно ли хранить данные клиентов?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div id="faq2" class="collapse" data-bs-parent="#faqAccordion">
+                            <div class="faq-answer">
+                                Да, мы шифруем все номера телефонов и личные данные. Только вы имеете доступ к информации о своих клиентах.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question collapsed" data-bs-toggle="collapse" data-bs-target="#faq3">
+                            <span>Могу ли я перенести данные из другого сервиса?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div id="faq3" class="collapse" data-bs-parent="#faqAccordion">
+                            <div class="faq-answer">
+                                Да, мы помогаем с переносом из YCLIENTS, Google Sheets и других систем. Напишите поддержке.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question collapsed" data-bs-toggle="collapse" data-bs-target="#faq4">
+                            <span>Что будет, если превысить лимит записей?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div id="faq4" class="collapse" data-bs-parent="#faqAccordion">
+                            <div class="faq-answer">
+                                Вы получите уведомление. Вы всегда можете перейти на следующий тариф или докупить дополнительный пакет записей.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Дорожная карта (что планируем) -->
+<div class="roadmap-section">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="section-title">Что нас ждёт в будущем</h2>
+                <p class="section-subtitle">Мы постоянно развиваем сервис для вас</p>
+            </div>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="roadmap-card">
+                    <div class="roadmap-icon">
+                        <i class="fas fa-microphone-alt"></i>
+                    </div>
+                    <h4>Голосовой помощник</h4>
+                    <p>Запись клиентов через голосового ассистента — просто скажите "запиши на завтра"</p>
+                    <div class="roadmap-status">В разработке</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="roadmap-card">
+                    <div class="roadmap-icon">
+                        <i class="fas fa-palette"></i>
+                    </div>
+                    <h4>Красивые страницы</h4>
+                    <p>Индивидуальный дизайн страницы записи под ваш бренд</p>
+                    <div class="roadmap-status">Скоро</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="roadmap-card">
+                    <div class="roadmap-icon">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </div>
+                    <h4>Карта мастеров</h4>
+                    <p>Клиенты смогут находить вас рядом с собой</p>
+                    <div class="roadmap-status">Планируется</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Команда и поддержка -->
+<div class="team-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <div class="team-content">
+                    <h2>Мы всегда рядом</h2>
+                    <p>Наша команда поддержки отвечает на вопросы в течение 15 минут. Мы не просто сервис — мы партнёры, которым важно развитие вашего бизнеса.</p>
+                    <div class="team-features">
+                        <div class="team-feature">
+                            <i class="fas fa-headset"></i>
+                            <span>Поддержка 24/7</span>
+                        </div>
+                        <div class="team-feature">
+                            <i class="fas fa-comments"></i>
+                            <span>Чат в Telegram</span>
+                        </div>
+                        <div class="team-feature">
+                            <i class="fas fa-envelope"></i>
+                            <span>Email 24/7</span>
+                        </div>
+                    </div>
+                    <a href="#" class="btn btn-primary-gradient mt-3">Связаться с поддержкой</a>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="team-photo">
+                    <img src="" alt="Команда поддержки">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA финальная -->
 <div class="cta-section">
     <div class="container">
         <div class="row justify-content-center text-center">
             <div class="col-lg-8">
-                <h2 class="display-5 fw-bold mb-4">Готовы упростить запись клиентов?</h2>
-                <p class="lead mb-4 opacity-90">Присоединяйтесь к 500+ мастерам, которые уже экономят время с "Где Да Когда"</p>
+                <h2 class="display-5 fw-bold mb-4">Готовы попробовать?</h2>
+                <p class="lead mb-4">Присоединяйтесь к 500+ мастерам, которые уже экономят время с "Где Да Когда"</p>
                 <a href="{% url 'register' %}" class="btn btn-primary-gradient btn-lg px-5 py-3">
                     Начать 14 дней бесплатно
                     <i class="fas fa-arrow-right ms-2"></i>
                 </a>
-                <p class="mt-3 small opacity-75">Не требуется карта • Отмена в любой момент</p>
             </div>
         </div>
     </div>

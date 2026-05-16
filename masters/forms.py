@@ -1,14 +1,30 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from .models import CustomUser, Master, PhoneVerification
+import re
+
+def validate_russian_phone(phone):
+    """Проверяет, что номер телефона российский"""
+    # Убираем все не-цифры
+    cleaned = re.sub(r'\D', '', phone)
+    
+    # Должно быть 11 цифр и начинаться с 7
+    if len(cleaned) != 11:
+        raise forms.ValidationError('Номер телефона должен содержать 11 цифр')
+    
+    if not cleaned.startswith('7'):
+        raise forms.ValidationError('Номер должен начинаться с 7')
+    
+    return cleaned
 
 class PhoneRegistrationForm(forms.Form):
     phone = forms.CharField(
         max_length=20,
         required=True,
+        validators=[validate_russian_phone],  # добавляем валидатор
         widget=forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': '+7 (999) 123-45-67',
+            'placeholder': '7 999 123-45-67',
             'type': 'tel'
         })
     )
@@ -64,3 +80,6 @@ class PhoneVerificationForm(forms.Form):
             'maxlength': '6'
         })
     )
+
+
+
