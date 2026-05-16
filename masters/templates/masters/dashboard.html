@@ -72,15 +72,22 @@
                         <tr><th>Дата</th><th>Время</th><th>Клиент</th><th>Услуга</th><th>Статус</th></tr>
                     </thead>
                     <tbody>
+                        
                         {% for booking in upcoming_bookings %}
                         <tr>
                             <td>{{ booking.date|date:"d.m.Y" }}</td>
                             <td>{{ booking.time|time:"H:i" }}</td>
                             <td>{{ booking.client_name }}</td>
                             <td>{{ booking.service.name }}</td>
+                            <td>
+                                <button class="btn btn-sm show-phone-btn" onclick="showPhone({{ booking.id }}, this)">
+                                    <i class="fas fa-eye-slash"></i> Показать номер
+                                </button>
+                            </td>
                             <td><span class="badge bg-success">Подтверждена</span></td>
                         </tr>
                         {% endfor %}
+
                     </tbody>
                 </table>
             </div>
@@ -105,10 +112,44 @@
         <div class="mt-3 small text-muted text-center">
             <span class="badge bg-success me-2">Рабочий день</span>
             <span class="badge bg-secondary me-2">Выходной</span>
-            <span class="badge bg-warning text-dark">Есть перерыв</span>
+            <!-- <span class="badge bg-warning text-dark">Есть перерыв</span> -->
         </div>
     </div>
 </div>
+
+<script>
+// Показать/скрыть номер телефона
+function showPhone(bookingId, btn) {
+    if (btn.dataset.phoneVisible === 'true') {
+        btn.innerHTML = '<i class="fas fa-eye-slash"></i> Показать номер';
+        btn.classList.remove('btn-outline-pink');
+        btn.classList.add('btn-outline-secondary');
+        btn.dataset.phoneVisible = 'false';
+        return;
+    }
+    
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    fetch(`/api/get-decrypted-phone/${bookingId}/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.phone) {
+                btn.innerHTML = `<i class="fas fa-eye"></i> ${data.phone}`;
+                btn.classList.remove('btn-outline-secondary');
+                btn.classList.add('btn-outline-pink');
+                btn.dataset.phoneVisible = 'true';
+            } else {
+                btn.innerHTML = '<i class="fas fa-eye-slash"></i> Показать номер';
+                alert('Ошибка при получении номера');
+            }
+        })
+        .catch(error => {
+            btn.innerHTML = '<i class="fas fa-eye-slash"></i> Показать номер';
+            alert('Ошибка загрузки');
+        });
+}
+</script>
+
 
 <script>
 function copyPublicLink() {
@@ -164,51 +205,41 @@ function renderCalendar(data, year, month) {
         html += '<div class="calendar-date empty"></div>';
     }
     
-    for (let d = 1; d <= daysInMonth; d++) {
+        for (let d = 1; d <= daysInMonth; d++) {
         const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
         const dayOfWeek = new Date(year, month, d).getDay();
         const dayOfWeekAdjusted = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
         
-        let statusClass = '';
-        let statusText = '';
+        let isWorking = false;
         let tooltip = '';
+        let statusText = '';
         
+        // Проверяем рабочий ли день
         if (data.extra_days && data.extra_days[dateStr]) {
             const extra = data.extra_days[dateStr];
-            statusClass = 'extra-day';
-            const hasBreak = extra.breaks && extra.breaks.length > 0;
-            if (hasBreak) {
-                statusClass = 'extra-day-with-break';
-                tooltip = `🟢 ДОП. ДЕНЬ: ${extra.start} - ${extra.end}\nПерерывы: ${extra.breaks.map(b => `${b.start}-${b.end}`).join(', ')}`;
-            } else {
-                tooltip = `🟢 ДОП. ДЕНЬ: ${extra.start} - ${extra.end}`;
-            }
+            isWorking = true;
+            tooltip = `Доп. день: ${extra.start} - ${extra.end}`;
             statusText = `${extra.start} - ${extra.end}`;
         } else if (data.days_off && data.days_off.includes(dateStr)) {
-            statusClass = 'day-off';
-            statusText = 'Выходной';
+            isWorking = false;
             tooltip = 'Выходной день';
+            statusText = 'Выходной';
         } else if (data.schedules && data.schedules[dayOfWeekAdjusted]) {
             const schedule = data.schedules[dayOfWeekAdjusted];
-            const hasBreak = schedule.breaks && schedule.breaks.length > 0;
-            if (hasBreak) {
-                statusClass = 'working-with-break';
-                tooltip = `${schedule.start} - ${schedule.end}\nПерерывы: ${schedule.breaks.map(b => `${b.start}-${b.end}`).join(', ')}`;
-            } else {
-                statusClass = 'working';
-                tooltip = `${schedule.start} - ${schedule.end}`;
-            }
+            isWorking = true;
+            tooltip = `${schedule.start} - ${schedule.end}`;
             statusText = `${schedule.start} - ${schedule.end}`;
         } else {
-            statusClass = 'day-off';
-            statusText = 'Выходной';
+            isWorking = false;
             tooltip = 'Нерабочий день';
+            statusText = 'Выходной';
         }
         
         const isToday = new Date().toDateString() === new Date(year, month, d).toDateString();
         const todayClass = isToday ? 'today' : '';
+        const workingClass = isWorking ? 'working' : 'non-working';
         
-        html += `<div class="calendar-date ${statusClass} ${todayClass}" title="${tooltip}">
+        html += `<div class="calendar-date ${workingClass} ${todayClass}" title="${tooltip}">
                     ${d}
                     <div class="calendar-time">${statusText}</div>
                 </div>`;
@@ -292,23 +323,22 @@ document.addEventListener('DOMContentLoaded', function() {
     background-color: transparent;
     min-height: auto;
 }
+
 .calendar-date.working {
     background-color: #d4edda;
     border: 1px solid #28a745;
 }
-.calendar-date.working-with-break {
-    background-color: #fff3cd;
-    border: 1px solid #ffc107;
-}
-.calendar-date.day-off {
-    background-color: #f8d7da;
-    border: 1px solid #dc3545;
-    opacity: 0.6;
+.calendar-date.non-working {
+    background-color: #e9ecef;
+    border: 1px solid #ced4da;
+    opacity: 0.7;
 }
 .calendar-date.today {
     border: 2px solid #ff85b3;
     box-shadow: 0 0 0 2px rgba(255, 133, 179, 0.3);
 }
+
+
 .calendar-time {
     font-size: 0.7rem;
     margin-top: 5px;
@@ -337,6 +367,28 @@ document.addEventListener('DOMContentLoaded', function() {
     font-weight: bold;
 }
 
+.show-phone-btn {
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+    padding: 5px 10px;
+}
+
+.btn-outline-secondary {
+    border: 1px solid #6c757d;
+    color: #6c757d;
+    background: transparent;
+}
+
+.btn-outline-pink {
+    border: 1px solid #ff85b3;
+    color: #ff85b3;
+    background: #fff9fb;
+}
+
+.btn-outline-pink:hover {
+    background-color: #ff85b3;
+    color: white;
+}
 
 </style>
 {% endblock %}

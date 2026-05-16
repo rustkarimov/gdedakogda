@@ -6,11 +6,11 @@ urlpatterns = [
     path('', views.home, name='home'),
     
     # Аутентификация
-    path('login/', views.CustomLoginView.as_view(), name='login'),
+    # path('login/', views.CustomLoginView.as_view(), name='login'),
     path('logout/', views.logout_view, name='logout'),
-    path('register/', views.register_step1, name='register'),
-    path('verify/', views.verify_phone, name='verify_phone'),
-    path('resend-code/', views.resend_code, name='resend_code'),
+    # path('register/', views.register_step1, name='register'),
+    # path('verify/', views.verify_phone, name='verify_phone'),
+    # path('resend-code/', views.resend_code, name='resend_code'),
 
     # Личный кабинет
     path('dashboard/', views.dashboard, name='dashboard'),
@@ -47,6 +47,11 @@ urlpatterns = [
     path('api/days-off/add/', views.api_add_day_off, name='api_add_day_off'),
     path('api/days-off/<int:dayoff_id>/delete/', views.api_delete_day_off, name='api_delete_day_off'),
 
+    # Статистика клиентов
+    path('clients-statistics/', views.clients_statistics, name='clients_statistics'),
+
+    path('api/get-decrypted-phone/<int:booking_id>/', views.get_decrypted_phone, name='api_decrypted_phone'),
+
     # Публичная страница мастера
     path('master/<slug:slug>/', views.master_public_page, name='master_public'),
     
@@ -54,4 +59,10 @@ urlpatterns = [
     path('api/master/<slug:slug>/dates/', views.get_available_dates, name='api_dates'),
     path('api/master/<slug:slug>/slots/', views.get_available_slots, name='api_slots'),
     path('api/master/<slug:slug>/book/', views.create_booking, name='api_book'),
+
+    # Мобильные/модальные API
+    path('api/mobile/login/', views.mobile_login, name='mobile_login'),
+    path('api/mobile/register/', views.mobile_register, name='mobile_register'),
+    path('api/mobile/verify/', views.mobile_verify, name='mobile_verify'),
+    path('api/mobile/resend-code/', views.mobile_resend_code, name='mobile_resend_code'),
 ]

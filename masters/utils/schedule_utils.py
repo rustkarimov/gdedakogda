@@ -28,24 +28,6 @@ class ScheduleCalculator:
         
         return None
     
-    # def get_working_hours_for_date(self, target_date: date) -> Optional[Tuple[time, time]]:
-    #     """
-    #     Получает рабочие часы мастера на конкретную дату
-    #     Возвращает (start_time, end_time) или None, если мастер не работает
-    #     """
-    #     # Проверяем, не выходной ли это день
-    #     if DayOff.objects.filter(master=self.master, date=target_date).exists():
-    #         return None
-        
-    #     # Получаем день недели (0 - понедельник, 6 - воскресенье)
-    #     day_of_week = target_date.weekday()
-        
-    #     # Ищем расписание на этот день
-    #     try:
-    #         schedule = Schedule.objects.get(master=self.master, day_of_week=day_of_week)
-    #         return (schedule.start_time, schedule.end_time)
-    #     except Schedule.DoesNotExist:
-    #         return None
     
     def get_booked_slots_for_date(self, target_date: date) -> List[Tuple[time, time]]:
         """

@@ -1,11 +1,14 @@
-{% extends 'masters/base.html' %}
+
+{% extends 'masters/public/promo_base.html' %}
 {% load static %}
 
 {% block title %}Где Да Когда — умное расписание для самозанятых мастеров{% endblock %}
 
+
 {% block content %}
+
 <!-- Hero секция -->
-<div class="hero-section">
+<div id='hero' class="hero-section">
     <div class="container">
         <div class="row min-vh-100 align-items-center">
             <div class="col-lg-6 hero-content">
@@ -18,10 +21,10 @@
                     стоматологии, тренировки и репетиторство. Всё в одном месте.
                 </p>
                 <div class="hero-buttons">
-                    <a href="{% url 'register' %}" class="btn btn-primary-gradient btn-lg">
-                        Попробовать бесплатно
-                        <i class="fas fa-arrow-right ms-2"></i>
-                    </a>
+                    <a href="#" class="btn btn-primary-gradient btn-lg" data-bs-toggle="modal" data-bs-target="#registerModal">
+    Попробовать бесплатно
+    <i class="fas fa-arrow-right ms-2"></i>
+</a>
                     <a href="#how-it-works" class="btn btn-outline-dark btn-lg">
                         <i class="fas fa-play-circle me-2"></i>Смотреть видео
                     </a>
@@ -283,7 +286,7 @@
 </div>
 
 <!-- Тарифы (светлые, нежные) -->
-<div class="pricing-section">
+<div id="pricing" class="pricing-section">
     <div class="container">
         <div class="row text-center mb-5">
             <div class="col-12">
@@ -303,7 +306,10 @@
                         <li class="disabled"><i class="fas fa-times"></i> SMS напоминания</li>
                         <li class="disabled"><i class="fas fa-times"></i> Статистика</li>
                     </ul>
-                    <a href="{% url 'register' %}" class="btn btn-outline-light-price w-100">Начать</a>
+                    <a href="#" class="btn btn-primary-gradient btn-lg" data-bs-toggle="modal" data-bs-target="#registerModal">
+    начать
+    <i class="fas fa-arrow-right ms-2"></i>
+</a>
                 </div>
             </div>
             <div class="col-md-4">
@@ -318,7 +324,11 @@
                         <li><i class="fas fa-check"></i> Полная статистика</li>
                         <li><i class="fas fa-check"></i> Импорт данных</li>
                     </ul>
-                    <a href="{% url 'register' %}" class="btn btn-primary-gradient w-100">Попробовать 14 дней</a>
+                    
+                    <a href="#" class="btn btn-primary-gradient btn-lg" data-bs-toggle="modal" data-bs-target="#registerModal">
+    Попробовать 14 дней
+    <i class="fas fa-arrow-right ms-2"></i>
+</a>
                 </div>
             </div>
             <div class="col-md-4">
@@ -332,7 +342,10 @@
                         <li><i class="fas fa-check"></i> API доступ</li>
                         <li><i class="fas fa-check"></i> Белые этикетки</li>
                     </ul>
-                    <a href="{% url 'register' %}" class="btn btn-outline-light-price w-100">Связаться</a>
+                    <a href="#" class="btn btn-primary-gradient btn-lg" data-bs-toggle="modal" data-bs-target="#registerModal">
+    связаться
+    <i class="fas fa-arrow-right ms-2"></i>
+</a>
                 </div>
             </div>
         </div>
@@ -486,10 +499,12 @@
             <div class="col-lg-8">
                 <h2 class="display-5 fw-bold mb-4">Готовы попробовать?</h2>
                 <p class="lead mb-4">Присоединяйтесь к 500+ мастерам, которые уже экономят время с "Где Да Когда"</p>
-                <a href="{% url 'register' %}" class="btn btn-primary-gradient btn-lg px-5 py-3">
-                    Начать 14 дней бесплатно
-                    <i class="fas fa-arrow-right ms-2"></i>
-                </a>
+                
+
+                <a href="#" class="btn btn-primary-gradient btn-lg" data-bs-toggle="modal" data-bs-target="#registerModal">
+    Попробовать 14 дней
+    <i class="fas fa-arrow-right ms-2"></i>
+</a>
             </div>
         </div>
     </div>

@@ -1,0 +1,251 @@
+{% extends 'masters/base.html' %}
+{% load custom_filters %}
+
+{% block title %}Статистика клиентов{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-chart-line me-2" style="color: #ff85b3;"></i>Статистика клиентов</h2>
+</div>
+
+<!-- Общая статистика -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="dashboard-stat">
+            <i class="fas fa-users"></i>
+            <h3>{{ total_clients }}</h3>
+            <p>Всего клиентов</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dashboard-stat">
+            <i class="fas fa-calendar-check"></i>
+            <h3>{{ total_bookings }}</h3>
+            <p>Всего записей</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="dashboard-stat">
+            <i class="fas fa-chart-simple"></i>
+            <h3>{{ avg_visits_per_client }}</h3>
+            <p>Среднее число визитов</p>
+        </div>
+    </div>
+</div>
+
+<!-- Таблица клиентов -->
+<div class="card">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="fas fa-table me-2" style="color: #ff85b3;"></i>Список клиентов</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover" id="clients-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Имя клиента</th>
+                        <th>Телефон</th>
+                        <th>Количество визитов</th>
+                        <th>Самая популярная услуга</th>
+                        <th>Дата первого визита</th>
+                        <th>Дата последнего визита</th>
+                        <th>Детали</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client in clients %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td><strong>{{ client.name }}</strong></td>
+                        <!-- колонка телефона -->
+                        <td>
+
+                           <td>
+                                {% if client.phone %}
+                                    <button class="btn btn-sm btn-outline-secondary show-phone-btn" 
+                                            onclick="togglePhone(this, '{{ client.phone|escapejs }}')">
+                                        <i class="fas fa-eye-slash"></i> Показать номер
+                                    </button>
+                                {% else %}
+                                    —
+                                {% endif %}
+            
+                            </td>
+
+                        <td>
+                            <span class="badge bg-primary">{{ client.total_visits }}</span>
+                         </td>
+                        <td>
+                            {% if client.most_popular_service != 'Нет' %}
+                                <span class="badge bg-success">{{ client.most_popular_service }}</span>
+                                <small class="text-muted">({{ client.most_popular_service_count }} раз)</small>
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                         </td>
+                        <td>{{ client.first_visit|date:"d.m.Y"|default:"—" }}</td>
+                        <td>{{ client.last_visit|date:"d.m.Y"|default:"—" }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-pink" onclick="showClientDetails('{{ client.name }}', {{ client.services|safe }})">
+                                <i class="fas fa-eye"></i> Все услуги
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center">
+                            <p class="text-muted my-3">Нет данных о клиентах</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно с деталями услуг клиента -->
+<div class="modal fade" id="clientDetailsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalClientName"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Услуги клиента:</h6>
+                <ul id="servicesList" class="list-group">
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showClientDetails(clientName, services) {
+    document.getElementById('modalClientName').innerHTML = `<i class="fas fa-user me-2" style="color: #ff85b3;"></i>${clientName}`;
+    
+    const servicesList = document.getElementById('servicesList');
+    servicesList.innerHTML = '';
+    
+    if (Object.keys(services).length === 0) {
+        servicesList.innerHTML = '<li class="list-group-item">Нет данных об услугах</li>';
+    } else {
+        const sortedServices = Object.entries(services).sort((a, b) => b[1] - a[1]);
+        
+        sortedServices.forEach(([serviceName, count]) => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.innerHTML = `
+                ${serviceName}
+                <span class="badge bg-primary rounded-pill">${count} раз</span>
+            `;
+            servicesList.appendChild(li);
+        });
+    }
+    
+    new bootstrap.Modal(document.getElementById('clientDetailsModal')).show();
+}
+
+// Функция для показа/скрытия номера в статистике
+function togglePhone(btn, phoneNumber) {
+    if (btn.dataset.visible === 'true') {
+        // Скрываем номер
+        btn.innerHTML = '<i class="fas fa-eye-slash"></i> Показать номер';
+        btn.classList.remove('btn-outline-pink');
+        btn.classList.add('btn-outline-secondary');
+        btn.dataset.visible = 'false';
+    } else {
+        // Показываем номер
+        btn.innerHTML = `<i class="fas fa-eye"></i> ${phoneNumber}`;
+        btn.classList.remove('btn-outline-secondary');
+        btn.classList.add('btn-outline-pink');
+        btn.dataset.visible = 'true';
+    }
+}
+
+// Поиск по таблице
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.placeholder = '🔍 Поиск по имени или телефону...';
+    searchInput.className = 'form-control mb-3';
+    searchInput.style.maxWidth = '300px';
+    
+    const cardBody = document.querySelector('.card-body');
+    const table = document.getElementById('clients-table');
+    
+    if (table && cardBody) {
+        cardBody.insertBefore(searchInput, table.parentElement);
+        
+        searchInput.addEventListener('keyup', function() {
+            const searchText = this.value.toLowerCase();
+            const rows = table.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const name = row.cells[1]?.textContent.toLowerCase() || '';
+                const phoneBtn = row.cells[2]?.querySelector('.phone-number');
+                const phoneText = phoneBtn ? phoneBtn.textContent.toLowerCase() : '';
+                
+                if (name.includes(searchText) || phoneText.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+});
+</script>
+
+<style>
+.dashboard-stat {
+    text-align: center;
+    padding: 20px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.dashboard-stat i {
+    font-size: 2.5rem;
+    color: #ff85b3;
+    margin-bottom: 10px;
+}
+.dashboard-stat h3 {
+    font-size: 2rem;
+    margin-bottom: 5px;
+}
+.btn-outline-pink {
+    border: 1px solid #ff85b3;
+    color: #ff85b3;
+    background: transparent;
+}
+.btn-outline-pink:hover {
+    background-color: #ff85b3;
+    color: white;
+}
+.btn-outline-secondary {
+    border: 1px solid #6c757d;
+    color: #6c757d;
+    background: transparent;
+}
+.btn-outline-secondary:hover {
+    background-color: #6c757d;
+    color: white;
+}
+.phone-number {
+    margin-left: 8px;
+    font-weight: 500;
+    color: #28a745;
+}
+.show-phone-btn {
+    transition: all 0.2s ease;
+    font-size: 0.85rem;
+    padding: 5px 10px;
+}
+</style>
+{% endblock %}

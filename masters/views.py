@@ -27,147 +27,11 @@ def get_month_ru(date_obj):
     ]
     return months[date_obj.month - 1]
 
-# Регистрация шаг 1
-def register_step1(request):
-    """Шаг 1 регистрации: ввод телефона и пароля"""
-    if request.method == 'POST':
-        form = PhoneRegistrationForm(request.POST)
-        if form.is_valid():
-            # Очищаем и проверяем телефон
-            import re
-            phone_cleaned = re.sub(r'\D', '', form.cleaned_data['phone'])
-            
-            if len(phone_cleaned) != 11 or not phone_cleaned.startswith('7'):
-                messages.error(request, 'Неверный формат телефона. Нужен номер 7XXXXXXXXXX (11 цифр)')
-                return render(request, 'masters/register_step1.html', {'form': form})
-            
-            request.session['registration_data'] = {
-                'phone': phone_cleaned,  # сохраняем очищенный
-                'first_name': form.cleaned_data.get('first_name', ''),
-                'last_name': form.cleaned_data.get('last_name', ''),
-                'password': form.cleaned_data['password'],
-            }
-            
-            verification_code = str(random.randint(100000, 999999))
-            
-            PhoneVerification.objects.create(
-                phone=phone_cleaned,
-                code=verification_code
-            )
-            
-            request.session['test_code'] = verification_code
-            
-            return redirect('verify_phone')
-        else:
-            for error in form.non_field_errors():
-                messages.error(request, error)
-            for field, errors in form.errors.items():
-                if field != '__all__':
-                    for error in errors:
-                        messages.error(request, f'{error}')
-    else:
-        form = PhoneRegistrationForm()
-    
-    return render(request, 'masters/register_step1.html', {'form': form})
 
-# Регистрация шаг 2 - подтверждение кода
-def verify_phone(request):
-    registration_data = request.session.get('registration_data')
-    if not registration_data:
-        return redirect('register')
-    
-    test_code = request.session.get('test_code')
-    
-    if request.method == 'POST':
-        form = PhoneVerificationForm(request.POST)
-        if form.is_valid():
-            code = form.cleaned_data['code']
-            
-            verification = PhoneVerification.objects.filter(
-                phone=registration_data['phone'],
-                code=code,
-                is_used=False
-            ).first()
-            
-            if verification or (test_code and code == test_code):
-                if verification:
-                    verification.is_used = True
-                    verification.save()
-                
-                user = CustomUser.objects.create_user(
-                    phone=registration_data['phone'],
-                    password=registration_data['password'],
-                    first_name=registration_data.get('first_name', ''),
-                    last_name=registration_data.get('last_name', '')
-                )
-                
-                Master.objects.create(
-                    user=user,
-                    phone=registration_data['phone'],
-                    first_name=registration_data.get('first_name', ''),
-                    last_name=registration_data.get('last_name', '')
-                )
-                
-                login(request, user)
-                
-                del request.session['registration_data']
-                if 'test_code' in request.session:
-                    del request.session['test_code']
-                
-                messages.success(request, 'Регистрация прошла успешно!')
-                return redirect('dashboard')
-            else:
-                messages.error(request, 'Неверный код подтверждения')
-        else:
-            messages.error(request, 'Введите код подтверждения')
-    else:
-        form = PhoneVerificationForm()
-    
-    return render(request, 'masters/verify_phone.html', {
-        'form': form,
-        'phone': registration_data['phone'],
-        'test_code': test_code
-    })
-
-# Повторная отправка кода
-def resend_code(request):
-    registration_data = request.session.get('registration_data')
-    if not registration_data:
-        return redirect('register')
-    
-    verification_code = str(random.randint(100000, 999999))
-    
-    PhoneVerification.objects.create(
-        phone=registration_data['phone'],
-        code=verification_code
-    )
-    
-    request.session['test_code'] = verification_code
-    
-    messages.success(request, 'Новый код отправлен!')
-    return redirect('verify_phone')
-
-# Кастомный вход
-class CustomLoginView(LoginView):
-    template_name = 'masters/login.html'
-    redirect_authenticated_user = True
-    
-    def form_invalid(self, form):
-        messages.error(self.request, 'Неверный телефон или пароль')
-        return super().form_invalid(form)
-    
-    def get_success_url(self):
-        return reverse_lazy('dashboard')
-
-# Выход
-def logout_view(request):
-    auth_logout(request)
-    messages.success(request, 'Вы вышли из системы')
-    return redirect('home')
 
 # Главная страница
 def home(request):
-    return render(request, 'masters/index.html')
+    return render(request, 'masters/public/index.html')
 
 # Личный кабинет
 @login_required
@@ -240,36 +104,6 @@ def get_calendar_schedule(request):
         'extra_days': extra_days_data
     })
 
-# @login_required
-# def get_calendar_schedule(request):
-#     """API для получения расписания мастера для календаря"""
-#     master = request.user.master
-    
-#     # Получаем регулярное расписание
-#     schedules = Schedule.objects.filter(master=master)
-#     schedules_data = {}
-#     for schedule in schedules:
-#         schedules_data[schedule.day_of_week] = {
-#             'start': schedule.start_time.strftime('%H:%M'),
-#             'end': schedule.end_time.strftime('%H:%M'),
-#             'breaks': [{
-#                 'start': b.start_time.strftime('%H:%M'),
-#                 'end': b.end_time.strftime('%H:%M')
-#             } for b in schedule.breaks.all()]
-#         }
-    
-#     # Получаем выходные дни (только будущие)
-#     days_off = DayOff.objects.filter(
-#         master=master,
-#         date__gte=date.today()
-#     ).values_list('date', flat=True)
-    
-#     days_off_list = [d.strftime('%Y-%m-%d') for d in days_off]
-    
-#     return JsonResponse({
-#         'schedules': schedules_data,
-#         'days_off': days_off_list
-#     })
 
 # Профиль
 @login_required
@@ -652,55 +486,6 @@ def get_booking_slots_for_master(request):
     
     return JsonResponse({'slots': slots})
 
-# Выходные дни
-# @login_required
-# def days_off(request):
-#     master = request.user.master
-#     days_off_list = DayOff.objects.filter(master=master, date__gte=datetime.now().date()).order_by('date')
-#     past_days_off = DayOff.objects.filter(master=master, date__lt=datetime.now().date()).order_by('-date')[:5]
-    
-#     return render(request, 'masters/days_off.html', {
-#         'days_off': days_off_list,
-#         'past_days_off': past_days_off
-#     })
-
-# @login_required
-# def add_day_off(request):
-#     if request.method == 'POST':
-#         master = request.user.master
-#         date_str = request.POST.get('date')
-#         reason = request.POST.get('reason', '')
-        
-#         if date_str:
-#             date_obj = datetime.strptime(date_str, '%Y-%m-%d').date()
-            
-#             existing = DayOff.objects.filter(master=master, date=date_obj).first()
-#             if existing:
-#                 messages.error(request, 'Этот день уже отмечен как выходной')
-#                 return redirect('days_off')
-            
-#             DayOff.objects.create(
-#                 master=master,
-#                 date=date_obj,
-#                 reason=reason
-#             )
-#             messages.success(request, 'Выходной день добавлен')
-#         else:
-#             messages.error(request, 'Выберите дату')
-        
-#         return redirect('days_off')
-    
-#     return render(request, 'masters/add_day_off.html')
-
-# @login_required
-# def delete_day_off(request, dayoff_id):
-#     day_off = get_object_or_404(DayOff, id=dayoff_id, master=request.user.master)
-#     day_off.delete()
-#     messages.success(request, 'Выходной день удален')
-#     return redirect('days_off')
-
-
-
 @login_required
 def days_off(request):
     """Страница выходных дней (AJAX версия)"""
@@ -762,7 +547,240 @@ def api_delete_day_off(request, dayoff_id):
         'message': 'Выходной день удален'
     })
 
+@login_required
+def clients_statistics(request):
+    """Статистика клиентов мастера"""
+    master = request.user.master
+    
+    # Получаем все записи мастера
+    bookings = Booking.objects.filter(
+        master=master,
+        status='confirmed'
+    ).select_related('service')
+    
+    from collections import defaultdict
+    import re
+    from cryptography.fernet import Fernet, InvalidToken
+    
+    # Получаем ключ мастера
+    key = master.get_encryption_key()
+    
+    # Группируем по клиентам
+    clients_data = defaultdict(lambda: {
+        'name': '',
+        'phone': '',
+        'total_visits': 0,
+        'services': defaultdict(int),
+        'last_visit': None,
+        'first_visit': None
+    })
+    
+    for booking in bookings:
+        # Расшифровываем телефон
+        phone = ''
+        if key:
+            try:
+                f = Fernet(key)
+                decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
+                phone = decrypted
+            except (InvalidToken, Exception):
+                # Если не получилось расшифровать, пробуем как обычную строку
+                try:
+                    phone = booking.encrypted_phone.decode('utf-8')
+                except:
+                    phone = str(booking.encrypted_phone)
+        else:
+            # Если ключа нет, пробуем как обычную строку
+            try:
+                phone = booking.encrypted_phone.decode('utf-8')
+            except:
+                phone = str(booking.encrypted_phone)
+        
+        # Очищаем телефон от не-цифр и форматируем
+        phone_cleaned = re.sub(r'\D', '', phone)
+        if len(phone_cleaned) == 11:
+            formatted_phone = f"{phone_cleaned[0]} {phone_cleaned[1:4]} {phone_cleaned[4:7]}-{phone_cleaned[7:9]}-{phone_cleaned[9:11]}"
+        else:
+            formatted_phone = phone
+        
+        # Ключ для группировки (имя + телефон)
+        client_key = f"{booking.client_name}_{phone_cleaned}"
+        
+        clients_data[client_key]['name'] = booking.client_name
+        clients_data[client_key]['phone'] = formatted_phone
+        clients_data[client_key]['total_visits'] += 1
+        clients_data[client_key]['services'][booking.service.name] += 1
+        
+        # Обновляем даты
+        if clients_data[client_key]['first_visit'] is None or booking.date < clients_data[client_key]['first_visit']:
+            clients_data[client_key]['first_visit'] = booking.date
+        if clients_data[client_key]['last_visit'] is None or booking.date > clients_data[client_key]['last_visit']:
+            clients_data[client_key]['last_visit'] = booking.date
+    
+    # Преобразуем в список для шаблона
+    clients_list = []
+    for client_key, data in clients_data.items():
+        # Находим самую популярную услугу
+        most_popular_service = max(data['services'].items(), key=lambda x: x[1]) if data['services'] else ('Нет', 0)
+        
+        clients_list.append({
+            'name': data['name'],
+            'phone': data['phone'],
+            'total_visits': data['total_visits'],
+            'most_popular_service': most_popular_service[0],
+            'most_popular_service_count': most_popular_service[1],
+            'first_visit': data['first_visit'],
+            'last_visit': data['last_visit'],
+            'services': dict(data['services'])
+        })
+    
+    # Сортируем по количеству визитов
+    clients_list.sort(key=lambda x: x['total_visits'], reverse=True)
+    
+    # Общая статистика
+    total_clients = len(clients_list)
+    total_bookings = bookings.count()
+    avg_visits_per_client = round(total_bookings / total_clients, 1) if total_clients > 0 else 0
+    
+    context = {
+        'clients': clients_list,
+        'total_clients': total_clients,
+        'total_bookings': total_bookings,
+        'avg_visits_per_client': avg_visits_per_client,
+        'master': master
+    }
+    
+    return render(request, 'masters/clients_statistics.html', context)
 
+
+@login_required
+def get_decrypted_phone(request, booking_id):
+    """API для расшифровки номера телефона"""
+    booking = get_object_or_404(Booking, id=booking_id, master=request.user.master)
+    
+    from cryptography.fernet import Fernet, InvalidToken
+    import re
+    
+    key = request.user.master.get_encryption_key()
+    
+    if not key:
+        return JsonResponse({'error': 'Ключ шифрования не найден'}, status=400)
+    
+    try:
+        f = Fernet(key)
+        decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
+    except InvalidToken:
+        # Если не получилось расшифровать, пробуем как обычную строку
+        try:
+            decrypted = booking.encrypted_phone.decode('utf-8')
+        except:
+            return JsonResponse({'error': 'Ошибка расшифровки'}, status=400)
+    
+    # Форматируем для красивого отображения
+    phone_cleaned = re.sub(r'\D', '', decrypted)
+    if len(phone_cleaned) == 11:
+        formatted_phone = f"{phone_cleaned[0]} {phone_cleaned[1:4]} {phone_cleaned[4:7]}-{phone_cleaned[7:9]}-{phone_cleaned[9:11]}"
+    else:
+        formatted_phone = decrypted
+    
+    return JsonResponse({'phone': formatted_phone})
+
+
+from django.contrib.auth import authenticate, login
+from .models import PhoneVerification
+import random
+
+@csrf_exempt
+def mobile_login(request):
+    """API вход по телефону и паролю"""
+    data = json.loads(request.body)
+    phone = data.get('phone')
+    password = data.get('password')
+    
+    user = authenticate(request, username=phone, password=password)
+    if user:
+        login(request, user)
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False, 'error': 'Неверные данные'}, status=400)
+
+@csrf_exempt
+def mobile_register(request):
+    """API регистрация (шаг 1)"""
+    data = json.loads(request.body)
+    phone = data.get('phone')
+    first_name = data.get('first_name', '')
+    last_name = data.get('last_name', '')
+    password = data.get('password')
+    
+    if CustomUser.objects.filter(phone=phone).exists():
+        return JsonResponse({'error': 'Пользователь уже существует'}, status=400)
+    
+    verification_code = str(random.randint(100000, 999999))
+    PhoneVerification.objects.create(phone=phone, code=verification_code)
+    
+    request.session['reg_phone'] = phone
+    request.session['reg_first_name'] = first_name
+    request.session['reg_last_name'] = last_name
+    request.session['reg_password'] = password
+    request.session['test_code'] = verification_code
+    
+    return JsonResponse({'success': True, 'test_code': verification_code})
+
+@csrf_exempt
+def mobile_verify(request):
+    """API подтверждение кода (шаг 2)"""
+    data = json.loads(request.body)
+    code = data.get('code')
+    phone = request.session.get('reg_phone')
+    
+    verification = PhoneVerification.objects.filter(phone=phone, code=code, is_used=False).first()
+    test_code = request.session.get('test_code')
+    
+    if verification or (test_code and code == test_code):
+        if verification:
+            verification.is_used = True
+            verification.save()
+        
+        user = CustomUser.objects.create_user(
+            phone=phone,
+            password=request.session.get('reg_password'),
+            first_name=request.session.get('reg_first_name', ''),
+            last_name=request.session.get('reg_last_name', '')
+        )
+        Master.objects.create(
+            user=user,
+            phone=phone,
+            first_name=request.session.get('reg_first_name', ''),
+            last_name=request.session.get('reg_last_name', '')
+        )
+        login(request, user)
+        
+        # Очищаем сессию
+        for key in ['reg_phone', 'reg_first_name', 'reg_last_name', 'reg_password', 'test_code']:
+            request.session.pop(key, None)
+        
+        return JsonResponse({'success': True})
+    
+    return JsonResponse({'error': 'Неверный код'}, status=400)
+
+@csrf_exempt
+def mobile_resend_code(request):
+    """API повторная отправка кода"""
+    data = json.loads(request.body)
+    phone = data.get('phone') or request.session.get('reg_phone')
+    
+    verification_code = str(random.randint(100000, 999999))
+    PhoneVerification.objects.create(phone=phone, code=verification_code)
+    request.session['test_code'] = verification_code
+    
+    return JsonResponse({'success': True, 'test_code': verification_code})
+
+
+# Выход
+def logout_view(request):
+    auth_logout(request)
+    # messages.success(request, 'Вы вышли из системы')
+    return redirect('home')
 
 from django.http import JsonResponse
 from .utils.schedule_utils import ScheduleCalculator
@@ -780,34 +798,6 @@ def master_public_page(request, slug):
         'services': services
     })
 
-# def get_available_dates(request, slug):
-#     """API для получения доступных дат (без перезагрузки страницы)"""
-#     master = get_object_or_404(Master, slug=slug)
-#     service_id = request.GET.get('service_id')
-    
-#     if not service_id:
-#         return JsonResponse({'error': 'Выберите услугу'}, status=400)
-    
-#     try:
-#         service = Service.objects.get(id=service_id, master=master)
-#     except Service.DoesNotExist:
-#         return JsonResponse({'error': 'Услуга не найдена'}, status=404)
-    
-#     # Рассчитываем доступные даты
-#     calculator = ScheduleCalculator(master)
-#     available_dates = calculator.get_available_dates(
-#         days_ahead=30, 
-#         min_service_duration=service.duration
-#     )
-    
-#     # Форматируем даты для JSON
-#     dates_list = [{
-#         'date': d.strftime('%Y-%m-%d'),
-#         'display': d.strftime('%d %B %Y'),  # например: "15 марта 2026"
-#         'day_of_week': d.strftime('%A')  # день недели
-#     } for d in available_dates]
-    
-#     return JsonResponse({'dates': dates_list})
 
 def get_available_dates(request, slug):
     """API для получения доступных дат"""
@@ -945,3 +935,154 @@ def format_phone(phone):
     if not phone or len(phone) != 11:
         return phone
     return f"{phone[0]} {phone[1:4]} {phone[4:7]}-{phone[7:9]}-{phone[9:11]}"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # Регистрация шаг 1
+# def register_step1(request):
+#     """Шаг 1 регистрации: ввод телефона и пароля"""
+#     if request.method == 'POST':
+#         form = PhoneRegistrationForm(request.POST)
+#         if form.is_valid():
+#             # Очищаем и проверяем телефон
+#             import re
+#             phone_cleaned = re.sub(r'\D', '', form.cleaned_data['phone'])
+            
+#             if len(phone_cleaned) != 11 or not phone_cleaned.startswith('7'):
+#                 messages.error(request, 'Неверный формат телефона. Нужен номер 7XXXXXXXXXX (11 цифр)')
+#                 return render(request, 'masters/register_step1.html', {'form': form})
+            
+#             request.session['registration_data'] = {
+#                 'phone': phone_cleaned,  # сохраняем очищенный
+#                 'first_name': form.cleaned_data.get('first_name', ''),
+#                 'last_name': form.cleaned_data.get('last_name', ''),
+#                 'password': form.cleaned_data['password'],
+#             }
+            
+#             verification_code = str(random.randint(100000, 999999))
+            
+#             PhoneVerification.objects.create(
+#                 phone=phone_cleaned,
+#                 code=verification_code
+#             )
+            
+#             request.session['test_code'] = verification_code
+            
+#             return redirect('verify_phone')
+#         else:
+#             for error in form.non_field_errors():
+#                 messages.error(request, error)
+#             for field, errors in form.errors.items():
+#                 if field != '__all__':
+#                     for error in errors:
+#                         messages.error(request, f'{error}')
+#     else:
+#         form = PhoneRegistrationForm()
+    
+#     return render(request, 'masters/register_step1.html', {'form': form})
+
+# Регистрация шаг 2 - подтверждение кода
+# def verify_phone(request):
+#     registration_data = request.session.get('registration_data')
+#     if not registration_data:
+#         return redirect('register')
+    
+#     test_code = request.session.get('test_code')
+    
+#     if request.method == 'POST':
+#         form = PhoneVerificationForm(request.POST)
+#         if form.is_valid():
+#             code = form.cleaned_data['code']
+            
+#             verification = PhoneVerification.objects.filter(
+#                 phone=registration_data['phone'],
+#                 code=code,
+#                 is_used=False
+#             ).first()
+            
+#             if verification or (test_code and code == test_code):
+#                 if verification:
+#                     verification.is_used = True
+#                     verification.save()
+                
+#                 user = CustomUser.objects.create_user(
+#                     phone=registration_data['phone'],
+#                     password=registration_data['password'],
+#                     first_name=registration_data.get('first_name', ''),
+#                     last_name=registration_data.get('last_name', '')
+#                 )
+                
+#                 Master.objects.create(
+#                     user=user,
+#                     phone=registration_data['phone'],
+#                     first_name=registration_data.get('first_name', ''),
+#                     last_name=registration_data.get('last_name', '')
+#                 )
+                
+#                 login(request, user)
+                
+#                 del request.session['registration_data']
+#                 if 'test_code' in request.session:
+#                     del request.session['test_code']
+                
+#                 messages.success(request, 'Регистрация прошла успешно!')
+#                 return redirect('dashboard')
+#             else:
+#                 messages.error(request, 'Неверный код подтверждения')
+#         else:
+#             messages.error(request, 'Введите код подтверждения')
+#     else:
+#         form = PhoneVerificationForm()
+    
+#     return render(request, 'masters/verify_phone.html', {
+#         'form': form,
+#         'phone': registration_data['phone'],
+#         'test_code': test_code
+#     })
+
+# Повторная отправка кода
+# def resend_code(request):
+#     registration_data = request.session.get('registration_data')
+#     if not registration_data:
+#         return redirect('register')
+    
+#     verification_code = str(random.randint(100000, 999999))
+    
+#     PhoneVerification.objects.create(
+#         phone=registration_data['phone'],
+#         code=verification_code
+#     )
+    
+#     request.session['test_code'] = verification_code
+    
+#     messages.success(request, 'Новый код отправлен!')
+#     return redirect('verify_phone')
+
+# Кастомный вход
+# class CustomLoginView(LoginView):
+#     template_name = 'masters/login.html'
+#     redirect_authenticated_user = True
+    
+#     def form_invalid(self, form):
+#         messages.error(self.request, 'Неверный телефон или пароль')
+#         return super().form_invalid(form)
+    
+#     def get_success_url(self):
+#         return reverse_lazy('dashboard')
+
