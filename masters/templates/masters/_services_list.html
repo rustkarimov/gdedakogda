@@ -1,0 +1,45 @@
+{% for service in services %}
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100">
+        <div class="card-body">
+            <h5 class="card-title">{{ service.name }}</h5>
+            <p class="card-text text-muted small">{{ service.description|truncatechars:100 }}</p>
+            
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <span class="badge {% if service.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                    {% if service.is_active %}Активна{% else %}Неактивна{% endif %}
+                </span>
+                <span class="service-duration">
+                    <i class="far fa-clock me-1"></i>{{ service.duration }} мин
+                </span>
+                <span class="service-price">{{ service.price }} ₽</span>
+            </div>
+        </div>
+        <div class="card-footer bg-white border-0 pb-3">
+            <div class="btn-group w-100">
+                <button class="btn btn-outline-pink btn-sm" 
+                        onclick="editService({{ service.id }}, '{{ service.name|escapejs }}', '{{ service.description|escapejs }}', {{ service.duration }}, {{ service.price }}, {{ service.is_active|yesno:'true,false' }})">
+                    <i class="fas fa-edit me-1"></i>Изменить
+                </button>
+                <button class="btn btn-outline-danger btn-sm" 
+                        onclick="deleteService({{ service.id }}, '{{ service.name|escapejs }}')">
+                    <i class="fas fa-trash me-1"></i>Удалить
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% empty %}
+<div class="col-12">
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-cut fa-4x mb-3" style="color: #ff85b3;"></i>
+            <h5>У вас пока нет услуг</h5>
+            <p class="text-muted">Добавьте первую услугу, чтобы клиенты могли записаться</p>
+            <button class="btn btn-pink mt-2" data-bs-toggle="modal" data-bs-target="#serviceModal" onclick="openAddServiceModal()">
+                <i class="fas fa-plus me-1"></i>Добавить услугу
+            </button>
+        </div>
+    </div>
+</div>
+{% endfor %}

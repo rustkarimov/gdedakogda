@@ -44,8 +44,7 @@ class MasterInline(admin.StackedInline):
     model = Master
     can_delete = False
     verbose_name_plural = 'Профиль мастера'
-    form = MasterAdminForm
-    fields = ['phone', 'first_name', 'last_name', 'bio', 'slug', 'encryption_key']
+    fields = ['phone', 'first_name', 'last_name', 'bio', 'login', 'encryption_key']
     readonly_fields = ['encryption_key']
     extra = 0
     max_num = 1
@@ -53,16 +52,19 @@ class MasterInline(admin.StackedInline):
 # Админка мастера
 @admin.register(Master)
 class MasterAdmin(admin.ModelAdmin):
-    form = MasterAdminForm
-    list_display = ['full_name', 'phone', 'slug', 'created_at']
+    list_display = ['full_name', 'phone', 'public_slug', 'created_at']  # замени slug на public_slug
     list_filter = ['created_at']
-    search_fields = ['user__phone', 'phone', 'first_name', 'last_name']
+    search_fields = ['user__phone', 'phone', 'first_name', 'last_name', 'login']  # добавил login
     readonly_fields = ['encryption_key', 'created_at', 'updated_at']
-    fields = ['user', 'phone', 'first_name', 'last_name', 'bio', 'slug', 'encryption_key', 'created_at', 'updated_at']
+    fields = ['user', 'phone', 'first_name', 'last_name', 'bio', 'login', 'encryption_key', 'created_at', 'updated_at']
     
     def full_name(self, obj):
         return obj.__str__()
     full_name.short_description = "Имя мастера"
+    
+    def public_slug(self, obj):
+        return obj.public_slug
+    public_slug.short_description = "Ссылка"
 
 # Админка услуг
 @admin.register(Service)

@@ -49,8 +49,8 @@
         <h5><i class="fas fa-share-alt me-2" style="color: #ff85b3;"></i>Ваша страница для записи</h5>
         <div class="input-group">
             <input type="text" class="form-control" id="publicLink" 
-                   value="{{ request.scheme }}://{{ request.get_host }}{% url 'master_public' master.slug %}" 
-                   readonly>
+                value="{{ request.scheme }}://{{ request.get_host }}/{{ master.public_slug }}/" 
+                readonly>
             <button class="btn btn-pink" type="button" onclick="copyPublicLink()">
                 <i class="fas fa-copy"></i> Копировать
             </button>

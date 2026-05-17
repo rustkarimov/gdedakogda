@@ -5,52 +5,151 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="fas fa-cut me-2" style="color: #ff85b3;"></i>Мои услуги</h2>
-    <a href="{% url 'add_service' %}" class="btn btn-pink">
+    <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#serviceModal" onclick="openAddServiceModal()">
         <i class="fas fa-plus me-1"></i>Добавить услугу
-    </a>
+    </button>
 </div>
 
-<div class="row">
-    {% for service in services %}
-    <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100">
-            <div class="card-body">
-                <h5 class="card-title">{{ service.name }}</h5>
-                <p class="card-text text-muted small">{{ service.description|truncatechars:100 }}</p>
-                
-                <div class="d-flex justify-content-between align-items-center mt-3">
-                    <span class="service-duration">
-                        <i class="far fa-clock me-1"></i>{{ service.duration }} мин
-                    </span>
-                    <span class="service-price">{{ service.price }} ₽</span>
-                </div>
-            </div>
-            <div class="card-footer bg-white border-0 pb-3">
-                <div class="btn-group w-100">
-                    <a href="{% url 'edit_service' service.id %}" class="btn btn-outline-pink btn-sm">
-                        <i class="fas fa-edit me-1"></i>Изменить
-                    </a>
-                    <a href="{% url 'delete_service' service.id %}" class="btn btn-outline-danger btn-sm" 
-                       onclick="return confirm('Удалить услугу?')">
-                        <i class="fas fa-trash me-1"></i>Удалить
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% empty %}
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body text-center py-5">
-                <i class="fas fa-cut fa-4x mb-3" style="color: #ff85b3;"></i>
-                <h5>У вас пока нет услуг</h5>
-                <p class="text-muted">Добавьте первую услугу, чтобы клиенты могли записаться</p>
-                <a href="{% url 'add_service' %}" class="btn btn-pink mt-2">
-                    <i class="fas fa-plus me-1"></i>Добавить услугу
-                </a>
-            </div>
-        </div>
-    </div>
-    {% endfor %}
+<div class="row" id="services-container">
+    {% include 'masters/_services_list.html' %}
 </div>
+
+<!-- Модальное окно для добавления/редактирования услуги -->
+<div class="modal fade" id="serviceModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="serviceModalTitle">Добавить услугу</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="serviceForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="serviceId" name="service_id">
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Название услуги</label>
+                        <input type="text" class="form-control" id="serviceName" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Описание</label>
+                        <textarea class="form-control" id="serviceDescription" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Длительность (минут)</label>
+                            <input type="number" class="form-control" id="serviceDuration" min="5" step="5" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Цена (₽)</label>
+                            <input type="number" class="form-control" id="servicePrice" min="0" step="100" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="serviceActive" checked>
+                        <label class="form-check-label">Услуга активна</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-pink" onclick="saveService()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let editingServiceId = null;
+
+function openAddServiceModal() {
+    editingServiceId = null;
+    document.getElementById('serviceModalTitle').innerText = 'Добавить услугу';
+    document.getElementById('serviceForm').reset();
+    document.getElementById('serviceActive').checked = true;
+    document.getElementById('serviceId').value = '';
+}
+
+function editService(id, name, description, duration, price, isActive) {
+    editingServiceId = id;
+    document.getElementById('serviceModalTitle').innerText = 'Редактировать услугу';
+    document.getElementById('serviceId').value = id;
+    document.getElementById('serviceName').value = name;
+    document.getElementById('serviceDescription').value = description || '';
+    document.getElementById('serviceDuration').value = duration;
+    document.getElementById('servicePrice').value = price;
+    document.getElementById('serviceActive').checked = isActive;
+    
+    new bootstrap.Modal(document.getElementById('serviceModal')).show();
+}
+
+function saveService() {
+    const id = document.getElementById('serviceId').value;
+    const name = document.getElementById('serviceName').value.trim();
+    const description = document.getElementById('serviceDescription').value;
+    const duration = document.getElementById('serviceDuration').value;
+    const price = document.getElementById('servicePrice').value;
+    const isActive = document.getElementById('serviceActive').checked;
+    
+    if (!name || !duration || !price) {
+        alert('Заполните все обязательные поля');
+        return;
+    }
+    
+    const url = id ? `/api/services/${id}/edit/` : '/api/services/add/';
+    const data = { name, description, duration: parseInt(duration), price: parseFloat(price), is_active: isActive };
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('serviceModal')).hide();
+            loadServices();
+        } else {
+            alert(data.error || 'Ошибка при сохранении');
+        }
+    });
+}
+
+function deleteService(id, name) {
+    if (confirm(`Удалить услугу "${name}"?`)) {
+        fetch(`/api/services/${id}/delete/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadServices();
+            } else {
+                alert(data.error || 'Ошибка при удалении');
+            }
+        });
+    }
+}
+
+function loadServices() {
+    fetch('/services/')
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newList = doc.getElementById('services-container').innerHTML;
+            document.getElementById('services-container').innerHTML = newList;
+        });
+}
+</script>
 {% endblock %}

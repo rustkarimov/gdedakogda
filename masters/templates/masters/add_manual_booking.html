@@ -175,7 +175,10 @@ function loadAvailableDates() {
         </div>
     `;
     
-    fetch(`/api/master/{{ master.slug }}/dates/?service_id=${selectedServiceId}`)
+    // fetch(`/api/master/{{ master.slug }}/dates/?service_id=${selectedServiceId}`)
+    // fetch(`/api/master/{{ master.login }}/dates/?service_id=${selectedServiceId}`)
+    // fetch(`/api/master/{{ master.public_slug }}/dates/?service_id=${selectedServiceId}`)
+    fetch(`/api/{{ master.public_slug }}/dates/?service_id=${selectedServiceId}`)
         .then(response => response.json())
         .then(data => {
             if (data.dates && data.dates.length > 0) {
@@ -252,7 +255,8 @@ function loadAvailableSlots() {
         </div>
     `;
     
-    fetch(`/api/master/{{ master.slug }}/slots/?service_id=${selectedServiceId}&date=${selectedDate}`)
+    // fetch(`/api/master/{{ master.slug }}/slots/?service_id=${selectedServiceId}&date=${selectedDate}`)
+    fetch(`/api/{{ master.public_slug }}/slots/?service_id=${selectedServiceId}&date=${selectedDate}`)
         .then(response => response.json())
         .then(data => {
             if (data.slots && data.slots.length > 0) {
@@ -337,7 +341,9 @@ document.getElementById('manual-booking-form').addEventListener('submit', functi
         force: force
     };
     
-    fetch(`/api/master/{{ master.slug }}/book/`, {
+    // fetch(`/api/master/{{ master.slug }}/book/`
+    fetch(`/api/{{ master.public_slug }}/book/`, {
+    
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

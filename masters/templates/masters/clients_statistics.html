@@ -59,8 +59,6 @@
                         <td>{{ forloop.counter }}</td>
                         <td><strong>{{ client.name }}</strong></td>
                         <!-- колонка телефона -->
-                        <td>
-
                            <td>
                                 {% if client.phone %}
                                     <button class="btn btn-sm btn-outline-secondary show-phone-btn" 
@@ -76,6 +74,7 @@
                         <td>
                             <span class="badge bg-primary">{{ client.total_visits }}</span>
                          </td>
+                         
                         <td>
                             {% if client.most_popular_service != 'Нет' %}
                                 <span class="badge bg-success">{{ client.most_popular_service }}</span>

@@ -3,6 +3,9 @@ from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
+    
+    
+
     path('', views.home, name='home'),
     
     # Аутентификация
@@ -15,14 +18,18 @@ urlpatterns = [
     # Личный кабинет
     path('dashboard/', views.dashboard, name='dashboard'),
     path('profile/', views.profile, name='profile'),
-
     path('api/schedule/calendar/', views.get_calendar_schedule, name='api_calendar_schedule'),
     
     # Услуги
     path('services/', views.services, name='services'),
-    path('services/add/', views.add_service, name='add_service'),
-    path('services/<int:service_id>/edit/', views.edit_service, name='edit_service'),
-    path('services/<int:service_id>/delete/', views.delete_service, name='delete_service'),
+    # path('services/add/', views.add_service, name='add_service'),
+    # path('services/<int:service_id>/edit/', views.edit_service, name='edit_service'),
+    # path('services/<int:service_id>/delete/', views.delete_service, name='delete_service'),
+
+    # Услуги (API)
+    path('api/services/add/', views.api_add_service, name='api_add_service'),
+    path('api/services/<int:service_id>/edit/', views.api_edit_service, name='api_edit_service'),
+    path('api/services/<int:service_id>/delete/', views.api_delete_service, name='api_delete_service'),
     
     # Расписание
     path('schedule/', views.schedule, name='schedule'),
@@ -53,12 +60,16 @@ urlpatterns = [
     path('api/get-decrypted-phone/<int:booking_id>/', views.get_decrypted_phone, name='api_decrypted_phone'),
 
     # Публичная страница мастера
-    path('master/<slug:slug>/', views.master_public_page, name='master_public'),
+    # path('<slug:slug>/', views.master_public_page, name='master_public'),
+
+    path('id<int:master_id>/', views.master_by_id, name='master_by_id'),
+    path('<str:login>/', views.master_by_login, name='master_by_login'),
+
     
     # API для AJAX-запросов
-    path('api/master/<slug:slug>/dates/', views.get_available_dates, name='api_dates'),
-    path('api/master/<slug:slug>/slots/', views.get_available_slots, name='api_slots'),
-    path('api/master/<slug:slug>/book/', views.create_booking, name='api_book'),
+    path('api/<str:login>/dates/', views.get_available_dates, name='api_dates'),
+    path('api/<str:login>/slots/', views.get_available_slots, name='api_slots'),
+    path('api/<str:login>/book/', views.create_booking, name='api_book'),
 
     # Мобильные/модальные API
     path('api/mobile/login/', views.mobile_login, name='mobile_login'),

@@ -114,70 +114,44 @@ def profile(request):
         master = Master.objects.create(user=request.user)
     
     if request.method == 'POST':
+        # Обновляем данные мастера
         master.phone = request.POST.get('phone', '')
         master.first_name = request.POST.get('first_name', '')
         master.last_name = request.POST.get('last_name', '')
         master.bio = request.POST.get('bio', '')
+        
+        # Обновляем логин
+        new_login = request.POST.get('login', '').strip()
+        if new_login != (master.login or ''):
+            # Валидация логина
+            import re
+            if new_login:
+                if len(new_login) < 3:
+                    messages.error(request, 'Логин должен содержать минимум 3 символа')
+                    return redirect('profile')
+                if not re.match(r'^[a-zA-Z0-9_-]+$', new_login):
+                    messages.error(request, 'Логин может содержать только латиницу, цифры, дефис и подчеркивание')
+                    return redirect('profile')
+                if Master.objects.exclude(pk=master.pk).filter(login=new_login).exists():
+                    messages.error(request, 'Этот логин уже занят')
+                    return redirect('profile')
+                master.login = new_login
+            else:
+                master.login = None
+            messages.success(request, 'Логин сохранен! Ваша ссылка обновлена.')
+        
         master.save()
+        
+        # Обновляем имя в User (только first_name и last_name)
+        user = request.user
+        user.first_name = master.first_name
+        user.last_name = master.last_name
+        user.save()
         
         messages.success(request, 'Профиль обновлен!')
         return redirect('profile')
     
     return render(request, 'masters/profile.html', {'master': master})
-
-# Услуги
-@login_required
-def services(request):
-    master = request.user.master
-    services_list = Service.objects.filter(master=master)
-    return render(request, 'masters/services.html', {'services': services_list})
-
-@login_required
-def add_service(request):
-    if request.method == 'POST':
-        master = request.user.master
-        name = request.POST.get('name')
-        description = request.POST.get('description', '')
-        duration = request.POST.get('duration')
-        price = request.POST.get('price')
-        
-        if name and duration and price:
-            Service.objects.create(
-                master=master,
-                name=name,
-                description=description,
-                duration=duration,
-                price=price
-            )
-            messages.success(request, 'Услуга добавлена!')
-        else:
-            messages.error(request, 'Заполните все обязательные поля')
-        
-        return redirect('services')
-    
-    return render(request, 'masters/add_service.html')
-
-@login_required
-def edit_service(request, service_id):
-    service = get_object_or_404(Service, id=service_id, master=request.user.master)
-    
-    if request.method == 'POST':
-        service.name = request.POST.get('name')
-        service.description = request.POST.get('description', '')
-        service.duration = request.POST.get('duration')
-        service.price = request.POST.get('price')
-        service.save()
-        messages.success(request, 'Услуга обновлена!')
-        return redirect('services')
-    
-    return render(request, 'masters/edit_service.html', {'service': service})
-
-@login_required
-def delete_service(request, service_id):
-    service = get_object_or_404(Service, id=service_id, master=request.user.master)
-    service.delete()
-    messages.success(request, 'Услуга удалена!')
-    return redirect('services')
 
 
 @login_required
@@ -189,6 +163,59 @@ def schedule(request):
     return render(request, 'masters/schedule.html', {
         'schedules': schedules,
     })
+
+
+# +++++++++++++++++++  УСЛУГИ  +++++++++++++++++
+
+@login_required
+def services(request):
+    """Страница управления услугами"""
+    master = request.user.master
+    services_list = Service.objects.filter(master=master)
+    return render(request, 'masters/services.html', {'services': services_list})
+
+@login_required
+@require_http_methods(["POST"])
+def api_add_service(request):
+    """API добавления услуги"""
+    master = request.user.master
+    data = json.loads(request.body)
+    
+    service = Service.objects.create(
+        master=master,
+        name=data.get('name'),
+        description=data.get('description', ''),
+        duration=data.get('duration'),
+        price=data.get('price'),
+        is_active=data.get('is_active', True)
+    )
+    
+    return JsonResponse({'success': True, 'service_id': service.id})
+
+@login_required
+@require_http_methods(["POST"])
+def api_edit_service(request, service_id):
+    """API редактирования услуги"""
+    service = get_object_or_404(Service, id=service_id, master=request.user.master)
+    data = json.loads(request.body)
+    
+    service.name = data.get('name')
+    service.description = data.get('description', '')
+    service.duration = data.get('duration')
+    service.price = data.get('price')
+    service.is_active = data.get('is_active', True)
+    service.save()
+    
+    return JsonResponse({'success': True})
+
+@login_required
+@require_http_methods(["POST"])
+def api_delete_service(request, service_id):
+    """API удаления услуги"""
+    service = get_object_or_404(Service, id=service_id, master=request.user.master)
+    service.delete()
+    
+    return JsonResponse({'success': True})
 
 
 @login_required
@@ -788,20 +815,21 @@ import json
 
 # ... (существующий код) ...
 
-def master_public_page(request, slug):
-    """Публичная страница мастера для записи"""
-    master = get_object_or_404(Master, slug=slug)
-    services = Service.objects.filter(master=master, is_active=True)
+# def master_public_page(request, slug):
+#     """Публичная страница мастера для записи"""
+#     master = get_object_or_404(Master, slug=slug)
+#     services = Service.objects.filter(master=master, is_active=True)
     
-    return render(request, 'masters/public/master_page.html', {
-        'master': master,
-        'services': services
-    })
+#     return render(request, 'masters/public/master_page.html', {
+#         'master': master,
+#         'services': services
+#     })
 
 
-def get_available_dates(request, slug):
+def get_available_dates(request, login):
     """API для получения доступных дат"""
-    master = get_object_or_404(Master, slug=slug)
+    # master = get_object_or_404(Master, slug=slug)
+    master = get_object_or_404(Master, login=login)
     service_id = request.GET.get('service_id')
     
     if not service_id:
@@ -828,9 +856,10 @@ def get_available_dates(request, slug):
 
 
 
-def get_available_slots(request, slug):
+def get_available_slots(request, login):
     """API для получения свободных слотов на выбранную дату"""
-    master = get_object_or_404(Master, slug=slug)
+    # master = get_object_or_404(Master, slug=slug)
+    master = get_object_or_404(Master, login=login)
     service_id = request.GET.get('service_id')
     date_str = request.GET.get('date')
     
@@ -849,12 +878,13 @@ def get_available_slots(request, slug):
     
     return JsonResponse({'slots': slots})
 
-def create_booking(request, slug):
+def create_booking(request, login):
     """Создание новой записи (без перезагрузки)"""
     if request.method != 'POST':
         return JsonResponse({'error': 'Метод не поддерживается'}, status=405)
     
-    master = get_object_or_404(Master, slug=slug)
+    # master = get_object_or_404(Master, slug=slug)
+    master = get_object_or_404(Master, login=login)
     
     try:
         data = json.loads(request.body)
@@ -928,6 +958,29 @@ def create_booking(request, slug):
         
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+
+def master_by_id(request, master_id):
+    """Публичная страница мастера по ID"""
+    master = get_object_or_404(Master, id=master_id)
+    services = Service.objects.filter(master=master, is_active=True)
+    
+    return render(request, 'masters/public/master_page.html', {
+        'master': master,
+        'services': services
+    })
+
+def master_by_login(request, login):
+    """Публичная страница мастера по логину"""
+    master = get_object_or_404(Master, login=login)
+    services = Service.objects.filter(master=master, is_active=True)
+    
+    return render(request, 'masters/public/master_page.html', {
+        'master': master,
+        'services': services
+    })
+
 
 # В views.py добавим функцию форматирования
 def format_phone(phone):
@@ -1086,3 +1139,51 @@ def format_phone(phone):
 #     def get_success_url(self):
 #         return reverse_lazy('dashboard')
 
+
+
+# @login_required
+# def add_service(request):
+#     if request.method == 'POST':
+#         master = request.user.master
+#         name = request.POST.get('name')
+#         description = request.POST.get('description', '')
+#         duration = request.POST.get('duration')
+#         price = request.POST.get('price')
+        
+#         if name and duration and price:
+#             Service.objects.create(
+#                 master=master,
+#                 name=name,
+#                 description=description,
+#                 duration=duration,
+#                 price=price
+#             )
+#             messages.success(request, 'Услуга добавлена!')
+#         else:
+#             messages.error(request, 'Заполните все обязательные поля')
+        
+#         return redirect('services')
+    
+#     return render(request, 'masters/add_service.html')
+
+# @login_required
+# def edit_service(request, service_id):
+#     service = get_object_or_404(Service, id=service_id, master=request.user.master)
+    
+#     if request.method == 'POST':
+#         service.name = request.POST.get('name')
+#         service.description = request.POST.get('description', '')
+#         service.duration = request.POST.get('duration')
+#         service.price = request.POST.get('price')
+#         service.save()
+#         messages.success(request, 'Услуга обновлена!')
+#         return redirect('services')
+    
+#     return render(request, 'masters/edit_service.html', {'service': service})
+
+# @login_required
+# def delete_service(request, service_id):
+#     service = get_object_or_404(Service, id=service_id, master=request.user.master)
+#     service.delete()
+#     messages.success(request, 'Услуга удалена!')
+#     return redirect('services')

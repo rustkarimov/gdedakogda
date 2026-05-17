@@ -29,6 +29,18 @@
                             <input type="text" class="form-control" id="last_name" name="last_name" value="{{ master.last_name }}">
                         </div>
                     </div>
+
+                   <div class="mb-3">
+    <label for="login" class="form-label">Логин (для красивой ссылки)</label>
+    <input type="text" class="form-control" id="login" name="login" 
+           value="{{ master.login|default:'' }}" 
+           placeholder="например: anna">
+    <small class="text-muted">
+        Только латиница, цифры, дефис и подчеркивание. Минимум 3 символа.
+        Если оставить пустым, ссылка будет с ID.
+        Ваша ссылка: {{ request.scheme }}://{{ request.get_host }}/{{ master.public_slug }}/
+    </small>
+</div>
                     
                     <div class="mb-3">
                         <label for="bio" class="form-label">О себе</label>
@@ -42,4 +54,15 @@
         </div>
     </div>
 </div>
+
+<script>
+document.getElementById('login')?.addEventListener('input', function() {
+    const value = this.value.trim();
+    const previewSpan = document.getElementById('login-preview');
+    if (previewSpan) {
+        previewSpan.textContent = value || 'id{{ master.id }}';
+    }
+});
+</script>
+
 {% endblock %}
