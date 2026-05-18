@@ -9,24 +9,16 @@ urlpatterns = [
     path('', views.home, name='home'),
     
     # Аутентификация
-    # path('login/', views.CustomLoginView.as_view(), name='login'),
     path('logout/', views.logout_view, name='logout'),
-    # path('register/', views.register_step1, name='register'),
-    # path('verify/', views.verify_phone, name='verify_phone'),
-    # path('resend-code/', views.resend_code, name='resend_code'),
 
     # Личный кабинет
     path('dashboard/', views.dashboard, name='dashboard'),
     path('profile/', views.profile, name='profile'),
     path('api/schedule/calendar/', views.get_calendar_schedule, name='api_calendar_schedule'),
+    path('api/bookings/', views.get_bookings_api, name='api_bookings'),
     
     # Услуги
     path('services/', views.services, name='services'),
-    # path('services/add/', views.add_service, name='add_service'),
-    # path('services/<int:service_id>/edit/', views.edit_service, name='edit_service'),
-    # path('services/<int:service_id>/delete/', views.delete_service, name='delete_service'),
-
-    # Услуги (API)
     path('api/services/add/', views.api_add_service, name='api_add_service'),
     path('api/services/<int:service_id>/edit/', views.api_edit_service, name='api_edit_service'),
     path('api/services/<int:service_id>/delete/', views.api_delete_service, name='api_delete_service'),
@@ -50,21 +42,18 @@ urlpatterns = [
     path('api/extra-days/<int:extra_day_id>/delete/', views.api_delete_extra_day, name='api_delete_extra_day'),
 
     # Выходные дни
-    path('days-off/', views.days_off, name='days_off'),
+    path('api/days-off/list/', views.get_days_off_list, name='api_days_off_list'),
     path('api/days-off/add/', views.api_add_day_off, name='api_add_day_off'),
     path('api/days-off/<int:dayoff_id>/delete/', views.api_delete_day_off, name='api_delete_day_off'),
 
     # Статистика клиентов
     path('clients-statistics/', views.clients_statistics, name='clients_statistics'),
-
+    path('api/clients-statistics/', views.get_clients_statistics_api, name='api_clients_statistics'),
     path('api/get-decrypted-phone/<int:booking_id>/', views.get_decrypted_phone, name='api_decrypted_phone'),
 
     # Публичная страница мастера
-    # path('<slug:slug>/', views.master_public_page, name='master_public'),
-
     path('id<int:master_id>/', views.master_by_id, name='master_by_id'),
     path('<str:login>/', views.master_by_login, name='master_by_login'),
-
     
     # API для AJAX-запросов
     path('api/<str:login>/dates/', views.get_available_dates, name='api_dates'),

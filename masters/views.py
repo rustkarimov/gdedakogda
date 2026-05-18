@@ -105,6 +105,43 @@ def get_calendar_schedule(request):
     })
 
 
+@login_required
+def get_bookings_api(request):
+    """API для получения записей с пагинацией"""
+    master = request.user.master
+    page = int(request.GET.get('page', 1))
+    limit = int(request.GET.get('limit', 10))
+    offset = (page - 1) * limit
+    
+    bookings = Booking.objects.filter(
+        master=master,
+        status='confirmed'
+    ).order_by('date', 'time')
+    
+    total = bookings.count()
+    has_more = offset + limit < total
+    
+    bookings_page = bookings[offset:offset + limit]
+    
+    data = []
+    for booking in bookings_page:
+        data.append({
+            'id': booking.id,
+            'date': booking.date.strftime('%d.%m.%Y'),
+            'time': booking.time.strftime('%H:%M'),
+            'client_name': booking.client_name,
+            'service_name': booking.service.name,
+        })
+    
+    return JsonResponse({
+        'bookings': data,
+        'total': total,
+        'page': page,
+        'has_more': has_more
+    })
+
+
+
 # Профиль
 @login_required
 def profile(request):
@@ -415,6 +452,26 @@ def api_delete_extra_day(request, extra_day_id):
     })
 
 
+
+@login_required
+def get_days_off_list(request):
+    """API для получения списка выходных дней"""
+    master = request.user.master
+    days_off = DayOff.objects.filter(master=master).order_by('-date')
+    
+    data = []
+    for day in days_off:
+        data.append({
+            'id': day.id,
+            'date': day.date.strftime('%Y-%m-%d'),
+            'date_display': day.date.strftime('%d.%m.%Y'),
+            'weekday': day.date.strftime('%A'),
+            'reason': day.reason
+        })
+    
+    return JsonResponse({'days_off': data})
+
+
 @login_required
 def add_manual_booking(request):
     """Ручное добавление записи мастером"""
@@ -513,17 +570,7 @@ def get_booking_slots_for_master(request):
     
     return JsonResponse({'slots': slots})
 
-@login_required
-def days_off(request):
-    """Страница выходных дней (AJAX версия)"""
-    master = request.user.master
-    days_off_list = DayOff.objects.filter(master=master, date__gte=date.today()).order_by('date')
-    past_days_off = DayOff.objects.filter(master=master, date__lt=date.today()).order_by('-date')[:5]
-    
-    return render(request, 'masters/days_off.html', {
-        'days_off': days_off_list,
-        'past_days_off': past_days_off
-    })
+
 
 @login_required
 @require_http_methods(["POST"])
@@ -631,7 +678,8 @@ def clients_statistics(request):
             formatted_phone = phone
         
         # Ключ для группировки (имя + телефон)
-        client_key = f"{booking.client_name}_{phone_cleaned}"
+        # client_key = f"{booking.client_name}_{phone_cleaned}"
+        client_key = phone_cleaned
         
         clients_data[client_key]['name'] = booking.client_name
         clients_data[client_key]['phone'] = formatted_phone
@@ -678,6 +726,109 @@ def clients_statistics(request):
     }
     
     return render(request, 'masters/clients_statistics.html', context)
+
+
+@login_required
+def get_clients_statistics_api(request):
+    """API для получения статистики клиентов с пагинацией"""
+    master = request.user.master
+    
+    bookings = Booking.objects.filter(
+        master=master,
+        status='confirmed'
+    ).select_related('service')
+    
+    from collections import defaultdict
+    import re
+    from cryptography.fernet import Fernet, InvalidToken
+    
+    key = master.get_encryption_key()
+    
+    clients_data = defaultdict(lambda: {
+        'names': set(),
+        'phone': '',
+        'total_visits': 0,
+        'services': defaultdict(int),
+        'last_visit': None,
+        'first_visit': None
+    })
+    
+    for booking in bookings:
+        # Расшифровка телефона
+        phone = ''
+        if key:
+            try:
+                f = Fernet(key)
+                decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
+                phone = decrypted
+            except (InvalidToken, Exception):
+                try:
+                    phone = booking.encrypted_phone.decode('utf-8')
+                except:
+                    phone = str(booking.encrypted_phone)
+        else:
+            try:
+                phone = booking.encrypted_phone.decode('utf-8')
+            except:
+                phone = str(booking.encrypted_phone)
+        
+        phone_cleaned = re.sub(r'\D', '', phone)
+        if len(phone_cleaned) == 11:
+            formatted_phone = f"{phone_cleaned[0]} {phone_cleaned[1:4]} {phone_cleaned[4:7]}-{phone_cleaned[7:9]}-{phone_cleaned[9:11]}"
+        else:
+            formatted_phone = phone
+        
+        client_key = phone_cleaned
+        
+        clients_data[client_key]['names'].add(booking.client_name)
+        clients_data[client_key]['phone'] = formatted_phone
+        clients_data[client_key]['total_visits'] += 1
+        clients_data[client_key]['services'][booking.service.name] += 1
+        
+        if clients_data[client_key]['first_visit'] is None or booking.date < clients_data[client_key]['first_visit']:
+            clients_data[client_key]['first_visit'] = booking.date
+        if clients_data[client_key]['last_visit'] is None or booking.date > clients_data[client_key]['last_visit']:
+            clients_data[client_key]['last_visit'] = booking.date
+    
+    clients_list = []
+    for client_key, data in clients_data.items():
+        most_popular_service = max(data['services'].items(), key=lambda x: x[1]) if data['services'] else ('Нет', 0)
+        
+        names_list = list(data['names'])
+        if len(names_list) == 1:
+            client_name = names_list[0]
+        else:
+            client_name = f"{names_list[0]} (+{len(names_list)-1})"
+        
+        clients_list.append({
+            'name': client_name,
+            'phone': data['phone'],
+            'total_visits': data['total_visits'],
+            'most_popular_service': most_popular_service[0],
+            'most_popular_service_count': most_popular_service[1],
+            'first_visit': data['first_visit'].strftime('%d.%m.%Y') if data['first_visit'] else None,
+            'last_visit': data['last_visit'].strftime('%d.%m.%Y') if data['last_visit'] else None,
+            'services': dict(data['services'])
+        })
+    
+    clients_list.sort(key=lambda x: x['total_visits'], reverse=True)
+    
+    # Пагинация
+    page = int(request.GET.get('page', 1))
+    limit = int(request.GET.get('limit', 20))
+    offset = (page - 1) * limit
+    
+    total = len(clients_list)
+    has_more = offset + limit < total
+    clients_page = clients_list[offset:offset + limit]
+    
+    return JsonResponse({
+        'clients': clients_page,
+        'total': total,
+        'page': page,
+        'has_more': has_more
+    })
+
 
 
 @login_required

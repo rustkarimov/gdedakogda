@@ -60,40 +60,25 @@
 </div>
 
 <!-- Ближайшие записи -->
+<!-- Ближайшие записи -->
 <div class="card mb-4">
-    <div class="card-header bg-white">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0"><i class="fas fa-clock me-2" style="color: #ff85b3;"></i>Ближайшие записи</h5>
+        <span class="badge bg-pink" id="total-bookings-count">0</span>
     </div>
     <div class="card-body">
-        {% if upcoming_bookings %}
-            <div class="table-responsive">
-                <table class="table">
-                    <thead>
-                        <tr><th>Дата</th><th>Время</th><th>Клиент</th><th>Услуга</th><th>Статус</th></tr>
-                    </thead>
-                    <tbody>
-                        
-                        {% for booking in upcoming_bookings %}
-                        <tr>
-                            <td>{{ booking.date|date:"d.m.Y" }}</td>
-                            <td>{{ booking.time|time:"H:i" }}</td>
-                            <td>{{ booking.client_name }}</td>
-                            <td>{{ booking.service.name }}</td>
-                            <td>
-                                <button class="btn btn-sm show-phone-btn" onclick="showPhone({{ booking.id }}, this)">
-                                    <i class="fas fa-eye-slash"></i> Показать номер
-                                </button>
-                            </td>
-                            <td><span class="badge bg-success">Подтверждена</span></td>
-                        </tr>
-                        {% endfor %}
-
-                    </tbody>
-                </table>
+        <div id="upcoming-bookings-container">
+            <div class="text-center">
+                <div class="spinner-border" style="color: #ff85b3;" role="status">
+                    <span class="visually-hidden">Загрузка...</span>
+                </div>
             </div>
-        {% else %}
-            <p class="text-muted mb-0">Пока нет записей</p>
-        {% endif %}
+        </div>
+        <div class="text-center mt-3">
+            <button id="load-more-bookings" class="btn btn-outline-pink" style="display: none;" onclick="loadMoreBookings()">
+                <i class="fas fa-chevron-down me-2"></i>Показать еще
+            </button>
+        </div>
     </div>
 </div>
 
@@ -259,6 +244,109 @@ function changeMonth(delta) {
 document.addEventListener('DOMContentLoaded', function() {
     loadCalendar();
 });
+</script>
+
+
+<!-- ПАГИНАЦИЯ -->
+<script>
+    let bookingsPage = 1;
+    let bookingsHasMore = true;
+    let bookingsTotal = 0;
+
+    function loadBookings(page = 1, append = false) {
+        fetch(`/api/bookings/?page=${page}&limit=4`)
+            .then(response => response.json())
+            .then(data => {
+                if (append) {
+                    // Добавляем новые строки в таблицу
+                    const tbody = document.querySelector('#upcoming-bookings-table tbody');
+                    data.bookings.forEach(booking => {
+                        const row = createBookingRow(booking);
+                        tbody.insertAdjacentHTML('beforeend', row);
+                    });
+                } else {
+                    // Заменяем всю таблицу
+                    renderBookings(data.bookings);
+                    document.getElementById('total-bookings-count').textContent = data.total;
+                    bookingsTotal = data.total;
+                }
+                
+                bookingsHasMore = data.has_more;
+                bookingsPage = page;
+                
+                const loadMoreBtn = document.getElementById('load-more-bookings');
+                if (bookingsHasMore && data.bookings.length > 0) {
+                    loadMoreBtn.style.display = 'inline-block';
+                } else {
+                    loadMoreBtn.style.display = 'none';
+                }
+            });
+    }
+
+    function renderBookings(bookings) {
+        const container = document.getElementById('upcoming-bookings-container');
+        if (bookings.length === 0) {
+            container.innerHTML = '<p class="text-muted mb-0">Пока нет записей</p>';
+            return;
+        }
+        
+        let html = `
+            <div class="table-responsive">
+                <table class="table" id="upcoming-bookings-table">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Время</th>
+                            <th>Клиент</th>
+                            <th>Услуга</th>
+                            <th>Телефон</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+        
+        bookings.forEach(booking => {
+            html += createBookingRow(booking);
+        });
+        
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+        
+        container.innerHTML = html;
+    }
+
+    function createBookingRow(booking) {
+        return `
+            <tr>
+                <td>${booking.date}</td>
+                <td>${booking.time}</td>
+                <td>${booking.client_name}</td>
+                <td>${booking.service_name}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-secondary show-phone-btn" onclick="showPhone(${booking.id}, this)">
+                        <i class="fas fa-eye-slash"></i> Показать номер
+                    </button>
+                    <span class="phone-number" style="display: none;"></span>
+                </td>
+                <td><span class="badge bg-success">Подтверждена</span></td>
+            </tr>
+        `;
+    }
+
+    function loadMoreBookings() {
+        if (bookingsHasMore) {
+            loadBookings(bookingsPage + 1, true);
+        }
+    }
+
+    // Загружаем при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        loadBookings(1, false);
+    });
 </script>
 
 <style>
