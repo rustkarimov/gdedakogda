@@ -29,30 +29,10 @@
                     <h5 class="mb-0"><i class="fas fa-cut me-2" style="color: #ff85b3;"></i>Шаг 1: Выберите услугу</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row" id="services-list">
-                        {% for service in services %}
-                        <div class="col-md-6 mb-3">
-                            <div class="card service-card h-100" 
-                                 data-service-id="{{ service.id }}"
-                                 data-service-duration="{{ service.duration }}"
-                                 onclick="selectService(this)">
-                                <div class="card-body">
-                                    <h6 class="card-title">{{ service.name }}</h6>
-                                    <p class="card-text small text-muted">{{ service.description|truncatechars:50 }}</p>
-                                    <div class="d-flex justify-content-between align-items-center mt-2">
-                                        <span class="badge bg-light text-dark">
-                                            <i class="far fa-clock me-1"></i>{{ service.duration }} мин
-                                        </span>
-                                        <span class="fw-bold" style="color: #ff85b3;">{{ service.price }} ₽</span>
-                                    </div>
-                                </div>
-                            </div>
+                    <div id="services-list">
+                        <div class="text-center py-3">
+                            <div class="spinner-border" style="color: #ff85b3;"></div>
                         </div>
-                        {% empty %}
-                        <div class="col-12 text-center">
-                            <p class="text-muted">У вас пока нет услуг. <a href="{% url 'services' %}">Добавьте услугу</a></p>
-                        </div>
-                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -101,7 +81,7 @@
                         <div class="mb-3">
                             <label for="client-phone" class="form-label">Телефон клиента <span class="text-danger">*</span></label>
                             <input type="tel" class="form-control" id="client-phone" 
-                                   placeholder="+7 (999) 123-45-67" required>
+                                   placeholder="7 999 123-45-67" required>
                             <small class="text-muted">Номер будет зашифрован</small>
                         </div>
                         
@@ -132,34 +112,129 @@
 let selectedServiceId = null;
 let selectedDate = null;
 let selectedTime = null;
+let currentPublicSlug = "{{ master.public_slug }}";
+
+// Загрузка услуг с группировкой
+function loadServices() {
+    fetch('/api/categories/')
+        .then(response => response.json())
+        .then(data => {
+            renderServices(data);
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки услуг:', error);
+            document.getElementById('services-list').innerHTML = '<p class="text-danger text-center">Ошибка загрузки услуг</p>';
+        });
+}
+
+function renderServices(data) {
+    const container = document.getElementById('services-list');
+    let html = '';
+    
+    // Категории с услугами
+    for (const cat of data.categories) {
+        if (cat.services.length === 0) continue;
+        
+        html += `
+            <div class="mb-3">
+                <div class="fw-bold mb-2" style="cursor: pointer;" onclick="toggleCategory(${cat.id})">
+                    <i class="fas fa-folder-open me-2" style="color: #ff85b3;"></i>
+                    <span>${escapeHtml(cat.name)}</span>
+                    <i class="fas fa-chevron-down ms-2" id="cat-icon-${cat.id}" style="font-size: 12px;"></i>
+                </div>
+                <div id="cat-body-${cat.id}">
+                    <div class="row">
+        `;
+        for (const service of cat.services) {
+            html += renderServiceCard(service);
+        }
+        html += `</div></div></div>`;
+    }
+    
+    // Услуги без категории
+    if (data.uncategorized.length > 0) {
+        html += `
+            <div class="mb-3">
+                <div class="fw-bold mb-2">Без категории</div>
+                <div class="row">
+        `;
+        for (const service of data.uncategorized) {
+            html += renderServiceCard(service);
+        }
+        html += `</div></div>`;
+    }
+    
+    if (data.categories.length === 0 && data.uncategorized.length === 0) {
+        html = '<p class="text-muted text-center">У вас пока нет услуг. <a href="{% url 'services' %}">Добавьте услугу</a></p>';
+    }
+    
+    container.innerHTML = html;
+}
+
+function renderServiceCard(service) {
+    return `
+        <div class="col-md-6 mb-3">
+            <div class="card service-card h-100" 
+                 data-service-id="${service.id}"
+                 data-service-duration="${service.duration}"
+                 onclick="selectService(this)">
+                <div class="card-body">
+                    <h6 class="card-title">${escapeHtml(service.name)}</h6>
+                    <p class="card-text small text-muted">${escapeHtml(service.description || '')}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <span class="badge bg-light text-dark">
+                            <i class="far fa-clock me-1"></i>${service.duration} мин
+                        </span>
+                        <span class="fw-bold" style="color: #ff85b3;">${service.price} ₽</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function toggleCategory(catId) {
+    const body = document.getElementById(`cat-body-${catId}`);
+    const icon = document.getElementById(`cat-icon-${catId}`);
+    if (body.style.display === 'none') {
+        body.style.display = 'block';
+        icon.className = 'fas fa-chevron-down ms-2';
+    } else {
+        body.style.display = 'none';
+        icon.className = 'fas fa-chevron-right ms-2';
+    }
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
 
 function selectService(element) {
-    // Снимаем выделение со всех услуг
     document.querySelectorAll('.service-card').forEach(card => {
         card.classList.remove('border-pink', 'border-2');
     });
     
-    // Выделяем выбранную
     element.classList.add('border-pink', 'border-2');
     
     selectedServiceId = element.dataset.serviceId;
     
-    // Показываем блок с датами (если скрыт)
     const datesCard = document.getElementById('step-dates');
     datesCard.style.display = 'block';
     
-    // Прячем последующие блоки если они были показаны
     document.getElementById('step-times').style.display = 'none';
     document.getElementById('step-form').style.display = 'none';
     
-    // Очищаем выбранные дату и время
     selectedDate = null;
     selectedTime = null;
     
-    // Загружаем доступные даты
     loadAvailableDates();
     
-    // Скроллим к блоку с датами
     setTimeout(() => {
         datesCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
@@ -175,10 +250,7 @@ function loadAvailableDates() {
         </div>
     `;
     
-    // fetch(`/api/master/{{ master.slug }}/dates/?service_id=${selectedServiceId}`)
-    // fetch(`/api/master/{{ master.login }}/dates/?service_id=${selectedServiceId}`)
-    // fetch(`/api/master/{{ master.public_slug }}/dates/?service_id=${selectedServiceId}`)
-    fetch(`/api/{{ master.public_slug }}/dates/?service_id=${selectedServiceId}`)
+    fetch(`/api/${currentPublicSlug}/dates/?service_id=${selectedServiceId}`)
         .then(response => response.json())
         .then(data => {
             if (data.dates && data.dates.length > 0) {
@@ -216,30 +288,23 @@ function loadAvailableDates() {
 }
 
 function selectDate(date, element) {
-    // Снимаем выделение со всех дат
     document.querySelectorAll('.date-card').forEach(card => {
         card.classList.remove('border-pink', 'border-2');
     });
     
-    // Выделяем выбранную
     element.classList.add('border-pink', 'border-2');
     
     selectedDate = date;
     
-    // Показываем блок с временем (если скрыт)
     const timesCard = document.getElementById('step-times');
     timesCard.style.display = 'block';
     
-    // Прячем блок формы если был показан
     document.getElementById('step-form').style.display = 'none';
     
-    // Сбрасываем выбранное время
     selectedTime = null;
     
-    // Загружаем доступные слоты
     loadAvailableSlots();
     
-    // Скроллим к блоку с временем
     setTimeout(() => {
         timesCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
@@ -255,8 +320,7 @@ function loadAvailableSlots() {
         </div>
     `;
     
-    // fetch(`/api/master/{{ master.slug }}/slots/?service_id=${selectedServiceId}&date=${selectedDate}`)
-    fetch(`/api/{{ master.public_slug }}/slots/?service_id=${selectedServiceId}&date=${selectedDate}`)
+    fetch(`/api/${currentPublicSlug}/slots/?service_id=${selectedServiceId}&date=${selectedDate}`)
         .then(response => response.json())
         .then(data => {
             if (data.slots && data.slots.length > 0) {
@@ -293,32 +357,26 @@ function loadAvailableSlots() {
 }
 
 function selectTime(time, element) {
-    // Снимаем выделение со всех слотов
     document.querySelectorAll('.slot-card').forEach(card => {
         card.classList.remove('border-pink', 'border-2', 'bg-light');
     });
     
-    // Выделяем выбранную
     element.classList.add('border-pink', 'border-2', 'bg-light');
     
     selectedTime = time;
     
-    // Заполняем скрытые поля формы
     document.getElementById('selected-service-id').value = selectedServiceId;
     document.getElementById('selected-date').value = selectedDate;
     document.getElementById('selected-time').value = selectedTime;
     
-    // Показываем блок с формой
     const formCard = document.getElementById('step-form');
     formCard.style.display = 'block';
     
-    // Скроллим к форме
     setTimeout(() => {
         formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 100);
 }
 
-// Отправка формы
 document.getElementById('manual-booking-form').addEventListener('submit', function(e) {
     e.preventDefault();
     
@@ -341,9 +399,7 @@ document.getElementById('manual-booking-form').addEventListener('submit', functi
         force: force
     };
     
-    // fetch(`/api/master/{{ master.slug }}/book/`
-    fetch(`/api/{{ master.public_slug }}/book/`, {
-    
+    fetch(`/api/${currentPublicSlug}/book/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -355,7 +411,6 @@ document.getElementById('manual-booking-form').addEventListener('submit', functi
     .then(data => {
         if (data.success) {
             alert('Запись добавлена!');
-            // Очищаем всё и возвращаемся в начало
             resetBooking();
         } else {
             alert('Ошибка: ' + data.error);
@@ -367,27 +422,26 @@ document.getElementById('manual-booking-form').addEventListener('submit', functi
 });
 
 function resetBooking() {
-    // Снимаем выделение с услуги
     document.querySelectorAll('.service-card').forEach(card => {
         card.classList.remove('border-pink', 'border-2');
     });
     
-    // Скрываем все дополнительные блоки
     document.getElementById('step-dates').style.display = 'none';
     document.getElementById('step-times').style.display = 'none';
     document.getElementById('step-form').style.display = 'none';
     
-    // Сбрасываем переменные
     selectedServiceId = null;
     selectedDate = null;
     selectedTime = null;
     
-    // Очищаем форму
     document.getElementById('manual-booking-form').reset();
     
-    // Скроллим к услугам
     document.getElementById('step-services').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadServices();
+});
 </script>
 
 <style>

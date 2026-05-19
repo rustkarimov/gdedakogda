@@ -27,30 +27,11 @@
                     <h5 class="mb-0"><i class="fas fa-cut me-2" style="color: #ff85b3;"></i>Шаг 1: Выберите услугу</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row" id="services-list">
-                        {% for service in services %}
-                        <div class="col-md-6 mb-3">
-                            <div class="card service-card h-100" 
-                                 data-service-id="{{ service.id }}"
-                                 data-service-duration="{{ service.duration }}"
-                                 onclick="selectService(this)">
-                                <div class="card-body">
-                                    <h6 class="card-title">{{ service.name }}</h6>
-                                    <p class="card-text small text-muted">{{ service.description|truncatechars:50 }}</p>
-                                    <div class="d-flex justify-content-between align-items-center mt-2">
-                                        <span class="badge bg-light text-dark">
-                                            <i class="far fa-clock me-1"></i>{{ service.duration }} мин
-                                        </span>
-                                        <span class="fw-bold" style="color: #ff85b3;">{{ service.price }} ₽</span>
-                                    </div>
-                                </div>
-                            </div>
+                    <div id="services-list">
+                        <!-- Услуги загрузятся через JS -->
+                        <div class="text-center py-3">
+                            <div class="spinner-border" style="color: #ff85b3;"></div>
                         </div>
-                        {% empty %}
-                        <div class="col-12 text-center">
-                            <p class="text-muted">У мастера пока нет услуг</p>
-                        </div>
-                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -99,7 +80,7 @@
                         <div class="mb-3">
                             <label for="client-phone" class="form-label">Телефон</label>
                             <input type="tel" class="form-control" id="client-phone" 
-                                   placeholder="+7 (999) 123-45-67" required>
+                                   placeholder="7 999 123-45-67" required>
                             <small class="text-muted">Номер будет виден только мастеру</small>
                         </div>
                         
@@ -130,7 +111,7 @@
 let selectedServiceId = null;
 let selectedDate = null;
 let selectedTime = null;
-let currentSlug = "{{ master.public_slug }}";  // используем public_slug
+let currentSlug = "{{ master.public_slug }}";
 
 // Плавный скролл к элементу
 function smoothScrollTo(elementId) {
@@ -140,30 +121,125 @@ function smoothScrollTo(elementId) {
     }
 }
 
+// Загрузка услуг с группировкой
+function loadServices() {
+    fetch(`/api/master/${currentSlug}/categories/`)
+        .then(response => response.json())
+        .then(data => {
+            renderServices(data);
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки услуг:', error);
+            document.getElementById('services-list').innerHTML = '<p class="text-danger text-center">Ошибка загрузки услуг</p>';
+        });
+}
+
+function renderServices(data) {
+    const container = document.getElementById('services-list');
+    let html = '';
+    
+    // Категории с услугами
+    for (const cat of data.categories) {
+        if (cat.services.length === 0) continue;
+        
+        html += `
+            <div class="mb-3">
+                <div class="fw-bold mb-2" style="cursor: pointer;" onclick="toggleCategory(${cat.id})">
+                    <i class="fas fa-folder-open me-2" style="color: #ff85b3;"></i>
+                    <span>${escapeHtml(cat.name)}</span>
+                    <i class="fas fa-chevron-down ms-2" id="cat-icon-${cat.id}" style="font-size: 12px;"></i>
+                </div>
+                <div id="cat-body-${cat.id}">
+                    <div class="row">
+        `;
+        for (const service of cat.services) {
+            html += renderServiceCard(service);
+        }
+        html += `</div></div></div>`;
+    }
+    
+    // Услуги без категории
+    if (data.uncategorized.length > 0) {
+        html += `
+            <div class="mb-3">
+                <div class="fw-bold mb-2">Без категории</div>
+                <div class="row">
+        `;
+        for (const service of data.uncategorized) {
+            html += renderServiceCard(service);
+        }
+        html += `</div></div>`;
+    }
+    
+    if (data.categories.length === 0 && data.uncategorized.length === 0) {
+        html = '<p class="text-muted text-center">У мастера пока нет услуг</p>';
+    }
+    
+    container.innerHTML = html;
+}
+
+function renderServiceCard(service) {
+    return `
+        <div class="col-md-6 mb-3">
+            <div class="card service-card h-100" 
+                 data-service-id="${service.id}"
+                 data-service-duration="${service.duration}"
+                 onclick="selectService(this)">
+                <div class="card-body">
+                    <h6 class="card-title">${escapeHtml(service.name)}</h6>
+                    <p class="card-text small text-muted">${escapeHtml(service.description || '')}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <span class="badge bg-light text-dark">
+                            <i class="far fa-clock me-1"></i>${service.duration} мин
+                        </span>
+                        <span class="fw-bold" style="color: #ff85b3;">${service.price} ₽</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function toggleCategory(catId) {
+    const body = document.getElementById(`cat-body-${catId}`);
+    const icon = document.getElementById(`cat-icon-${catId}`);
+    if (body.style.display === 'none') {
+        body.style.display = 'block';
+        icon.className = 'fas fa-chevron-down ms-2';
+    } else {
+        body.style.display = 'none';
+        icon.className = 'fas fa-chevron-right ms-2';
+    }
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
 function selectService(element) {
-    // Убираем выделение у всех карточек
     document.querySelectorAll('.service-card').forEach(card => {
         card.classList.remove('border-pink', 'border-2');
     });
     
-    // Выделяем выбранную
     element.classList.add('border-pink', 'border-2');
     
     selectedServiceId = element.dataset.serviceId;
     
-    // Показываем блок с датами
     const dateCard = document.getElementById('date-card');
     dateCard.style.display = 'block';
     
-    // Скрываем последующие блоки
     document.getElementById('time-card').style.display = 'none';
     document.getElementById('booking-card').style.display = 'none';
     document.getElementById('confirmation-card').style.display = 'none';
     
-    // Плавно скроллим к блоку с датами
     setTimeout(() => smoothScrollTo('date-card'), 100);
     
-    // Загружаем доступные даты
     loadAvailableDates();
 }
 
@@ -177,7 +253,6 @@ function loadAvailableDates() {
         </div>
     `;
     
-    // ИСПРАВЛЕНО: используем currentSlug и selectedServiceId
     fetch(`/api/${currentSlug}/dates/?service_id=${selectedServiceId}`)
         .then(response => response.json())
         .then(data => {
@@ -217,28 +292,22 @@ function loadAvailableDates() {
 }
 
 function selectDate(date, element) {
-    // Убираем выделение у всех карточек дат
     document.querySelectorAll('.date-card').forEach(card => {
         card.classList.remove('border-pink', 'border-2');
     });
     
-    // Выделяем выбранную
     element.classList.add('border-pink', 'border-2');
     
     selectedDate = date;
     
-    // Показываем блок с временем
     const timeCard = document.getElementById('time-card');
     timeCard.style.display = 'block';
     
-    // Скрываем блок формы
     document.getElementById('booking-card').style.display = 'none';
     document.getElementById('confirmation-card').style.display = 'none';
     
-    // Плавно скроллим к блоку с временем
     setTimeout(() => smoothScrollTo('time-card'), 100);
     
-    // Загружаем свободные слоты
     loadAvailableSlots();
 }
 
@@ -252,7 +321,6 @@ function loadAvailableSlots() {
         </div>
     `;
     
-    // ИСПРАВЛЕНО: используем currentSlug
     fetch(`/api/${currentSlug}/slots/?service_id=${selectedServiceId}&date=${selectedDate}`)
         .then(response => response.json())
         .then(data => {
@@ -291,30 +359,24 @@ function loadAvailableSlots() {
 }
 
 function selectTime(time, element) {
-    // Убираем выделение у всех карточек времени
     document.querySelectorAll('.slot-card').forEach(card => {
         card.classList.remove('border-pink', 'border-2', 'bg-light');
     });
     
-    // Выделяем выбранную
     element.classList.add('border-pink', 'border-2', 'bg-light');
     
     selectedTime = time;
     
-    // Заполняем скрытые поля формы
     document.getElementById('selected-service-id').value = selectedServiceId;
     document.getElementById('selected-date').value = selectedDate;
     document.getElementById('selected-time').value = selectedTime;
     
-    // Показываем блок с формой
     const bookingCard = document.getElementById('booking-card');
     bookingCard.style.display = 'block';
     
-    // Плавно скроллим к блоку с формой
     setTimeout(() => smoothScrollTo('booking-card'), 100);
 }
 
-// Обработка отправки формы
 document.getElementById('booking-form').addEventListener('submit', function(e) {
     e.preventDefault();
     
@@ -327,7 +389,6 @@ document.getElementById('booking-form').addEventListener('submit', function(e) {
         comment: document.getElementById('client-comment').value
     };
     
-    // ИСПРАВЛЕНО: используем currentSlug
     fetch(`/api/${currentSlug}/book/`, {
         method: 'POST',
         headers: {
@@ -339,14 +400,12 @@ document.getElementById('booking-form').addEventListener('submit', function(e) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Показываем подтверждение
             document.getElementById('booking-card').style.display = 'none';
             document.getElementById('confirmation-card').style.display = 'block';
             document.getElementById('confirmation-details').innerHTML = 
                 `Вы записаны на ${data.booking.date} в ${data.booking.time}<br>
                  Услуга: ${data.booking.service}`;
             
-            // Плавно скроллим к подтверждению
             smoothScrollTo('confirmation-card');
         } else {
             alert('Ошибка: ' + data.error);
@@ -359,28 +418,86 @@ document.getElementById('booking-form').addEventListener('submit', function(e) {
 });
 
 function resetBooking() {
-    // Снимаем выделение с выбранной услуги
     document.querySelectorAll('.service-card').forEach(card => {
         card.classList.remove('border-pink', 'border-2');
     });
     
-    // Сбрасываем переменные
     selectedServiceId = null;
     selectedDate = null;
     selectedTime = null;
     
-    // Скрываем все дополнительные блоки
     document.getElementById('date-card').style.display = 'none';
     document.getElementById('time-card').style.display = 'none';
     document.getElementById('booking-card').style.display = 'none';
     document.getElementById('confirmation-card').style.display = 'none';
     
-    // Очищаем форму
     document.getElementById('booking-form').reset();
     
-    // Плавно скроллим к услугам
     smoothScrollTo('services-card');
 }
+
+// Загружаем услуги при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    loadServices();
+});
+</script>
+
+
+<script>
+    // Маска для телефона
+function phoneMask(input) {
+    let value = input.value.replace(/\D/g, '');
+    
+    if (value.length === 0) {
+        input.value = '';
+        return;
+    }
+    
+    if (value[0] !== '7' && value[0] !== '8') {
+        value = '7' + value;
+    }
+    
+    if (value[0] === '8') {
+        value = '7' + value.slice(1);
+    }
+    
+    if (value.length > 11) {
+        value = value.slice(0, 11);
+    }
+    
+    let formatted = '';
+    if (value.length > 0) {
+        formatted = value[0];
+        if (value.length > 1) {
+            formatted += ' ' + value.slice(1, 4);
+        }
+        if (value.length > 4) {
+            formatted += ' ' + value.slice(4, 7);
+        }
+        if (value.length > 7) {
+            formatted += '-' + value.slice(7, 9);
+        }
+        if (value.length > 9) {
+            formatted += '-' + value.slice(9, 11);
+        }
+    }
+    
+    input.value = formatted;
+}
+
+// Применяем маску к полю телефона
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.getElementById('client-phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            phoneMask(this);
+        });
+        // Если поле не пустое, применяем маску сразу
+        if (phoneInput.value) {
+            phoneMask(phoneInput);
+        }
+    }
+});
 </script>
 
 <style>
@@ -419,4 +536,6 @@ function resetBooking() {
     animation: fadeInUp 0.4s ease-out;
 }
 </style>
+
+
 {% endblock %}

@@ -22,6 +22,16 @@ urlpatterns = [
     path('api/services/add/', views.api_add_service, name='api_add_service'),
     path('api/services/<int:service_id>/edit/', views.api_edit_service, name='api_edit_service'),
     path('api/services/<int:service_id>/delete/', views.api_delete_service, name='api_delete_service'),
+
+    # Категории услуг
+    path('api/categories/', views.get_categories, name='api_categories'),
+    path('api/categories/add/', views.api_add_category, name='api_add_category'),
+    path('api/categories/<int:category_id>/edit/', views.api_edit_category, name='api_edit_category'),
+    path('api/categories/<int:category_id>/delete/', views.api_delete_category, name='api_delete_category'),
+    path('api/services/<int:service_id>/get/', views.api_get_service, name='api_get_service'),
+
+    # API для категорий мастера (публичная страница)
+    path('api/master/<str:login>/categories/', views.get_master_categories, name='api_master_categories'),
     
     # Расписание
     path('schedule/', views.schedule, name='schedule'),

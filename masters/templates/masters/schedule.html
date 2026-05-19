@@ -605,6 +605,8 @@ function loadDaysOff() {
         .then(response => response.json())
         .then(data => {
             const container = document.getElementById('days-off-container');
+            if (!container) return;
+            
             if (data.days_off && data.days_off.length > 0) {
                 const today = new Date().toISOString().split('T')[0];
                 const futureDays = data.days_off.filter(d => d.date >= today);
@@ -617,10 +619,12 @@ function loadDaysOff() {
                     html += '<table class="table table-sm">';
                     html += '<thead><tr><th>Дата</th><th>День недели</th><th>Причина</th><th>Действия</th></tr></thead><tbody>';
                     futureDays.forEach(day => {
+                        const dateObj = new Date(day.date);
+                        const weekday = dateObj.toLocaleDateString('ru-RU', { weekday: 'long' });
                         html += `
                             <tr>
-                                <td>${day.date_display}</td>
-                                <td>${day.weekday}</td>
+                                <td>${day.date}</td>
+                                <td>${weekday}</td>
                                 <td>${day.reason || '—'}</td>
                                 <td><button class="btn btn-sm btn-outline-danger" onclick="deleteDayOff(${day.id})"><i class="fas fa-trash"></i></button></td>
                             </tr>
@@ -634,7 +638,7 @@ function loadDaysOff() {
                     html += '<div class="table-responsive mt-2"><table class="table table-sm table-borderless">';
                     html += '<thead><tr><th>Дата</th><th>Причина</th></tr></thead><tbody>';
                     pastDays.forEach(day => {
-                        html += `<tr><td>${day.date_display}</td><td>${day.reason || '—'}</td></tr>`;
+                        html += `<tr><td>${day.date}</td><td>${day.reason || '—'}</td></tr>`;
                     });
                     html += '</tbody></table></div></details>';
                 }
@@ -643,6 +647,11 @@ function loadDaysOff() {
             } else {
                 container.innerHTML = '<p class="text-muted mb-0">Нет выходных дней</p>';
             }
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки выходных:', error);
+            const container = document.getElementById('days-off-container');
+            if (container) container.innerHTML = '<p class="text-danger">Ошибка загрузки</p>';
         });
 }
 

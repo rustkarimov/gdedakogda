@@ -8,7 +8,7 @@ from django.contrib.auth import logout as auth_logout
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from .models import Master, Service, Booking, Schedule, DayOff, PhoneVerification, CustomUser, Break, ExtraWorkingDay, ExtraWorkingDayBreak
+from .models import Master, Service, Booking, Schedule, DayOff, PhoneVerification, CustomUser, Break, ExtraWorkingDay, ExtraWorkingDayBreak, ServiceCategory
 from .forms import PhoneRegistrationForm, PhoneVerificationForm
 from .utils.schedule_utils import ScheduleCalculator
 from datetime import datetime, timedelta, date
@@ -214,28 +214,37 @@ def services(request):
 @login_required
 @require_http_methods(["POST"])
 def api_add_service(request):
-    """API добавления услуги"""
     master = request.user.master
     data = json.loads(request.body)
     
+    category_id = data.get('category_id')
+    category = None
+    if category_id:
+        category = get_object_or_404(ServiceCategory, id=category_id, master=master)
+    
     service = Service.objects.create(
         master=master,
+        category=category,
         name=data.get('name'),
         description=data.get('description', ''),
         duration=data.get('duration'),
         price=data.get('price'),
         is_active=data.get('is_active', True)
     )
-    
     return JsonResponse({'success': True, 'service_id': service.id})
 
 @login_required
 @require_http_methods(["POST"])
 def api_edit_service(request, service_id):
-    """API редактирования услуги"""
     service = get_object_or_404(Service, id=service_id, master=request.user.master)
     data = json.loads(request.body)
     
+    category_id = data.get('category_id')
+    category = None
+    if category_id:
+        category = get_object_or_404(ServiceCategory, id=category_id, master=request.user.master)
+    
+    service.category = category
     service.name = data.get('name')
     service.description = data.get('description', '')
     service.duration = data.get('duration')
@@ -253,6 +262,124 @@ def api_delete_service(request, service_id):
     service.delete()
     
     return JsonResponse({'success': True})
+
+
+@login_required
+def get_categories(request):
+    """API для получения категорий с услугами"""
+    master = request.user.master
+    categories = ServiceCategory.objects.filter(master=master, is_active=True)
+    
+    # Получаем услуги без категории
+    uncategorized = Service.objects.filter(master=master, category__isnull=True, is_active=True)
+    
+    data = []
+    for cat in categories:
+        services = Service.objects.filter(master=master, category=cat, is_active=True)
+        data.append({
+            'id': cat.id,
+            'name': cat.name,
+            'order': cat.order,
+            'services': [{
+                'id': s.id,
+                'name': s.name,
+                'description': s.description,
+                'duration': s.duration,
+                'price': float(s.price)
+            } for s in services]
+        })
+    
+    return JsonResponse({
+        'categories': data,
+        'uncategorized': [{
+            'id': s.id,
+            'name': s.name,
+            'description': s.description,
+            'duration': s.duration,
+            'price': float(s.price)
+        } for s in uncategorized]
+    })
+
+@login_required
+@require_http_methods(["POST"])
+def api_add_category(request):
+    master = request.user.master
+    data = json.loads(request.body)
+    
+    category = ServiceCategory.objects.create(
+        master=master,
+        name=data.get('name'),
+        order=data.get('order', 0)
+    )
+    return JsonResponse({'success': True, 'id': category.id})
+
+@login_required
+@require_http_methods(["POST"])
+def api_edit_category(request, category_id):
+    category = get_object_or_404(ServiceCategory, id=category_id, master=request.user.master)
+    data = json.loads(request.body)
+    
+    category.name = data.get('name')
+    category.order = data.get('order', 0)
+    category.save()
+    return JsonResponse({'success': True})
+
+@login_required
+@require_http_methods(["POST"])
+def api_delete_category(request, category_id):
+    category = get_object_or_404(ServiceCategory, id=category_id, master=request.user.master)
+    # Услуги остаются, категория становится null
+    Service.objects.filter(category=category).update(category=None)
+    category.delete()
+    return JsonResponse({'success': True})
+
+@login_required
+def api_get_service(request, service_id):
+    service = get_object_or_404(Service, id=service_id, master=request.user.master)
+    return JsonResponse({
+        'id': service.id,
+        'name': service.name,
+        'description': service.description,
+        'duration': service.duration,
+        'price': float(service.price),
+        'is_active': service.is_active,
+        'category_id': service.category_id
+    }) 
+
+def get_master_categories(request, login):
+    """API для получения категорий конкретного мастера по логину"""
+    master = get_object_or_404(Master, login=login)
+    categories = ServiceCategory.objects.filter(master=master, is_active=True)
+    
+    # Получаем услуги без категории
+    uncategorized = Service.objects.filter(master=master, category__isnull=True, is_active=True)
+    
+    data = []
+    for cat in categories:
+        services = Service.objects.filter(master=master, category=cat, is_active=True)
+        data.append({
+            'id': cat.id,
+            'name': cat.name,
+            'order': cat.order,
+            'services': [{
+                'id': s.id,
+                'name': s.name,
+                'description': s.description,
+                'duration': s.duration,
+                'price': float(s.price)
+            } for s in services]
+        })
+    
+    return JsonResponse({
+        'categories': data,
+        'uncategorized': [{
+            'id': s.id,
+            'name': s.name,
+            'description': s.description,
+            'duration': s.duration,
+            'price': float(s.price)
+        } for s in uncategorized]
+    }) 
 
 
 @login_required

@@ -5,16 +5,53 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="fas fa-cut me-2" style="color: #ff85b3;"></i>Мои услуги</h2>
-    <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#serviceModal" onclick="openAddServiceModal()">
-        <i class="fas fa-plus me-1"></i>Добавить услугу
-    </button>
+    <div>
+        <button class="btn btn-outline-pink me-2" data-bs-toggle="modal" data-bs-target="#categoryModal" onclick="openAddCategoryModal()">
+            <i class="fas fa-folder-plus me-1"></i>Добавить категорию
+        </button>
+        <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#serviceModal" onclick="openAddServiceModal()">
+            <i class="fas fa-plus me-1"></i>Добавить услугу
+        </button>
+    </div>
 </div>
 
-<div class="row" id="services-container">
-    {% include 'masters/_services_list.html' %}
+<div id="services-container">
+    <div class="text-center py-4">
+        <div class="spinner-border" style="color: #ff85b3;"></div>
+    </div>
 </div>
 
-<!-- Модальное окно для добавления/редактирования услуги -->
+<!-- Модальное окно для категории -->
+<div class="modal fade" id="categoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="categoryModalTitle">Добавить категорию</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="categoryForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="categoryId">
+                    <div class="mb-3">
+                        <label class="form-label">Название категории</label>
+                        <input type="text" class="form-control" id="categoryName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Порядок сортировки</label>
+                        <input type="number" class="form-control" id="categoryOrder" value="0">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-pink" onclick="saveCategory()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для услуги -->
 <div class="modal fade" id="serviceModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -25,21 +62,24 @@
             <div class="modal-body">
                 <form id="serviceForm">
                     {% csrf_token %}
-                    <input type="hidden" id="serviceId" name="service_id">
-                    
+                    <input type="hidden" id="serviceId">
+                    <div class="mb-3">
+                        <label class="form-label">Категория</label>
+                        <select class="form-select" id="serviceCategory">
+                            <option value="">— Без категории —</option>
+                        </select>
+                    </div>
                     <div class="mb-3">
                         <label class="form-label">Название услуги</label>
                         <input type="text" class="form-control" id="serviceName" required>
                     </div>
-                    
                     <div class="mb-3">
                         <label class="form-label">Описание</label>
-                        <textarea class="form-control" id="serviceDescription" rows="3"></textarea>
+                        <textarea class="form-control" id="serviceDescription" rows="2"></textarea>
                     </div>
-                    
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Длительность (минут)</label>
+                            <label class="form-label">Длительность (мин)</label>
                             <input type="number" class="form-control" id="serviceDuration" min="5" step="5" required>
                         </div>
                         <div class="col-md-6 mb-3">
@@ -47,10 +87,9 @@
                             <input type="number" class="form-control" id="servicePrice" min="0" step="100" required>
                         </div>
                     </div>
-                    
                     <div class="form-check mb-3">
                         <input class="form-check-input" type="checkbox" id="serviceActive" checked>
-                        <label class="form-check-label">Услуга активна</label>
+                        <label class="form-check-label">Активна</label>
                     </div>
                 </form>
             </div>
@@ -63,31 +102,228 @@
 </div>
 
 <script>
-let editingServiceId = null;
+let categoriesList = [];
 
-function openAddServiceModal() {
-    editingServiceId = null;
-    document.getElementById('serviceModalTitle').innerText = 'Добавить услугу';
-    document.getElementById('serviceForm').reset();
-    document.getElementById('serviceActive').checked = true;
-    document.getElementById('serviceId').value = '';
+function loadServices() {
+    fetch('/api/categories/')
+        .then(response => response.json())
+        .then(data => {
+            categoriesList = data.categories;
+            renderServices(data);
+            updateCategorySelect(data.categories);
+        });
 }
 
-function editService(id, name, description, duration, price, isActive) {
-    editingServiceId = id;
-    document.getElementById('serviceModalTitle').innerText = 'Редактировать услугу';
-    document.getElementById('serviceId').value = id;
-    document.getElementById('serviceName').value = name;
-    document.getElementById('serviceDescription').value = description || '';
-    document.getElementById('serviceDuration').value = duration;
-    document.getElementById('servicePrice').value = price;
-    document.getElementById('serviceActive').checked = isActive;
+function renderServices(data) {
+    const container = document.getElementById('services-container');
+    if (data.categories.length === 0 && data.uncategorized.length === 0) {
+        container.innerHTML = `
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-cut fa-4x mb-3" style="color: #ff85b3;"></i>
+                    <h5>У вас пока нет услуг</h5>
+                    <p class="text-muted">Добавьте первую услугу или категорию</p>
+                </div>
+            </div>
+        `;
+        return;
+    }
     
-    new bootstrap.Modal(document.getElementById('serviceModal')).show();
+    let html = '';
+    
+    // Категории с услугами (аккордеон)
+    for (const cat of data.categories) {
+        if (cat.services.length === 0) continue;
+        
+        html += `
+            <div class="card mb-2">
+                <div class="card-header bg-white p-2" style="cursor: pointer;" onclick="toggleCategory(${cat.id})">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-chevron-right me-2" id="cat-icon-${cat.id}" style="font-size: 12px;"></i>
+                            <i class="fas fa-folder-open me-2" style="color: #ff85b3;"></i>
+                            <strong>${escapeHtml(cat.name)}</strong>
+                            <span class="badge bg-secondary ms-2">${cat.services.length}</span>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-outline-pink" onclick="event.stopPropagation(); editCategory(${cat.id}, '${escapeHtml(cat.name)}', ${cat.order})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteCategory(${cat.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-2" id="cat-body-${cat.id}" style="display: none;">
+                    <div class="row g-2">
+        `;
+        for (const service of cat.services) {
+            html += renderServiceCard(service);
+        }
+        html += `</div></div></div>`;
+    }
+    
+    // Услуги без категории
+    if (data.uncategorized.length > 0) {
+        html += `
+            <div class="card mb-2">
+                <div class="card-header bg-white p-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-tag me-2" style="color: #ff85b3;"></i>
+                            <strong>Без категории</strong>
+                            <span class="badge bg-secondary ms-2">${data.uncategorized.length}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-2">
+                    <div class="row g-2">
+        `;
+        for (const service of data.uncategorized) {
+            html += renderServiceCard(service);
+        }
+        html += `</div></div></div>`;
+    }
+    
+    container.innerHTML = html;
+}
+
+function renderServiceCard(service) {
+    return `
+        <div class="col-md-4 col-lg-3">
+            <div class="card h-100">
+                <div class="card-body p-2">
+                    <h6 class="card-title mb-1" style="font-size: 0.9rem;">${escapeHtml(service.name)}</h6>
+                    <p class="card-text small text-muted mb-1">${escapeHtml(service.description || '')}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-light text-dark small">${service.duration} мин</span>
+                        <span class="fw-bold small" style="color: #ff85b3;">${service.price} ₽</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-0 p-1">
+                    <div class="btn-group w-100">
+                        <button class="btn btn-sm btn-outline-pink" onclick="editService(${service.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteService(${service.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function toggleCategory(catId) {
+    const body = document.getElementById(`cat-body-${catId}`);
+    const icon = document.getElementById(`cat-icon-${catId}`);
+    if (body.style.display === 'none') {
+        body.style.display = 'block';
+        icon.className = 'fas fa-chevron-down me-2';
+    } else {
+        body.style.display = 'none';
+        icon.className = 'fas fa-chevron-right me-2';
+    }
+}
+
+function updateCategorySelect(categories) {
+    const select = document.getElementById('serviceCategory');
+    select.innerHTML = '<option value="">— Без категории —</option>';
+    categories.forEach(cat => {
+        select.innerHTML += `<option value="${cat.id}">${escapeHtml(cat.name)}</option>`;
+    });
+}
+
+function openAddCategoryModal() {
+    document.getElementById('categoryModalTitle').innerText = 'Добавить категорию';
+    document.getElementById('categoryId').value = '';
+    document.getElementById('categoryForm').reset();
+    document.getElementById('categoryOrder').value = categoriesList.length;
+}
+
+function editCategory(id, name, order) {
+    document.getElementById('categoryModalTitle').innerText = 'Редактировать категорию';
+    document.getElementById('categoryId').value = id;
+    document.getElementById('categoryName').value = name;
+    document.getElementById('categoryOrder').value = order;
+    new bootstrap.Modal(document.getElementById('categoryModal')).show();
+}
+
+function saveCategory() {
+    const id = document.getElementById('categoryId').value;
+    const name = document.getElementById('categoryName').value.trim();
+    const order = document.getElementById('categoryOrder').value;
+    
+    if (!name) {
+        alert('Введите название категории');
+        return;
+    }
+    
+    const url = id ? `/api/categories/${id}/edit/` : '/api/categories/add/';
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ name, order: parseInt(order) })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('categoryModal')).hide();
+            loadServices();
+        } else {
+            alert(data.error || 'Ошибка');
+        }
+    });
+}
+
+function deleteCategory(id) {
+    if (confirm('Удалить категорию? Услуги останутся без категории.')) {
+        fetch(`/api/categories/${id}/delete/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) loadServices();
+            else alert(data.error);
+        });
+    }
+}
+
+function openAddServiceModal() {
+    document.getElementById('serviceModalTitle').innerText = 'Добавить услугу';
+    document.getElementById('serviceForm').reset();
+    document.getElementById('serviceId').value = '';
+    document.getElementById('serviceActive').checked = true;
+}
+
+function editService(id) {
+    fetch(`/api/services/${id}/get/`)
+        .then(r => r.json())
+        .then(service => {
+            document.getElementById('serviceModalTitle').innerText = 'Редактировать услугу';
+            document.getElementById('serviceId').value = service.id;
+            document.getElementById('serviceCategory').value = service.category_id || '';
+            document.getElementById('serviceName').value = service.name;
+            document.getElementById('serviceDescription').value = service.description || '';
+            document.getElementById('serviceDuration').value = service.duration;
+            document.getElementById('servicePrice').value = service.price;
+            document.getElementById('serviceActive').checked = service.is_active;
+            new bootstrap.Modal(document.getElementById('serviceModal')).show();
+        });
 }
 
 function saveService() {
     const id = document.getElementById('serviceId').value;
+    const categoryId = document.getElementById('serviceCategory').value;
     const name = document.getElementById('serviceName').value.trim();
     const description = document.getElementById('serviceDescription').value;
     const duration = document.getElementById('serviceDuration').value;
@@ -95,34 +331,35 @@ function saveService() {
     const isActive = document.getElementById('serviceActive').checked;
     
     if (!name || !duration || !price) {
-        alert('Заполните все обязательные поля');
+        alert('Заполните обязательные поля');
         return;
     }
     
     const url = id ? `/api/services/${id}/edit/` : '/api/services/add/';
-    const data = { name, description, duration: parseInt(duration), price: parseFloat(price), is_active: isActive };
-    
     fetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
         },
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+            name, description, duration: parseInt(duration), price: parseFloat(price),
+            is_active: isActive, category_id: categoryId || null
+        })
     })
-    .then(response => response.json())
+    .then(r => r.json())
     .then(data => {
         if (data.success) {
             bootstrap.Modal.getInstance(document.getElementById('serviceModal')).hide();
             loadServices();
         } else {
-            alert(data.error || 'Ошибка при сохранении');
+            alert(data.error || 'Ошибка');
         }
     });
 }
 
-function deleteService(id, name) {
-    if (confirm(`Удалить услугу "${name}"?`)) {
+function deleteService(id) {
+    if (confirm('Удалить услугу?')) {
         fetch(`/api/services/${id}/delete/`, {
             method: 'POST',
             headers: {
@@ -130,26 +367,24 @@ function deleteService(id, name) {
                 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
             }
         })
-        .then(response => response.json())
+        .then(r => r.json())
         .then(data => {
-            if (data.success) {
-                loadServices();
-            } else {
-                alert(data.error || 'Ошибка при удалении');
-            }
+            if (data.success) loadServices();
+            else alert(data.error);
         });
     }
 }
 
-function loadServices() {
-    fetch('/services/')
-        .then(response => response.text())
-        .then(html => {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const newList = doc.getElementById('services-container').innerHTML;
-            document.getElementById('services-container').innerHTML = newList;
-        });
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
 }
+
+document.addEventListener('DOMContentLoaded', loadServices);
 </script>
 {% endblock %}

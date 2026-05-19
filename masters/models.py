@@ -108,14 +108,35 @@ class PhoneVerification(models.Model):
     def __str__(self):
         return f"{self.phone} - {self.code}"
 
+class ServiceCategory(models.Model):
+    """Категория услуг (группа)"""
+    master = models.ForeignKey(Master, on_delete=models.CASCADE, related_name='service_categories')
+    name = models.CharField(max_length=100, verbose_name="Название категории")
+    order = models.IntegerField(default=0, verbose_name="Порядок сортировки")
+    is_active = models.BooleanField(default=True, verbose_name="Активна")
+    
+    class Meta:
+        verbose_name = "Категория услуг"
+        verbose_name_plural = "Категории услуг"
+        ordering = ['order', 'name']
+    
+    def __str__(self):
+        return self.name
+        
 class Service(models.Model):
-    """
-    Услуги мастера
-    """
+    """Услуги мастера"""
     master = models.ForeignKey(Master, on_delete=models.CASCADE, related_name='services')
+    category = models.ForeignKey(
+        ServiceCategory, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='services',
+        verbose_name="Категория"
+    )
     name = models.CharField(max_length=100, verbose_name="Название услуги")
     description = models.TextField(verbose_name="Описание", blank=True)
-    duration = models.IntegerField(verbose_name="Длительность (минут)", help_text="Например: 60, 90, 120")
+    duration = models.IntegerField(verbose_name="Длительность (минут)")
     price = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Цена")
     is_active = models.BooleanField(default=True, verbose_name="Активна")
     
@@ -124,7 +145,9 @@ class Service(models.Model):
         verbose_name_plural = "Услуги"
     
     def __str__(self):
-        return f"{self.name} ({self.duration} мин, {self.price} руб)"
+        return self.name
+
+
 
 
 class Schedule(models.Model):
