@@ -60,7 +60,6 @@
 </div>
 
 <!-- Ближайшие записи -->
-<!-- Ближайшие записи -->
 <div class="card mb-4">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0"><i class="fas fa-clock me-2" style="color: #ff85b3;"></i>Ближайшие записи</h5>
@@ -101,6 +100,93 @@
         </div>
     </div>
 </div>
+
+    <!-- Модальное окно для редактирования дня -->
+<div class="modal fade" id="dayModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dayModalTitle">
+                    <i class="fas fa-calendar-day me-2" style="color: var(--primary);"></i>
+                    Редактирование дня
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="dayModalInfo" class="mb-3">
+                    <p class="text-muted" id="dayModalDate"></p>
+                </div>
+                
+                <!-- Текущий статус дня -->
+                <div class="alert alert-light" id="currentStatusAlert"></div>
+                
+                <!-- Действия с днем -->
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary" onclick="makeWorkingDay()" id="makeWorkingBtn">
+                        <i class="fas fa-calendar-check me-2"></i>Сделать рабочим (по расписанию)
+                    </button>
+                    <button class="btn btn-outline-success" onclick="makeExtraDay()" id="makeExtraBtn">
+                        <i class="fas fa-plus-circle me-2"></i>Дополнительный рабочий день
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="makeDayOff()" id="makeDayOffBtn">
+                        <i class="fas fa-umbrella-beach me-2"></i>Сделать выходным
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="removeSpecialStatus()" id="removeSpecialBtn" style="display: none;">
+                        <i class="fas fa-undo me-2"></i>Сбросить к расписанию
+                    </button>
+                </div>
+                
+                <hr>
+                
+                <!-- Настройка времени для доп. дня -->
+                <div id="extraDaySettings" style="display: none;">
+                    <h6 class="mb-3">Настройка времени</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Начало работы</label>
+                            <input type="time" class="form-control" id="extraStartTime">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Конец работы</label>
+                            <input type="time" class="form-control" id="extraEndTime">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Перерывы</label>
+                        <div id="extraBreaksContainer">
+                            <div class="break-item row mb-2">
+                                <div class="col-md-5">
+                                    <input type="time" class="form-control break-start" placeholder="Начало">
+                                </div>
+                                <div class="col-md-5">
+                                    <input type="time" class="form-control break-end" placeholder="Конец">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="button" class="btn btn-danger btn-sm remove-break" style="display: none;">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addExtraBreakField()">
+                            <i class="fas fa-plus me-1"></i>Добавить перерыв
+                        </button>
+                    </div>
+                    
+                    <button class="btn btn-primary w-100 mt-3" onclick="saveExtraDaySettings()">
+                        <i class="fas fa-save me-2"></i>Сохранить
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 
 <script>
 // Показать/скрыть номер телефона
@@ -190,7 +276,7 @@ function renderCalendar(data, year, month) {
         html += '<div class="calendar-date empty"></div>';
     }
     
-        for (let d = 1; d <= daysInMonth; d++) {
+    for (let d = 1; d <= daysInMonth; d++) {
         const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
         const dayOfWeek = new Date(year, month, d).getDay();
         const dayOfWeekAdjusted = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
@@ -198,24 +284,29 @@ function renderCalendar(data, year, month) {
         let isWorking = false;
         let tooltip = '';
         let statusText = '';
+        let dayType = 'regular';
         
-        // Проверяем рабочий ли день
+        // Проверяем тип дня
         if (data.extra_days && data.extra_days[dateStr]) {
             const extra = data.extra_days[dateStr];
             isWorking = true;
+            dayType = 'extra';
             tooltip = `Доп. день: ${extra.start} - ${extra.end}`;
             statusText = `${extra.start} - ${extra.end}`;
         } else if (data.days_off && data.days_off.includes(dateStr)) {
             isWorking = false;
+            dayType = 'dayoff';
             tooltip = 'Выходной день';
             statusText = 'Выходной';
         } else if (data.schedules && data.schedules[dayOfWeekAdjusted]) {
             const schedule = data.schedules[dayOfWeekAdjusted];
             isWorking = true;
+            dayType = 'regular';
             tooltip = `${schedule.start} - ${schedule.end}`;
             statusText = `${schedule.start} - ${schedule.end}`;
         } else {
             isWorking = false;
+            dayType = 'dayoff';
             tooltip = 'Нерабочий день';
             statusText = 'Выходной';
         }
@@ -224,7 +315,15 @@ function renderCalendar(data, year, month) {
         const todayClass = isToday ? 'today' : '';
         const workingClass = isWorking ? 'working' : 'non-working';
         
-        html += `<div class="calendar-date ${workingClass} ${todayClass}" title="${tooltip}">
+        // Добавляем data-атрибуты для клика
+        html += `<div class="calendar-date ${workingClass} ${todayClass}" 
+                        data-date="${dateStr}"
+                        data-day-type="${dayType}"
+                        data-day-number="${d}"
+                        data-month="${month}"
+                        data-year="${year}"
+                        onclick="openDayModal('${dateStr}', ${d}, ${month}, ${year}, ${JSON.stringify(data).replace(/"/g, '&quot;')})"
+                        title="${tooltip}">
                     ${d}
                     <div class="calendar-time">${statusText}</div>
                 </div>`;
@@ -254,7 +353,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let bookingsTotal = 0;
 
     function loadBookings(page = 1, append = false) {
-        fetch(`/api/bookings/?page=${page}&limit=4`)
+        fetch(`/api/bookings/?page=${page}&limit=10`)
             .then(response => response.json())
             .then(data => {
                 if (append) {
@@ -347,6 +446,238 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('DOMContentLoaded', function() {
         loadBookings(1, false);
     });
+</script>
+
+
+
+<script>
+    let currentDayData = {
+    date: null,
+    dayType: null,
+    currentStatus: null,
+    year: null,
+    month: null,
+    day: null
+};
+
+function openDayModal(dateStr, day, month, year, calendarData) {
+    currentDayData = {
+        date: dateStr,
+        day: day,
+        month: month,
+        year: year,
+        calendarData: calendarData
+    };
+    
+    // Определяем текущий статус дня
+    let currentStatus = '';
+    let dayType = '';
+    
+    if (calendarData.extra_days && calendarData.extra_days[dateStr]) {
+        currentStatus = 'extra';
+        dayType = 'Дополнительный рабочий день';
+        const extra = calendarData.extra_days[dateStr];
+        document.getElementById('extraStartTime').value = extra.start;
+        document.getElementById('extraEndTime').value = extra.end;
+        // Заполняем перерывы
+        document.getElementById('extraBreaksContainer').innerHTML = '';
+        if (extra.breaks && extra.breaks.length > 0) {
+            extra.breaks.forEach(b => {
+                addExtraBreakField(b.start, b.end);
+            });
+        } else {
+            addExtraBreakField();
+        }
+        document.getElementById('extraDaySettings').style.display = 'block';
+    } else if (calendarData.days_off && calendarData.days_off.includes(dateStr)) {
+        currentStatus = 'dayoff';
+        dayType = 'Выходной день';
+        document.getElementById('extraDaySettings').style.display = 'none';
+    } else {
+        currentStatus = 'regular';
+        dayType = 'Рабочий день (по расписанию)';
+        document.getElementById('extraDaySettings').style.display = 'none';
+    }
+    
+    // Обновляем интерфейс модального окна
+    const dateObj = new Date(year, month, day);
+    const monthNames = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+    document.getElementById('dayModalDate').innerHTML = `<strong>${day} ${monthNames[month]} ${year}</strong>`;
+    document.getElementById('currentStatusAlert').innerHTML = `<i class="fas fa-info-circle me-2"></i>Текущий статус: <strong>${dayType}</strong>`;
+    
+    // Показываем/скрываем кнопку сброса
+    const removeBtn = document.getElementById('removeSpecialBtn');
+    if (currentStatus === 'extra' || currentStatus === 'dayoff') {
+        removeBtn.style.display = 'block';
+    } else {
+        removeBtn.style.display = 'none';
+    }
+    
+    currentDayData.currentStatus = currentStatus;
+    
+    new bootstrap.Modal(document.getElementById('dayModal')).show();
+}
+
+function makeWorkingDay() {
+    // Возвращаем день к обычному расписанию
+    removeSpecialStatus();
+}
+
+function makeExtraDay() {
+    // Показываем настройки для дополнительного дня
+    document.getElementById('extraDaySettings').style.display = 'block';
+    document.getElementById('extraStartTime').value = '09:00';
+    document.getElementById('extraEndTime').value = '18:00';
+    document.getElementById('extraBreaksContainer').innerHTML = '';
+    addExtraBreakField();
+    
+    // Обновляем статус в модалке
+    document.getElementById('currentStatusAlert').innerHTML = `<i class="fas fa-info-circle me-2"></i>Текущий статус: <strong>Настройка дополнительного дня</strong>`;
+}
+
+function addExtraBreakField(start = '', end = '') {
+    const container = document.getElementById('extraBreaksContainer');
+    const breakDiv = document.createElement('div');
+    breakDiv.className = 'break-item row mb-2';
+    breakDiv.innerHTML = `
+        <div class="col-md-5">
+            <input type="time" class="form-control break-start" value="${start}" placeholder="Начало">
+        </div>
+        <div class="col-md-5">
+            <input type="time" class="form-control break-end" value="${end}" placeholder="Конец">
+        </div>
+        <div class="col-md-2">
+            <button type="button" class="btn btn-danger btn-sm remove-break" onclick="this.closest('.break-item').remove()">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+    container.appendChild(breakDiv);
+}
+
+function saveExtraDaySettings() {
+    const startTime = document.getElementById('extraStartTime').value;
+    const endTime = document.getElementById('extraEndTime').value;
+    
+    if (!startTime || !endTime) {
+        alert('Заполните время начала и конца работы');
+        return;
+    }
+    
+    // Собираем перерывы
+    const breaks = [];
+    document.querySelectorAll('#extraBreaksContainer .break-item').forEach(item => {
+        const start = item.querySelector('.break-start').value;
+        const end = item.querySelector('.break-end').value;
+        if (start && end) {
+            breaks.push({ start, end });
+        }
+    });
+    
+    fetch('/api/extra-days/add/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            date: currentDayData.date,
+            start_time: startTime,
+            end_time: endTime,
+            breaks: breaks
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('dayModal')).hide();
+            loadCalendar(); // Обновляем календарь
+            loadExtraDays(); // Обновляем список доп. дней
+        } else {
+            alert(data.error || 'Ошибка при сохранении');
+        }
+    });
+}
+
+function makeDayOff() {
+    if (confirm('Отметить этот день как выходной?')) {
+        fetch('/api/days-off/add/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                date: currentDayData.date,
+                reason: 'Выходной'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('dayModal')).hide();
+                loadCalendar();
+                loadDaysOff();
+            } else {
+                alert(data.error || 'Ошибка');
+            }
+        });
+    }
+}
+
+function removeSpecialStatus() {
+    const dayType = currentDayData.currentStatus;
+    
+    if (dayType === 'extra') {
+        // Удаляем дополнительный день
+        fetch('/api/extra-days/list/')
+            .then(response => response.json())
+            .then(data => {
+                const extraDay = data.extra_days.find(d => d.date === currentDayData.date);
+                if (extraDay) {
+                    fetch(`/api/extra-days/${extraDay.id}/delete/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            bootstrap.Modal.getInstance(document.getElementById('dayModal')).hide();
+                            loadCalendar();
+                            loadExtraDays();
+                        }
+                    });
+                }
+            });
+    } else if (dayType === 'dayoff') {
+        // Удаляем выходной
+        fetch('/api/days-off/list/')
+            .then(response => response.json())
+            .then(data => {
+                const dayOff = data.days_off.find(d => d.date === currentDayData.date);
+                if (dayOff) {
+                    fetch(`/api/days-off/${dayOff.id}/delete/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            bootstrap.Modal.getInstance(document.getElementById('dayModal')).hide();
+                            loadCalendar();
+                            loadDaysOff();
+                        }
+                    });
+                }
+            });
+    }
+}
 </script>
 
 <style>

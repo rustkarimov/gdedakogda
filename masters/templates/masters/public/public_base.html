@@ -1,0 +1,50 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ДАТЫ{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS (локально) -->
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+
+    <!-- Font Awesome (локально) -->
+    <link rel="stylesheet" href="{% static 'css/all.min.css' %}">
+
+    <!-- Наш CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+</head>
+<body>
+    <!-- Простая шапка для клиентов -->
+    <nav class="navbar navbar-light bg-white border-bottom">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="fas fa-calendar-check me-2" style="color: #7c3aed;"></i>
+                <span class="fw-bold">ДАТЫ</span>
+            </a>
+        </div>
+    </nav>
+
+    <main class="py-4">
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="footer mt-5 py-3 bg-light">
+        <div class="container text-center">
+            <p class="text-muted mb-0">© 2026 Где Да Когда - сервис для записи к мастерам</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
+
+    {% block extra_js %}
+    {% endblock %}
+</body>
+</html>

@@ -452,6 +452,25 @@ def api_delete_extra_day(request, extra_day_id):
     })
 
 
+@login_required
+def get_extra_days_list(request):
+    master = request.user.master
+    extra_days = ExtraWorkingDay.objects.filter(master=master)
+    
+    data = []
+    for day in extra_days:
+        data.append({
+            'id': day.id,
+            'date': day.date.strftime('%Y-%m-%d'),
+            'start': day.start_time.strftime('%H:%M'),
+            'end': day.end_time.strftime('%H:%M'),
+            'breaks': [{
+                'start': b.start_time.strftime('%H:%M'),
+                'end': b.end_time.strftime('%H:%M')
+            } for b in day.breaks.all()]
+        })
+    
+    return JsonResponse({'extra_days': data})
 
 @login_required
 def get_days_off_list(request):

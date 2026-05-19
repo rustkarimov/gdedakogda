@@ -31,6 +31,8 @@ urlpatterns = [
     path('api/schedule/add/', views.api_add_schedule, name='api_add_schedule'),
     path('api/schedule/<int:schedule_id>/edit/', views.api_edit_schedule, name='api_edit_schedule'),
     path('api/schedule/<int:schedule_id>/delete/', views.api_delete_schedule, name='api_delete_schedule'),
+
+    path('api/extra-days/list/', views.get_extra_days_list, name='api_extra_days_list'),
     
     # Ручное добавление записи
     path('add-booking/', views.add_manual_booking, name='add_manual_booking'),

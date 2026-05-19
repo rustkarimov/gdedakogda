@@ -1,4 +1,4 @@
-{% extends 'masters/base.html' %}
+{% extends 'masters/public/public_base.html' %}
 {% load static %}
 
 {% block title %}{{ master.first_name }} {{ master.last_name }} - запись{% endblock %}
@@ -130,7 +130,7 @@
 let selectedServiceId = null;
 let selectedDate = null;
 let selectedTime = null;
-let currentSlug = "{{ master.slug }}";
+let currentSlug = "{{ master.public_slug }}";  // используем public_slug
 
 // Плавный скролл к элементу
 function smoothScrollTo(elementId) {
@@ -177,7 +177,8 @@ function loadAvailableDates() {
         </div>
     `;
     
-    fetch(`/api/master/${currentSlug}/dates/?service_id=${selectedServiceId}`)
+    // ИСПРАВЛЕНО: используем currentSlug и selectedServiceId
+    fetch(`/api/${currentSlug}/dates/?service_id=${selectedServiceId}`)
         .then(response => response.json())
         .then(data => {
             if (data.dates && data.dates.length > 0) {
@@ -206,6 +207,7 @@ function loadAvailableDates() {
             }
         })
         .catch(error => {
+            console.error('Ошибка:', error);
             datesContainer.innerHTML = `
                 <div class="col-12 text-center">
                     <p class="text-danger">Ошибка загрузки дат</p>
@@ -250,7 +252,8 @@ function loadAvailableSlots() {
         </div>
     `;
     
-    fetch(`/api/master/${currentSlug}/slots/?service_id=${selectedServiceId}&date=${selectedDate}`)
+    // ИСПРАВЛЕНО: используем currentSlug
+    fetch(`/api/${currentSlug}/slots/?service_id=${selectedServiceId}&date=${selectedDate}`)
         .then(response => response.json())
         .then(data => {
             if (data.slots && data.slots.length > 0) {
@@ -278,6 +281,7 @@ function loadAvailableSlots() {
             }
         })
         .catch(error => {
+            console.error('Ошибка:', error);
             slotsContainer.innerHTML = `
                 <div class="col-12 text-center">
                     <p class="text-danger">Ошибка загрузки времени</p>
@@ -323,7 +327,8 @@ document.getElementById('booking-form').addEventListener('submit', function(e) {
         comment: document.getElementById('client-comment').value
     };
     
-    fetch(`/api/master/${currentSlug}/book/`, {
+    // ИСПРАВЛЕНО: используем currentSlug
+    fetch(`/api/${currentSlug}/book/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -348,6 +353,7 @@ document.getElementById('booking-form').addEventListener('submit', function(e) {
         }
     })
     .catch(error => {
+        console.error('Ошибка:', error);
         alert('Произошла ошибка при записи');
     });
 });
