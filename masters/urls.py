@@ -4,8 +4,6 @@ from . import views
 
 urlpatterns = [
     
-    
-
     path('', views.home, name='home'),
     
     # Аутентификация
@@ -42,21 +40,29 @@ urlpatterns = [
     path('api/schedule/<int:schedule_id>/edit/', views.api_edit_schedule, name='api_edit_schedule'),
     path('api/schedule/<int:schedule_id>/delete/', views.api_delete_schedule, name='api_delete_schedule'),
 
-    path('api/extra-days/list/', views.get_extra_days_list, name='api_extra_days_list'),
-    
     # Ручное добавление записи
     path('add-booking/', views.add_manual_booking, name='add_manual_booking'),
     path('api/get-slots/', views.get_booking_slots_for_master, name='api_get_slots'),
     
     # Дополнительные рабочие дни
     path('api/extra-days/', views.get_extra_days, name='api_extra_days'),
+    path('api/extra-days/list/', views.get_extra_days_list, name='api_extra_days_list'),
     path('api/extra-days/add/', views.api_add_extra_day, name='api_add_extra_day'),
     path('api/extra-days/<int:extra_day_id>/delete/', views.api_delete_extra_day, name='api_delete_extra_day'),
+    path('api/extra-days/delete-by-date/', views.api_delete_extra_day_by_date, name='api_delete_extra_day_by_date'),
+
+    # Статус дня
+    path('api/day-status/', views.get_day_status, name='api_day_status'),
 
     # Выходные дни
     path('api/days-off/list/', views.get_days_off_list, name='api_days_off_list'),
     path('api/days-off/add/', views.api_add_day_off, name='api_add_day_off'),
     path('api/days-off/<int:dayoff_id>/delete/', views.api_delete_day_off, name='api_delete_day_off'),
+
+    #количество записей
+    path('api/bookings/counts/', views.get_bookings_counts, name='api_bookings_counts'),
+    path('api/bookings/by-date/', views.get_bookings_by_date, name='api_bookings_by_date'),
+    path('api/days-off/delete-by-date/', views.api_delete_day_off_by_date, name='api_delete_day_off_by_date'),
 
     # Статистика клиентов
     path('clients-statistics/', views.clients_statistics, name='clients_statistics'),

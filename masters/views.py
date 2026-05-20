@@ -10,6 +10,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from .models import Master, Service, Booking, Schedule, DayOff, PhoneVerification, CustomUser, Break, ExtraWorkingDay, ExtraWorkingDayBreak, ServiceCategory
 from .forms import PhoneRegistrationForm, PhoneVerificationForm
+
+from django.views.decorators.http import require_http_methods
+from .models import ExtraWorkingDay, ExtraWorkingDayBreak
+
+
 from .utils.schedule_utils import ScheduleCalculator
 from datetime import datetime, timedelta, date
 import random
@@ -617,6 +622,63 @@ def get_days_off_list(request):
     
     return JsonResponse({'days_off': data})
 
+@login_required
+def get_bookings_counts(request):
+    """API для получения количества записей по датам"""
+    master = request.user.master
+    bookings = Booking.objects.filter(master=master, status='confirmed')
+    
+    counts = {}
+    for booking in bookings:
+        date_str = booking.date.strftime('%Y-%m-%d')
+        counts[date_str] = counts.get(date_str, 0) + 1
+    
+    return JsonResponse({'counts': counts})
+
+
+@login_required
+def get_bookings_by_date(request):
+    """API для получения записей на конкретную дату"""
+    master = request.user.master
+    date_str = request.GET.get('date')
+    
+    if not date_str:
+        return JsonResponse({'error': 'Дата не указана'}, status=400)
+    
+    target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    
+    bookings = Booking.objects.filter(
+        master=master,
+        date=target_date,
+        status='confirmed'
+    ).order_by('time').select_related('service')
+    
+    data = []
+    for booking in bookings:
+        data.append({
+            'id': booking.id,
+            'time': booking.time.strftime('%H:%M'),
+            'client_name': booking.client_name,
+            'service_name': booking.service.name,
+        })
+    
+    return JsonResponse({'bookings': data})
+
+@login_required
+@require_http_methods(["POST"])
+def api_delete_day_off_by_date(request):
+    """API удаления выходного дня по дате"""
+    master = request.user.master
+    data = json.loads(request.body)
+    date_str = data.get('date')
+    
+    if not date_str:
+        return JsonResponse({'error': 'Дата не указана'}, status=400)
+    
+    target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    DayOff.objects.filter(master=master, date=target_date).delete()
+    
+    return JsonResponse({'success': True})
 
 @login_required
 def add_manual_booking(request):
@@ -1288,7 +1350,58 @@ def format_phone(phone):
 
 
 
+@login_required
+def get_day_status(request):
+    """API для получения статуса конкретного дня"""
+    master = request.user.master
+    date_str = request.GET.get('date')
+    
+    if not date_str:
+        return JsonResponse({'error': 'Дата не указана'}, status=400)
+    
+    target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    day_of_week = target_date.weekday()
+    
+    extra_day = ExtraWorkingDay.objects.filter(master=master, date=target_date).first()
+    is_day_off = DayOff.objects.filter(master=master, date=target_date).exists()
+    schedule = Schedule.objects.filter(master=master, day_of_week=day_of_week).first()
+    
+    # Формируем список перерывов
+    breaks = []
+    if extra_day:
+        breaks = [{
+            'start': b.start_time.strftime('%H:%M'),
+            'end': b.end_time.strftime('%H:%M')
+        } for b in extra_day.breaks.all()]
+    
+    return JsonResponse({
+        'is_extra': extra_day is not None,
+        'is_day_off': is_day_off,
+        'has_schedule': schedule is not None,
+        'schedule_start': schedule.start_time.strftime('%H:%M') if schedule else None,
+        'schedule_end': schedule.end_time.strftime('%H:%M') if schedule else None,
+        'extra_start': extra_day.start_time.strftime('%H:%M') if extra_day else None,
+        'extra_end': extra_day.end_time.strftime('%H:%M') if extra_day else None,
+        'breaks': breaks,
+        'date': date_str
+    })
 
+
+@login_required
+@require_http_methods(["POST"])
+def api_delete_extra_day_by_date(request):
+    """API удаления дополнительного рабочего дня по дате"""
+    master = request.user.master
+    data = json.loads(request.body)
+    date_str = data.get('date')
+    
+    if not date_str:
+        return JsonResponse({'error': 'Дата не указана'}, status=400)
+    
+    target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    ExtraWorkingDay.objects.filter(master=master, date=target_date).delete()
+    
+    return JsonResponse({'success': True})
 
 
 
