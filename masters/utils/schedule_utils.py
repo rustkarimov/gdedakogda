@@ -11,14 +11,14 @@ class ScheduleCalculator:
     def get_working_hours_for_date(self, target_date: date):
         """Получает рабочие часы мастера на конкретную дату с учетом приоритетов"""
         
-        # 1. Проверяем дополнительные рабочие дни (высший приоритет)
+        # 1. Проверяем выходные дни (высший приоритет)
+        if DayOff.objects.filter(master=self.master, date=target_date).exists():
+            return None
+        
+        # 2. Проверяем дополнительные рабочие дни
         extra_day = ExtraWorkingDay.objects.filter(master=self.master, date=target_date).first()
         if extra_day:
             return (extra_day.start_time, extra_day.end_time)
-        
-        # 2. Проверяем выходные дни
-        if DayOff.objects.filter(master=self.master, date=target_date).exists():
-            return None
         
         # 3. Проверяем регулярное расписание
         day_of_week = target_date.weekday()
@@ -127,21 +127,41 @@ class ScheduleCalculator:
         
         return all_slots
     
-    def get_available_dates(self, days_ahead: int = 30, min_service_duration: int = 30) -> List[date]:
-        """
-        Получает список дат, в которые есть свободные окна
+    # def get_available_dates(self, days_ahead: int = 30, min_service_duration: int = 30) -> List[date]:
+    #     """
+    #     Получает список дат, в которые есть свободные окна
         
-        Параметры:
-        - days_ahead: на сколько дней вперед смотреть
-        - min_service_duration: минимальная длительность услуги для проверки
-        """
+    #     Параметры:
+    #     - days_ahead: на сколько дней вперед смотреть
+    #     - min_service_duration: минимальная длительность услуги для проверки
+    #     """
+    #     available_dates = []
+    #     today = date.today()
+        
+    #     for i in range(days_ahead):
+    #         check_date = today + timedelta(days=i)
+            
+    #         # Проверяем, работает ли мастер в этот день
+    #         working_hours = self.get_working_hours_for_date(check_date)
+    #         if not working_hours:
+    #             continue
+            
+    #         # Проверяем, есть ли хотя бы один свободный слот
+    #         slots = self.generate_time_slots(check_date, min_service_duration)
+    #         if slots:
+    #             available_dates.append(check_date)
+        
+    #     return available_dates
+
+    def get_available_dates(self, days_ahead: int = 60, min_service_duration: int = 30) -> List[date]:
+        """Получает список дат, в которые есть свободные окна"""
         available_dates = []
         today = date.today()
         
         for i in range(days_ahead):
             check_date = today + timedelta(days=i)
             
-            # Проверяем, работает ли мастер в этот день
+            # Проверяем, работает ли мастер в этот день (учитывает выходные)
             working_hours = self.get_working_hours_for_date(check_date)
             if not working_hours:
                 continue

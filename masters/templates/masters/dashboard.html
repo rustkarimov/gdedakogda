@@ -18,52 +18,25 @@
     </div>
 </div>
 
-<!-- Статистика -->
 <div class="row mb-4">
-    <div class="col-md-4">
-        <div class="dashboard-stat">
-            <i class="fas fa-calendar-check"></i>
-            <h3>{{ total_bookings }}</h3>
-            <p>Всего записей</p>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="dashboard-stat">
-            <i class="fas fa-cut"></i>
-            <h3>{{ total_services }}</h3>
-            <p>Услуг</p>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="dashboard-stat">
-            <i class="fas fa-link"></i>
-            <h3><i class="fas fa-copy copy-link" style="cursor: pointer;" onclick="copyPublicLink()"></i></h3>
-            <p>Ваша ссылка</p>
-        </div>
-    </div>
+    <div class="col-md-4"><div class="dashboard-stat"><i class="fas fa-calendar-check"></i><h3>{{ total_bookings }}</h3><p>Всего записей</p></div></div>
+    <div class="col-md-4"><div class="dashboard-stat"><i class="fas fa-cut"></i><h3>{{ total_services }}</h3><p>Услуг</p></div></div>
+    <div class="col-md-4"><div class="dashboard-stat"><i class="fas fa-link"></i><h3><i class="fas fa-copy copy-link" style="cursor: pointer;" onclick="copyPublicLink()"></i></h3><p>Ваша ссылка</p></div></div>
 </div>
 
-<!-- Ваша ссылка -->
 <div class="card mb-4">
     <div class="card-body">
         <h5><i class="fas fa-share-alt me-2" style="color: #ff85b3;"></i>Ваша страница для записи</h5>
         <div class="input-group">
-            <input type="text" class="form-control" id="publicLink" 
-                value="{{ request.scheme }}://{{ request.get_host }}/{{ master.public_slug }}/" 
-                readonly>
-            <button class="btn btn-pink" type="button" onclick="copyPublicLink()">
-                <i class="fas fa-copy"></i> Копировать
-            </button>
+            <input type="text" class="form-control" id="publicLink" value="{{ request.scheme }}://{{ request.get_host }}/{{ master.public_slug }}/" readonly>
+            <button class="btn btn-pink" type="button" onclick="copyPublicLink()"><i class="fas fa-copy"></i> Копировать</button>
         </div>
         <small class="text-muted">Отправьте эту ссылку клиентам, и они смогут записаться к вам</small>
     </div>
 </div>
 
-<!-- Календарь -->
 <div class="card mb-4">
-    <div class="card-header bg-white">
-        <h5 class="mb-0"><i class="far fa-calendar-alt me-2" style="color: #ff85b3;"></i>Календарь</h5>
-    </div>
+    <div class="card-header bg-white"><h5 class="mb-0"><i class="far fa-calendar-alt me-2" style="color: #ff85b3;"></i>Календарь</h5></div>
     <div class="card-body">
         <div class="text-center mb-3">
             <button class="btn btn-sm btn-outline-pink" onclick="changeMonth(-1)">←</button>
@@ -73,235 +46,125 @@
         <div id="calendar-grid"></div>
         <div class="mt-2 small text-muted text-center">
             <span class="badge bg-success me-2">Рабочий день</span>
-            <span class="badge bg-secondary me-2">Выходной</span>
+            <span class="badge bg-secondary me-2">Нерабочий</span>
         </div>
     </div>
 </div>
 
-<!-- Ближайшие записи -->
 <div class="card">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="fas fa-clock me-2" style="color: #ff85b3;"></i>Ближайшие записи</h5>
-        <span class="badge bg-pink" id="total-bookings-count">0</span>
-    </div>
+    <div class="card-header bg-white d-flex justify-content-between align-items-center"><h5 class="mb-0"><i class="fas fa-clock me-2" style="color: #ff85b3;"></i>Ближайшие записи</h5><span class="badge bg-pink" id="total-bookings-count">0</span></div>
     <div class="card-body">
-        <div id="upcoming-bookings-container">
-            <div class="text-center">
-                <div class="spinner-border" style="color: #ff85b3;" role="status">
-                    <span class="visually-hidden">Загрузка...</span>
-                </div>
-            </div>
-        </div>
-        <div class="text-center mt-3">
-            <button id="load-more-bookings" class="btn btn-outline-pink" style="display: none;" onclick="loadMoreBookings()">
-                <i class="fas fa-chevron-down me-2"></i>Показать еще
-            </button>
-        </div>
+        <div id="upcoming-bookings-container"><div class="text-center"><div class="spinner-border" style="color: #ff85b3;"></div></div></div>
+        <div class="text-center mt-3"><button id="load-more-bookings" class="btn btn-outline-pink" style="display: none;" onclick="loadMoreBookings()"><i class="fas fa-chevron-down me-2"></i>Показать еще</button></div>
     </div>
 </div>
 
-<!-- Модальное окно -->
+<!-- МОДАЛЬНОЕ ОКНО -->
 <div class="modal fade" id="dayModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Редактирование дня</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
+            <div class="modal-header"><h5 class="modal-title">Редактирование дня</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body">
                 {% csrf_token %}
                 <p class="text-muted" id="dayModalDate"></p>
-                <div class="alert alert-light" id="currentStatusAlert">
-                    <i class="fas fa-info-circle me-2"></i>
-                    <span id="currentStatusText">Загрузка...</span>
-                </div>
+                <div class="alert alert-light" id="currentStatusAlert"><i class="fas fa-info-circle me-2"></i> <span id="currentStatusText">Загрузка...</span></div>
                 
-                <!-- Форма редактирования (общая) -->
-                <div id="editFormBlock" style="display: none;">
-                    <hr>
-                    <h6 class="mb-3">Настройка времени</h6>
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <label class="form-label">Начало работы</label>
-                            <input type="time" class="form-control" id="extraStartTime">
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label">Конец работы</label>
-                            <input type="time" class="form-control" id="extraEndTime">
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Перерывы</label>
-                        <div id="extraBreaksContainer">
-                            <div class="break-item row g-2 mb-2">
-                                <div class="col-5">
-                                    <input type="time" class="form-control form-control-sm break-start" placeholder="Начало">
-                                </div>
-                                <div class="col-5">
-                                    <input type="time" class="form-control form-control-sm break-end" placeholder="Конец">
-                                </div>
-                                <div class="col-2">
-                                    <button type="button" class="btn btn-sm btn-outline-danger w-100 remove-break" style="display: none;">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addExtraBreakField()">
-                            <i class="fas fa-plus me-1"></i>Добавить перерыв
-                        </button>
-                    </div>
-                    
-                    <button class="btn btn-primary w-100 mt-3" id="saveDayBtn" onclick="saveDayChanges()">
-                        <i class="fas fa-save me-2"></i>Сохранить изменения
-                    </button>
+                <!-- Кнопки для рабочего дня (скрыты по умолчанию) -->
+                <div id="workingDayActions" class="d-grid gap-2 mb-3" style="display: none;">
+                    <button class="btn btn-outline-primary" onclick="showEditForm()"><i class="fas fa-edit me-2"></i>Изменить время и перерывы</button>
+                    <button class="btn btn-outline-danger" onclick="makeDayOff()"><i class="fas fa-calendar-times me-2"></i>Сделать выходным</button>
                 </div>
-                
-                <!-- Кнопки для рабочего дня -->
-                <div id="workingDayActions" class="d-grid gap-2 mb-3">
-                    <button class="btn btn-outline-primary" onclick="showEditForm()">
-                        <i class="fas fa-edit me-2"></i>Изменить время и перерывы
-                    </button>
-                    <button class="btn btn-outline-danger" onclick="makeDayOff()">
-                        <i class="fas fa-calendar-times me-2"></i>Сделать выходным
-                    </button>
-                </div>
-                
-                <!-- Кнопка для выходного дня -->
+
+                <!-- Кнопка для выходного дня (скрыта по умолчанию) -->
                 <div id="dayOffActions" class="d-grid gap-2 mb-3" style="display: none;">
-                    <button class="btn btn-outline-success" onclick="makeWorkingFromDayOff()">
-                        <i class="fas fa-calendar-check me-2"></i>Сделать рабочим днём
-                    </button>
+                    <button class="btn btn-outline-success" onclick="makeWorkingFromDayOff()"><i class="fas fa-calendar-check me-2"></i>Сделать рабочим днём</button>
                 </div>
-                
-                <hr>
-                <h6 class="mb-3"><i class="fas fa-list me-2"></i>Записи на этот день</h6>
-                <div id="dayBookingsContainer">
-                    <div class="text-center py-2">
-                        <div class="spinner-border spinner-border-sm" style="color: #7c3aed;"></div>
-                    </div>
+
+                <!-- Форма редактирования -->
+                <div id="editFormBlock" style="display: none;">
+                    <hr><h6 class="mb-3">Настройка времени</h6>
+                    <div class="row mb-3"><div class="col-6"><label class="form-label">Начало работы</label><input type="time" class="form-control" id="extraStartTime"></div><div class="col-6"><label class="form-label">Конец работы</label><input type="time" class="form-control" id="extraEndTime"></div></div>
+                    <div class="mb-3"><label class="form-label">Перерывы</label><div id="extraBreaksContainer"><div class="break-item row g-2 mb-2"><div class="col-5"><input type="time" class="form-control form-control-sm break-start" placeholder="Начало"></div><div class="col-5"><input type="time" class="form-control form-control-sm break-end" placeholder="Конец"></div><div class="col-2"><button type="button" class="btn btn-sm btn-outline-danger w-100 remove-break"><i class="fas fa-trash"></i></button></div></div></div><button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addExtraBreakField()"><i class="fas fa-plus me-1"></i>Добавить перерыв</button></div>
+                    <button class="btn btn-primary w-100 mt-3" id="saveDayBtn" onclick="saveDayChanges()"><i class="fas fa-save me-2"></i>Сохранить изменения</button>
                 </div>
+
+                <hr><h6 class="mb-3"><i class="fas fa-list me-2"></i>Записи на этот день</h6>
+                <div id="dayBookingsContainer"><div class="text-center py-2"><div class="spinner-border spinner-border-sm" style="color: #7c3aed;"></div></div></div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button></div>
         </div>
     </div>
 </div>
 
 <script>
-// Копирование ссылки
-function copyPublicLink() {
-    const copyText = document.getElementById("publicLink");
-    copyText.select();
-    copyText.setSelectionRange(0, 99999);
-    navigator.clipboard.writeText(copyText.value);
-    alert("Ссылка скопирована!");
-}
+function copyPublicLink() { const t=document.getElementById("publicLink"); t.select(), t.setSelectionRange(0,99999), navigator.clipboard.writeText(t.value), alert("Ссылка скопирована!"); }
+function showPhone(e,t){if(t.dataset.phoneVisible==="true"){t.innerHTML='<i class="fas fa-eye-slash"></i>',t.classList.remove("btn-outline-pink"),t.classList.add("btn-outline-secondary"),t.dataset.phoneVisible="false",t.nextElementSibling.style.display="none"}else{t.innerHTML='<i class="fas fa-spinner fa-spin"></i>',fetch(`/api/get-decrypted-phone/${e}/`).then(e=>e.json()).then(e=>{e.phone?(t.innerHTML='<i class="fas fa-eye"></i>',t.classList.remove("btn-outline-secondary"),t.classList.add("btn-outline-pink"),t.dataset.phoneVisible="true",t.nextElementSibling.textContent=e.phone,t.nextElementSibling.style.display="inline"):(t.innerHTML='<i class="fas fa-eye-slash"></i>',alert("Ошибка при получении номера"))}).catch(()=>{t.innerHTML='<i class="fas fa-eye-slash"></i>',alert("Ошибка загрузки")})}}
 
-// Показать номер телефона
-function showPhone(bookingId, btn) {
-    if (btn.dataset.phoneVisible === 'true') {
-        btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
-        btn.classList.remove('btn-outline-pink');
-        btn.classList.add('btn-outline-secondary');
-        btn.dataset.phoneVisible = 'false';
-        btn.nextElementSibling.style.display = 'none';
-        return;
-    }
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    fetch(`/api/get-decrypted-phone/${bookingId}/`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.phone) {
-                btn.innerHTML = '<i class="fas fa-eye"></i>';
-                btn.classList.remove('btn-outline-secondary');
-                btn.classList.add('btn-outline-pink');
-                btn.dataset.phoneVisible = 'true';
-                btn.nextElementSibling.textContent = data.phone;
-                btn.nextElementSibling.style.display = 'inline';
-            } else {
-                btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
-                alert('Ошибка при получении номера');
-            }
-        })
-        .catch(error => {
-            btn.innerHTML = '<i class="fas fa-eye-slash"></i>';
-            alert('Ошибка загрузки');
-        });
-}
+let currentCalendarDate = new Date(), currentSelectedDate = null, currentDayData = null;
 
-// ========== КАЛЕНДАРЬ ==========
-let currentCalendarDate = new Date();
-let currentSelectedDate = null;
-let currentDayData = null;
-
-function loadCalendar() {
+function loadCalendar(){
     const year = currentCalendarDate.getFullYear();
     const month = currentCalendarDate.getMonth();
-    const monthNames = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+    const monthNames = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
     document.getElementById('current-month').innerHTML = `${monthNames[month]} ${year}`;
     
     const grid = document.getElementById('calendar-grid');
     grid.innerHTML = '<div class="text-center py-3"><div class="spinner-border" style="color: #7c3aed;"></div></div>';
     
-    const timestamp = new Date().getTime();
-    
     Promise.all([
-        fetch('/api/schedule/calendar/?_=' + timestamp).then(r => r.json()),
-        fetch('/api/bookings/counts/?_=' + timestamp).then(r => r.json())
-    ]).then(([scheduleData, countsData]) => {
-        renderCalendar(scheduleData, countsData, year, month);
+        fetch('/api/schedule/calendar/').then(r => r.json()),
+        fetch('/api/bookings/counts/').then(r => r.json())
+    ]).then(([calendarData, countsData]) => {
+        renderCalendar(calendarData, countsData, year, month);
     }).catch(error => {
         console.error(error);
         grid.innerHTML = '<div class="text-center text-danger">Ошибка загрузки</div>';
     });
 }
 
-function renderCalendar(data, countsData, year, month) {
+function renderCalendar(data, countsData, year, month){
     const firstDay = new Date(year, month, 1);
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInMonth = new Date(year, month+1, 0).getDate();
     const startWeekday = firstDay.getDay();
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setHours(0,0,0,0);
     
-    let html = '<div class="calendar-weekdays">' + ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(d => `<div class="calendar-weekday">${d}</div>`).join('') + '</div><div class="calendar-dates">';
+    let html = '<div class="calendar-weekdays">';
+    ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].forEach(d => html += `<div class="calendar-weekday">${d}</div>`);
+    html += '</div><div class="calendar-dates">';
     
     let adjustedStartWeekday = startWeekday === 0 ? 6 : startWeekday - 1;
-    for (let i = 0; i < adjustedStartWeekday; i++) html += '<div class="calendar-date empty"></div>';
+    for(let i=0; i<adjustedStartWeekday; i++) html += '<div class="calendar-date empty"></div>';
     
-    for (let d = 1; d <= daysInMonth; d++) {
+    for(let d=1; d<=daysInMonth; d++){
         const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
         const currentDate = new Date(year, month, d);
         const isPast = currentDate < today;
         const dayOfWeek = currentDate.getDay();
         const dayIdx = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
         
-        const extraDay = data.extra_days?.[dateStr];
-        const isDayOff = data.days_off?.includes(dateStr);
-        const schedule = data.schedules?.[dayIdx];
-        const bookingCount = countsData.counts?.[dateStr] || 0;
+        const extraDay = data.extra_days && data.extra_days[dateStr];
+        const schedule = data.schedules && data.schedules[dayIdx];
+        const isDayOff = data.days_off && data.days_off.includes(dateStr);
+        const bookingCount = (countsData.counts && countsData.counts[dateStr]) ? countsData.counts[dateStr] : 0;
         
-        let workingClass = '';
-        let statusText = '';
+        let workingClass = '', statusText = '';
         
-        if (isDayOff) {
+        if(isDayOff){
             workingClass = 'non-working';
             statusText = 'Выходной';
-        } else if (extraDay) {
+        } else if(extraDay){
             workingClass = 'working';
             statusText = `${extraDay.start} - ${extraDay.end}`;
-        } else if (schedule) {
+        } else if(schedule){
             workingClass = 'working';
             statusText = `${schedule.start} - ${schedule.end}`;
         } else {
             workingClass = 'non-working';
-            statusText = 'Выходной';
+            statusText = 'Нерабочий';
         }
         
-        if (isPast) workingClass += ' past';
-        
+        if(isPast) workingClass += ' past';
         const isToday = currentDate.toDateString() === today.toDateString();
         const todayClass = isToday ? 'today' : '';
         
@@ -315,399 +178,158 @@ function renderCalendar(data, countsData, year, month) {
     document.getElementById('calendar-grid').innerHTML = html;
 }
 
-function changeMonth(delta) {
-    currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
-    loadCalendar();
-}
+function changeMonth(delta){ currentCalendarDate.setMonth(currentCalendarDate.getMonth()+delta); loadCalendar(); }
 
-function openDayModal(dateStr) {
+function openDayModal(dateStr){
     currentSelectedDate = dateStr;
     const dateObj = new Date(dateStr);
-    const monthNames = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+    const monthNames = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
     document.getElementById('dayModalDate').innerHTML = `${dateObj.getDate()} ${monthNames[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
     
-    // Сбрасываем форму
     document.getElementById('editFormBlock').style.display = 'none';
     document.getElementById('workingDayActions').style.display = 'none';
     document.getElementById('dayOffActions').style.display = 'none';
     document.getElementById('dayBookingsContainer').innerHTML = '<div class="text-center py-2"><div class="spinner-border spinner-border-sm" style="color: #7c3aed;"></div></div>';
+    document.getElementById('currentStatusText').innerHTML = 'Загрузка...';
     
-    // Загружаем записи на день
-    fetch(`/api/bookings/by-date/?date=${dateStr}`)
-        .then(r => r.json())
-        .then(data => {
-            renderDayBookings(data.bookings);
-        });
+    fetch(`/api/bookings/by-date/?date=${dateStr}`).then(r=>r.json()).then(data=>renderDayBookings(data.bookings));
     
-    fetch(`/api/day-status/?date=${dateStr}`)
-        .then(response => response.json())
-        .then(data => {
-            currentDayData = data;
-            
-            if (data.is_day_off) {
-                // Выходной день
-                document.getElementById('currentStatusText').innerHTML = 'Выходной день';
-                document.getElementById('dayOffActions').style.display = 'block';
+    fetch(`/api/day-status/?date=${dateStr}`).then(r=>r.json()).then(data=>{
+        console.log('Статус дня:', data);
+        
+        // НОВАЯ ЛОГИКА: показываем dayOffActions для ВСЕХ нерабочих дней
+        if(data.is_day_off === true || (data.has_schedule === false && data.is_extra === false)){
+            // Выходной или нерабочий день (нет расписания)
+            let statusText = '';
+            if(data.is_day_off){
+                statusText = 'Выходной день';
             } else {
-                // Рабочий день
-                let statusText = 'Рабочий день';
-                if (data.is_extra) {
-                    statusText += ` (дополнительный: ${data.extra_start} - ${data.extra_end})`;
-                } else if (data.has_schedule) {
-                    statusText += ` (по расписанию: ${data.schedule_start} - ${data.schedule_end})`;
-                } else {
-                    statusText += ' (нет расписания)';
-                }
-                document.getElementById('currentStatusText').innerHTML = statusText;
-                document.getElementById('workingDayActions').style.display = 'block';
+                statusText = 'Нерабочий день (нет расписания)';
             }
-        });
+            document.getElementById('currentStatusText').innerHTML = statusText;
+            document.getElementById('dayOffActions').style.display = 'block';
+            document.getElementById('workingDayActions').style.display = 'none';
+            console.log('Показываем dayOffActions (нерабочий день)');
+        } else {
+            // Рабочий день
+            let statusText = 'Рабочий день';
+            if(data.is_extra){
+                statusText += ` (дополнительный: ${data.extra_start} - ${data.extra_end})`;
+            } else if(data.has_schedule){
+                statusText += ` (по расписанию: ${data.schedule_start} - ${data.schedule_end})`;
+            }
+            document.getElementById('currentStatusText').innerHTML = statusText;
+            document.getElementById('workingDayActions').style.display = 'block';
+            document.getElementById('dayOffActions').style.display = 'none';
+            console.log('Показываем workingDayActions (рабочий день)');
+        }
+        
+        currentDayData = data;
+    });
     
     new bootstrap.Modal(document.getElementById('dayModal')).show();
 }
 
-function renderDayBookings(bookings) {
+function renderDayBookings(bookings){
     const container = document.getElementById('dayBookingsContainer');
-    if (!bookings || bookings.length === 0) {
-        container.innerHTML = '<p class="text-muted text-center mb-0">Нет записей</p>';
-        return;
-    }
-    
-    let html = '<div class="table-responsive"><table class="table table-sm">';
-    html += '<thead><tr><th>Время</th><th>Клиент</th><th>Услуга</th><th>Телефон</th></tr></thead><tbody>';
-    bookings.forEach(booking => {
-        html += `
-            <tr>
-                <td>${booking.time}</td>
-                <td>${escapeHtml(booking.client_name)}</td>
-                <td>${escapeHtml(booking.service_name)}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-secondary show-phone-btn" onclick="showPhone(${booking.id}, this)">
-                        <i class="fas fa-eye-slash"></i>
-                    </button>
-                    <span class="phone-number ms-1" style="display: none;"></span>
-                </td>
-            </tr>
-        `;
-    });
-    html += '</tbody></table></div>';
-    container.innerHTML = html;
+    if(!bookings || bookings.length===0){ container.innerHTML='<p class="text-muted text-center mb-0">Нет записей</p>'; return; }
+    let html='<div class="table-responsive"><table class="table table-sm"><thead><tr><th>Время</th><th>Клиент</th><th>Услуга</th><th>Телефон</th></tr></thead><tbody>';
+    bookings.forEach(b=>{html+=`<tr><td>${b.time}</td><td>${escapeHtml(b.client_name)}</td><td>${escapeHtml(b.service_name)}</td><td><button class="btn btn-sm btn-outline-secondary show-phone-btn" onclick="showPhone(${b.id}, this)"><i class="fas fa-eye-slash"></i></button><span class="phone-number ms-1" style="display: none;"></span></td></tr>`;});
+    html+='</tbody><table></div>';
+    container.innerHTML=html;
 }
 
-function addExtraBreakField(start = '', end = '') {
-    const container = document.getElementById('extraBreaksContainer');
-    const breakDiv = document.createElement('div');
-    breakDiv.className = 'break-item row g-2 mb-2';
-    breakDiv.innerHTML = `
-        <div class="col-5">
-            <input type="time" class="form-control form-control-sm break-start" value="${start}" placeholder="Начало">
-        </div>
-        <div class="col-5">
-            <input type="time" class="form-control form-control-sm break-end" value="${end}" placeholder="Конец">
-        </div>
-        <div class="col-2">
-            <button type="button" class="btn btn-sm btn-outline-danger w-100 remove-break" onclick="this.closest('.break-item').remove()">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-    `;
-    container.appendChild(breakDiv);
+function addExtraBreakField(s='',e=''){
+    const c=document.getElementById('extraBreaksContainer'),d=document.createElement('div');
+    d.className='break-item row g-2 mb-2';
+    d.innerHTML=`<div class="col-5"><input type="time" class="form-control form-control-sm break-start" value="${s}" placeholder="Начало"></div><div class="col-5"><input type="time" class="form-control form-control-sm break-end" value="${e}" placeholder="Конец"></div><div class="col-2"><button type="button" class="btn btn-sm btn-outline-danger w-100 remove-break" onclick="this.closest('.break-item').remove()"><i class="fas fa-trash"></i></button></div>`;
+    c.appendChild(d);
 }
 
-function showEditForm() {
-    document.getElementById('workingDayActions').style.display = 'none';
-    document.getElementById('editFormBlock').style.display = 'block';
-    
-    document.getElementById('extraStartTime').value = '09:00';
-    document.getElementById('extraEndTime').value = '18:00';
-    document.getElementById('extraBreaksContainer').innerHTML = '';
+function showEditForm(){
+    document.getElementById('workingDayActions').style.display='none';
+    document.getElementById('editFormBlock').style.display='block';
+    document.getElementById('extraStartTime').value=currentDayData.extra_start||'09:00';
+    document.getElementById('extraEndTime').value=currentDayData.extra_end||'18:00';
+    document.getElementById('extraBreaksContainer').innerHTML='';
     addExtraBreakField();
-    
-    if (currentDayData && currentDayData.is_extra) {
-        document.getElementById('extraStartTime').value = currentDayData.extra_start;
-        document.getElementById('extraEndTime').value = currentDayData.extra_end;
-        document.getElementById('extraBreaksContainer').innerHTML = '';
-        if (currentDayData.breaks && currentDayData.breaks.length > 0) {
-            currentDayData.breaks.forEach(b => addExtraBreakField(b.start, b.end));
-        } else {
-            addExtraBreakField();
-        }
-    }
+    if(currentDayData.breaks && currentDayData.breaks.length>0) currentDayData.breaks.forEach(b=>addExtraBreakField(b.start,b.end));
 }
 
-function makeDayOff() {
-    if (!confirm('Сделать этот день выходным?')) return;
-    
-    fetch('/api/days-off/add/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        },
-        body: JSON.stringify({ date: currentSelectedDate, reason: 'Выходной' })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            bootstrap.Modal.getInstance(document.getElementById('dayModal')).hide();
-            loadCalendar();
-        }
-    });
+function makeDayOff(){
+    if(!confirm('Сделать этот день выходным?')) return;
+    fetch('/api/days-off/add/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':document.querySelector('[name=csrfmiddlewaretoken]').value},body:JSON.stringify({date:currentSelectedDate,reason:'Выходной'})}).then(r=>r.json()).then(d=>{if(d.success){bootstrap.Modal.getInstance(document.getElementById('dayModal')).hide();loadCalendar()}});
 }
 
-function makeWorkingFromDayOff() {
-    document.getElementById('dayOffActions').style.display = 'none';
-    document.getElementById('editFormBlock').style.display = 'block';
-    document.getElementById('extraStartTime').value = '09:00';
-    document.getElementById('extraEndTime').value = '18:00';
-    document.getElementById('extraBreaksContainer').innerHTML = '';
+function makeWorkingFromDayOff(){
+    document.getElementById('dayOffActions').style.display='none';
+    document.getElementById('editFormBlock').style.display='block';
+    document.getElementById('extraStartTime').value='09:00';
+    document.getElementById('extraEndTime').value='18:00';
+    document.getElementById('extraBreaksContainer').innerHTML='';
     addExtraBreakField();
-    document.getElementById('currentStatusText').innerHTML = 'Настройка рабочего дня';
+    document.getElementById('currentStatusText').innerHTML='Настройка рабочего дня';
 }
 
-function saveDayChanges() {
-    const startTime = document.getElementById('extraStartTime').value;
-    const endTime = document.getElementById('extraEndTime').value;
-    
-    if (!startTime || !endTime) {
-        alert('Заполните время');
-        return;
-    }
-    
-    const breaks = [];
-    document.querySelectorAll('#extraBreaksContainer .break-item').forEach(item => {
-        const start = item.querySelector('.break-start').value;
-        const end = item.querySelector('.break-end').value;
-        if (start && end) breaks.push({ start, end });
-    });
-    
-    const saveBtn = document.getElementById('saveDayBtn');
-    const originalText = saveBtn.innerHTML;
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
-    saveBtn.disabled = true;
-    
-    // Сначала удаляем существующий дополнительный день (если есть)
-    fetch('/api/extra-days/delete-by-date/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        },
-        body: JSON.stringify({ date: currentSelectedDate })
-    })
-    .then(() => {
-        // Затем удаляем выходной (если есть)
-        return fetch('/api/days-off/delete-by-date/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            },
-            body: JSON.stringify({ date: currentSelectedDate })
-        });
-    })
-    .then(() => {
-        // Создаём новый дополнительный рабочий день
-        return fetch('/api/extra-days/add/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            },
-            body: JSON.stringify({
-                date: currentSelectedDate,
-                start_time: startTime,
-                end_time: endTime,
-                breaks: breaks
-            })
-        });
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            bootstrap.Modal.getInstance(document.getElementById('dayModal')).hide();
-            loadCalendar();
-        } else {
-            alert(data.error || 'Ошибка');
-        }
-    })
-    .catch(error => {
-        console.error('Ошибка:', error);
-        alert('Произошла ошибка при сохранении');
-    })
-    .finally(() => {
-        saveBtn.innerHTML = originalText;
-        saveBtn.disabled = false;
-    });
+function saveDayChanges(){
+    const s=document.getElementById('extraStartTime').value,e=document.getElementById('extraEndTime').value;
+    if(!s||!e){alert('Заполните время');return;}
+    const breaks=[];
+    document.querySelectorAll('#extraBreaksContainer .break-item').forEach(i=>{const st=i.querySelector('.break-start').value,en=i.querySelector('.break-end').value;if(st&&en)breaks.push({start:st,end:en});});
+    const btn=document.getElementById('saveDayBtn'),orig=btn.innerHTML;
+    btn.innerHTML='<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';btn.disabled=true;
+    fetch('/api/extra-days/delete-by-date/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':document.querySelector('[name=csrfmiddlewaretoken]').value},body:JSON.stringify({date:currentSelectedDate})})
+    .then(()=>fetch('/api/days-off/delete-by-date/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':document.querySelector('[name=csrfmiddlewaretoken]').value},body:JSON.stringify({date:currentSelectedDate})}))
+    .then(()=>fetch('/api/extra-days/add/',{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':document.querySelector('[name=csrfmiddlewaretoken]').value},body:JSON.stringify({date:currentSelectedDate,start_time:s,end_time:e,breaks:breaks})}))
+    .then(r=>r.json()).then(d=>{if(d.success){bootstrap.Modal.getInstance(document.getElementById('dayModal')).hide();loadCalendar();}else alert(d.error||'Ошибка');})
+    .catch(err=>{console.error(err);alert('Ошибка');})
+    .finally(()=>{btn.innerHTML=orig;btn.disabled=false;});
 }
 
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
-}
+function escapeHtml(str){return str?str.replace(/[&<>]/g,m=>m==='&'?'&amp;':m==='<'?'&lt;':m==='>'?'&gt;':m):'';}
 
-// ========== ПАГИНАЦИЯ ==========
-let bookingsPage = 1;
-let bookingsHasMore = true;
-
-function loadBookings(page = 1, append = false) {
-    fetch(`/api/bookings/?page=${page}&limit=10`)
-        .then(response => response.json())
-        .then(data => {
-            if (append) {
-                const tbody = document.querySelector('#upcoming-bookings-table tbody');
-                data.bookings.forEach(booking => {
-                    const row = createBookingRow(booking);
-                    tbody.insertAdjacentHTML('beforeend', row);
-                });
-            } else {
-                renderBookings(data.bookings);
-                document.getElementById('total-bookings-count').textContent = data.total;
-            }
-            bookingsHasMore = data.has_more;
-            bookingsPage = page;
-            const loadMoreBtn = document.getElementById('load-more-bookings');
-            loadMoreBtn.style.display = (bookingsHasMore && data.bookings.length > 0) ? 'inline-block' : 'none';
-        });
-}
-
-function renderBookings(bookings) {
-    const container = document.getElementById('upcoming-bookings-container');
-    if (bookings.length === 0) {
-        container.innerHTML = '<p class="text-muted mb-0">Пока нет записей</p>';
-        return;
-    }
-    let html = `<div class="table-responsive"><table class="table" id="upcoming-bookings-table"><thead><tr><th>Дата</th><th>Время</th><th>Клиент</th><th>Услуга</th><th>Телефон</th><th>Статус</th><tr></thead><tbody>`;
-    bookings.forEach(booking => { html += createBookingRow(booking); });
-    html += `</tbody></table></div>`;
-    container.innerHTML = html;
-}
-
-function createBookingRow(booking) {
-    return `<tr>
-        <td>${booking.date}</td>
-        <td>${booking.time}</td>
-        <td>${booking.client_name}</td>
-        <td>${booking.service_name}</td>
-        <td><button class="btn btn-sm btn-outline-secondary show-phone-btn" onclick="showPhone(${booking.id}, this)"><i class="fas fa-eye-slash"></i></button><span class="phone-number ms-1" style="display: none;"></span></td>
-        <td><span class="badge bg-success">Подтверждена</span></td>
-    </tr>`;
-}
-
-function loadMoreBookings() { if (bookingsHasMore) loadBookings(bookingsPage + 1, true); }
-
-// Инициализация
-document.addEventListener('DOMContentLoaded', function() {
-    loadCalendar();
-    loadBookings(1, false);
-});
+let bookingsPage=1,bookingsHasMore=true;
+function loadBookings(p=1,a=false){fetch(`/api/bookings/?page=${p}&limit=10`).then(r=>r.json()).then(d=>{if(a){const t=document.querySelector('#upcoming-bookings-table tbody');d.bookings.forEach(b=>{const r=createBookingRow(b);t.insertAdjacentHTML('beforeend',r);});}else{renderBookings(d.bookings);document.getElementById('total-bookings-count').textContent=d.total;}bookingsHasMore=d.has_more;bookingsPage=p;const btn=document.getElementById('load-more-bookings');btn.style.display=(bookingsHasMore&&d.bookings.length>0)?'inline-block':'none';});}
+function renderBookings(b){const c=document.getElementById('upcoming-bookings-container');if(b.length===0){c.innerHTML='<p class="text-muted mb-0">Пока нет записей</p>';return;}let h='<div class="table-responsive"><table class="table" id="upcoming-bookings-table"><thead><tr><th>Дата</th><th>Время</th><th>Клиент</th><th>Услуга</th><th>Телефон</th><th>Статус</th></tr></thead><tbody>';b.forEach(bb=>{h+=createBookingRow(bb);});h+='</tbody></table></div>';c.innerHTML=h;}
+function createBookingRow(b){return `<tr><td>${b.date}</td><td>${b.time}</td><td>${b.client_name}</td><td>${b.service_name}</td><td><button class="btn btn-sm btn-outline-secondary show-phone-btn" onclick="showPhone(${b.id}, this)"><i class="fas fa-eye-slash"></i></button><span class="phone-number ms-1" style="display: none;"></span></td><td><span class="badge bg-success">Подтверждена</span></td></tr>`;}
+function loadMoreBookings(){if(bookingsHasMore)loadBookings(bookingsPage+1,true);}
+document.addEventListener('DOMContentLoaded',()=>{loadCalendar();loadBookings(1,false);});
 </script>
 
 <style>
-.dashboard-stat {
-    text-align: center;
-    padding: 20px;
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-.dashboard-stat i { font-size: 2.5rem; color: #ff85b3; margin-bottom: 10px; }
-.dashboard-stat h3 { font-size: 2rem; margin-bottom: 5px; }
+.dashboard-stat{text-align:center;padding:20px;background:#fff;border-radius:15px;box-shadow:0 2px 4px rgba(0,0,0,0.05);}
+.dashboard-stat i{font-size:2.5rem;color:#ff85b3;margin-bottom:10px;}
+.dashboard-stat h3{font-size:2rem;margin-bottom:5px;}
+.btn-outline-pink{border:1px solid #ff85b3;color:#ff85b3;background:0 0;}
+.btn-outline-pink:hover{background-color:#ff85b3;color:#fff;}
+.calendar-weekdays{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:8px;text-align:center;}
+.calendar-weekday{font-weight:600;padding:8px;background-color:#f8f0ff;border-radius:8px;font-size:.9rem;}
+.calendar-dates{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+.calendar-date{background-color:#f8f9fa;border-radius:10px;padding:8px 4px;text-align:center;min-height:65px;cursor:pointer;transition:all .2s;border:1px solid #e5e7eb;position:relative;}
+.calendar-date.empty{background-color:transparent;border:0;cursor:default;box-shadow:none;}
+.calendar-date.working{background-color:#d4edda;border-color:#28a745;}
+.calendar-date.non-working{background-color:#e9ecef;border-color:#ced4da;opacity:.7;}
+.calendar-date.past{opacity:.5;}
+.calendar-date.today{border:2px solid #ff85b3;box-shadow:0 0 0 2px rgba(255,133,179,.3);}
+.calendar-time{font-size:.65rem;margin-top:5px;color:#666;}
+.calendar-date.working .calendar-time{color:#155724;}
+.booking-badge{position:absolute;top:2px;right:4px;background-color:#ff85b3;color:#fff;font-size:.7rem;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;padding:0 4px;}
+.show-phone-btn{transition:all .2s ease;font-size:.75rem;padding:2px 6px;}
+.btn-outline-secondary{border:1px solid #6c757d;color:#6c757d;background:0 0;}
+.phone-number{font-size:.8rem;}
 
-.btn-outline-pink {
-    border: 1px solid #ff85b3;
-    color: #ff85b3;
-    background: transparent;
+/* Принудительное скрытие/показ блоков */
+#workingDayActions {
+    display: none !important;
 }
-.btn-outline-pink:hover {
-    background-color: #ff85b3;
-    color: white;
+#workingDayActions[style*="display: block"] {
+    display: block !important;
 }
-
-/* Календарь */
-.calendar-weekdays {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 8px;
-    margin-bottom: 8px;
-    text-align: center;
+#dayOffActions {
+    display: none !important;
 }
-.calendar-weekday {
-    font-weight: 600;
-    padding: 8px;
-    background-color: #f8f0ff;
-    border-radius: 8px;
-    font-size: 0.9rem;
+#dayOffActions[style*="display: block"] {
+    display: block !important;
 }
-.calendar-dates {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 8px;
-}
-.calendar-date {
-    background-color: #f8f9fa;
-    border-radius: 10px;
-    padding: 8px 4px;
-    text-align: center;
-    min-height: 65px;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: 1px solid #e5e7eb;
-    position: relative;
-}
-.calendar-date.empty {
-    background-color: transparent;
-    border: none;
-    cursor: default;
-    box-shadow: none;
-}
-.calendar-date.working {
-    background-color: #d4edda;
-    border-color: #28a745;
-}
-.calendar-date.non-working {
-    background-color: #e9ecef;
-    border-color: #ced4da;
-    opacity: 0.7;
-}
-.calendar-date.past {
-    opacity: 0.5;
-}
-.calendar-date.today {
-    border: 2px solid #ff85b3;
-    box-shadow: 0 0 0 2px rgba(255,133,179,0.3);
-}
-.calendar-time {
-    font-size: 0.65rem;
-    margin-top: 5px;
-    color: #666;
-}
-.calendar-date.working .calendar-time { color: #155724; }
-
-.booking-badge {
-    position: absolute;
-    top: 2px;
-    right: 4px;
-    background-color: #ff85b3;
-    color: white;
-    font-size: 0.7rem;
-    font-weight: bold;
-    min-width: 18px;
-    height: 18px;
-    border-radius: 9px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 4px;
-}
-
-.show-phone-btn { transition: all 0.2s ease; font-size: 0.75rem; padding: 2px 6px; }
-.btn-outline-secondary { border: 1px solid #6c757d; color: #6c757d; background: transparent; }
-.phone-number { font-size: 0.8rem; }
 </style>
 {% endblock %}

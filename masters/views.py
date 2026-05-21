@@ -80,18 +80,12 @@ def get_calendar_schedule(request):
             } for b in schedule.breaks.all()]
         }
     
-    # Получаем выходные дни
-    days_off = DayOff.objects.filter(
-        master=master,
-        date__gte=date.today()
-    ).values_list('date', flat=True)
+    # УБИРАЕМ ОГРАНИЧЕНИЕ date__gte — показываем ВСЕ выходные
+    days_off = DayOff.objects.filter(master=master).values_list('date', flat=True)
     days_off_list = [d.strftime('%Y-%m-%d') for d in days_off]
     
-    # Получаем дополнительные рабочие дни
-    extra_days = ExtraWorkingDay.objects.filter(
-        master=master,
-        date__gte=date.today()
-    )
+    # УБИРАЕМ ОГРАНИЧЕНИЕ date__gte — показываем ВСЕ дополнительные дни
+    extra_days = ExtraWorkingDay.objects.filter(master=master)
     extra_days_data = {}
     for day in extra_days:
         extra_days_data[day.date.strftime('%Y-%m-%d')] = {
@@ -528,10 +522,52 @@ def get_extra_days(request):
     
     return JsonResponse({'extra_days': data})
 
+# @login_required
+# @require_http_methods(["POST"])
+# def api_add_extra_day(request):
+#     """API добавления дополнительного рабочего дня"""
+#     master = request.user.master
+#     data = json.loads(request.body)
+    
+#     date_str = data.get('date')
+#     start_time = data.get('start_time')
+#     end_time = data.get('end_time')
+#     breaks = data.get('breaks', [])
+    
+#     if not date_str or not start_time or not end_time:
+#         return JsonResponse({'error': 'Заполните все обязательные поля'}, status=400)
+    
+#     target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    
+#     # Проверяем, не существует ли уже
+#     if ExtraWorkingDay.objects.filter(master=master, date=target_date).exists():
+#         return JsonResponse({'error': 'Этот день уже добавлен'}, status=400)
+    
+#     # Создаем дополнительный рабочий день
+#     extra_day = ExtraWorkingDay.objects.create(
+#         master=master,
+#         date=target_date,
+#         start_time=datetime.strptime(start_time, '%H:%M').time(),
+#         end_time=datetime.strptime(end_time, '%H:%M').time()
+#     )
+    
+#     # Добавляем перерывы
+#     for break_data in breaks:
+#         if break_data.get('start') and break_data.get('end'):
+#             ExtraWorkingDayBreak.objects.create(
+#                 extra_day=extra_day,
+#                 start_time=datetime.strptime(break_data['start'], '%H:%M').time(),
+#                 end_time=datetime.strptime(break_data['end'], '%H:%M').time()
+#             )
+    
+#     return JsonResponse({
+#         'success': True,
+#         'message': 'Дополнительный рабочий день добавлен'
+#     })
+
 @login_required
 @require_http_methods(["POST"])
 def api_add_extra_day(request):
-    """API добавления дополнительного рабочего дня"""
     master = request.user.master
     data = json.loads(request.body)
     
@@ -545,11 +581,11 @@ def api_add_extra_day(request):
     
     target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
     
-    # Проверяем, не существует ли уже
-    if ExtraWorkingDay.objects.filter(master=master, date=target_date).exists():
-        return JsonResponse({'error': 'Этот день уже добавлен'}, status=400)
+    # Удаляем существующий дополнительный день
+    ExtraWorkingDay.objects.filter(master=master, date=target_date).delete()
+    # Удаляем выходной, если есть
+    DayOff.objects.filter(master=master, date=target_date).delete()
     
-    # Создаем дополнительный рабочий день
     extra_day = ExtraWorkingDay.objects.create(
         master=master,
         date=target_date,
@@ -566,10 +602,7 @@ def api_add_extra_day(request):
                 end_time=datetime.strptime(break_data['end'], '%H:%M').time()
             )
     
-    return JsonResponse({
-        'success': True,
-        'message': 'Дополнительный рабочий день добавлен'
-    })
+    return JsonResponse({'success': True})
 
 @login_required
 @require_http_methods(["POST"])
@@ -780,10 +813,46 @@ def get_booking_slots_for_master(request):
 
 
 
+# @login_required
+# @require_http_methods(["POST"])
+# def api_add_day_off(request):
+#     """API добавления выходного дня"""
+#     master = request.user.master
+#     data = json.loads(request.body)
+    
+#     date_str = data.get('date')
+#     reason = data.get('reason', '')
+    
+#     if not date_str:
+#         return JsonResponse({'error': 'Выберите дату'}, status=400)
+    
+#     target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    
+#     # Проверяем на дубликат
+#     if DayOff.objects.filter(master=master, date=target_date).exists():
+#         return JsonResponse({'error': 'Этот день уже отмечен как выходной'}, status=400)
+    
+#     day_off = DayOff.objects.create(
+#         master=master,
+#         date=target_date,
+#         reason=reason
+#     )
+    
+#     return JsonResponse({
+#         'success': True,
+#         'message': 'Выходной день добавлен',
+#         'day_off': {
+#             'id': day_off.id,
+#             'date': day_off.date.strftime('%d.%m.%Y'),
+#             'date_iso': day_off.date.isoformat(),
+#             'weekday': day_off.date.strftime('%A'),
+#             'reason': day_off.reason
+#         }
+#     })
+
 @login_required
 @require_http_methods(["POST"])
 def api_add_day_off(request):
-    """API добавления выходного дня"""
     master = request.user.master
     data = json.loads(request.body)
     
@@ -795,27 +864,19 @@ def api_add_day_off(request):
     
     target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
     
-    # Проверяем на дубликат
-    if DayOff.objects.filter(master=master, date=target_date).exists():
-        return JsonResponse({'error': 'Этот день уже отмечен как выходной'}, status=400)
+    # Удаляем существующий выходной
+    DayOff.objects.filter(master=master, date=target_date).delete()
+    # Удаляем дополнительный рабочий день, если есть
+    ExtraWorkingDay.objects.filter(master=master, date=target_date).delete()
     
-    day_off = DayOff.objects.create(
+    # Создаём выходной
+    DayOff.objects.create(
         master=master,
         date=target_date,
         reason=reason
     )
     
-    return JsonResponse({
-        'success': True,
-        'message': 'Выходной день добавлен',
-        'day_off': {
-            'id': day_off.id,
-            'date': day_off.date.strftime('%d.%m.%Y'),
-            'date_iso': day_off.date.isoformat(),
-            'weekday': day_off.date.strftime('%A'),
-            'reason': day_off.reason
-        }
-    })
+    return JsonResponse({'success': True})
 
 @login_required
 @require_http_methods(["POST"])
@@ -1402,198 +1463,3 @@ def api_delete_extra_day_by_date(request):
     ExtraWorkingDay.objects.filter(master=master, date=target_date).delete()
     
     return JsonResponse({'success': True})
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # Регистрация шаг 1
-# def register_step1(request):
-#     """Шаг 1 регистрации: ввод телефона и пароля"""
-#     if request.method == 'POST':
-#         form = PhoneRegistrationForm(request.POST)
-#         if form.is_valid():
-#             # Очищаем и проверяем телефон
-#             import re
-#             phone_cleaned = re.sub(r'\D', '', form.cleaned_data['phone'])
-            
-#             if len(phone_cleaned) != 11 or not phone_cleaned.startswith('7'):
-#                 messages.error(request, 'Неверный формат телефона. Нужен номер 7XXXXXXXXXX (11 цифр)')
-#                 return render(request, 'masters/register_step1.html', {'form': form})
-            
-#             request.session['registration_data'] = {
-#                 'phone': phone_cleaned,  # сохраняем очищенный
-#                 'first_name': form.cleaned_data.get('first_name', ''),
-#                 'last_name': form.cleaned_data.get('last_name', ''),
-#                 'password': form.cleaned_data['password'],
-#             }
-            
-#             verification_code = str(random.randint(100000, 999999))
-            
-#             PhoneVerification.objects.create(
-#                 phone=phone_cleaned,
-#                 code=verification_code
-#             )
-            
-#             request.session['test_code'] = verification_code
-            
-#             return redirect('verify_phone')
-#         else:
-#             for error in form.non_field_errors():
-#                 messages.error(request, error)
-#             for field, errors in form.errors.items():
-#                 if field != '__all__':
-#                     for error in errors:
-#                         messages.error(request, f'{error}')
-#     else:
-#         form = PhoneRegistrationForm()
-    
-#     return render(request, 'masters/register_step1.html', {'form': form})
-
-# Регистрация шаг 2 - подтверждение кода
-# def verify_phone(request):
-#     registration_data = request.session.get('registration_data')
-#     if not registration_data:
-#         return redirect('register')
-    
-#     test_code = request.session.get('test_code')
-    
-#     if request.method == 'POST':
-#         form = PhoneVerificationForm(request.POST)
-#         if form.is_valid():
-#             code = form.cleaned_data['code']
-            
-#             verification = PhoneVerification.objects.filter(
-#                 phone=registration_data['phone'],
-#                 code=code,
-#                 is_used=False
-#             ).first()
-            
-#             if verification or (test_code and code == test_code):
-#                 if verification:
-#                     verification.is_used = True
-#                     verification.save()
-                
-#                 user = CustomUser.objects.create_user(
-#                     phone=registration_data['phone'],
-#                     password=registration_data['password'],
-#                     first_name=registration_data.get('first_name', ''),
-#                     last_name=registration_data.get('last_name', '')
-#                 )
-                
-#                 Master.objects.create(
-#                     user=user,
-#                     phone=registration_data['phone'],
-#                     first_name=registration_data.get('first_name', ''),
-#                     last_name=registration_data.get('last_name', '')
-#                 )
-                
-#                 login(request, user)
-                
-#                 del request.session['registration_data']
-#                 if 'test_code' in request.session:
-#                     del request.session['test_code']
-                
-#                 messages.success(request, 'Регистрация прошла успешно!')
-#                 return redirect('dashboard')
-#             else:
-#                 messages.error(request, 'Неверный код подтверждения')
-#         else:
-#             messages.error(request, 'Введите код подтверждения')
-#     else:
-#         form = PhoneVerificationForm()
-    
-#     return render(request, 'masters/verify_phone.html', {
-#         'form': form,
-#         'phone': registration_data['phone'],
-#         'test_code': test_code
-#     })
-
-# Повторная отправка кода
-# def resend_code(request):
-#     registration_data = request.session.get('registration_data')
-#     if not registration_data:
-#         return redirect('register')
-    
-#     verification_code = str(random.randint(100000, 999999))
-    
-#     PhoneVerification.objects.create(
-#         phone=registration_data['phone'],
-#         code=verification_code
-#     )
-    
-#     request.session['test_code'] = verification_code
-    
-#     messages.success(request, 'Новый код отправлен!')
-#     return redirect('verify_phone')
-
-# Кастомный вход
-# class CustomLoginView(LoginView):
-#     template_name = 'masters/login.html'
-#     redirect_authenticated_user = True
-    
-#     def form_invalid(self, form):
-#         messages.error(self.request, 'Неверный телефон или пароль')
-#         return super().form_invalid(form)
-    
-#     def get_success_url(self):
-#         return reverse_lazy('dashboard')
-
-
-
-# @login_required
-# def add_service(request):
-#     if request.method == 'POST':
-#         master = request.user.master
-#         name = request.POST.get('name')
-#         description = request.POST.get('description', '')
-#         duration = request.POST.get('duration')
-#         price = request.POST.get('price')
-        
-#         if name and duration and price:
-#             Service.objects.create(
-#                 master=master,
-#                 name=name,
-#                 description=description,
-#                 duration=duration,
-#                 price=price
-#             )
-#             messages.success(request, 'Услуга добавлена!')
-#         else:
-#             messages.error(request, 'Заполните все обязательные поля')
-        
-#         return redirect('services')
-    
-#     return render(request, 'masters/add_service.html')
-
-# @login_required
-# def edit_service(request, service_id):
-#     service = get_object_or_404(Service, id=service_id, master=request.user.master)
-    
-#     if request.method == 'POST':
-#         service.name = request.POST.get('name')
-#         service.description = request.POST.get('description', '')
-#         service.duration = request.POST.get('duration')
-#         service.price = request.POST.get('price')
-#         service.save()
-#         messages.success(request, 'Услуга обновлена!')
-#         return redirect('services')
-    
-#     return render(request, 'masters/edit_service.html', {'service': service})
-
-# @login_required
-# def delete_service(request, service_id):
-#     service = get_object_or_404(Service, id=service_id, master=request.user.master)
-#     service.delete()
-#     messages.success(request, 'Услуга удалена!')
-#     return redirect('services')
