@@ -51,8 +51,7 @@ class Master(models.Model):
     first_name = models.CharField(max_length=50, verbose_name="Имя", blank=True)
     last_name = models.CharField(max_length=50, verbose_name="Фамилия", blank=True)
     bio = models.TextField(verbose_name="О себе", blank=True)
-    
-    # Добавляем логин
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True, verbose_name="Аватар")
     login = models.CharField(
         max_length=50, 
         unique=True, 

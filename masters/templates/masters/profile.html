@@ -1,6 +1,6 @@
 {% extends 'masters/base.html' %}
 
-{% block title %}Профиль - {{ master.first_name }} {{ master.last_name }}{% endblock %}
+{% block title %}Профиль{% endblock %}
 
 {% block content %}
 <div class="row">
@@ -10,13 +10,35 @@
                 <h4 class="mb-0"><i class="fas fa-user-edit me-2" style="color: #ff85b3;"></i>Редактирование профиля</h4>
             </div>
             <div class="card-body">
+                <!-- Аватар -->
+                <div class="text-center mb-4">
+                    <div class="avatar-preview mb-3">
+                        {% if master.avatar %}
+                            <img src="{{ master.avatar.url }}" alt="Аватар" id="avatar-img" class="rounded-circle" width="120" height="120" style="object-fit: cover;">
+                        {% else %}
+                            <div class="avatar-placeholder-lg rounded-circle bg-gradient d-inline-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
+                                <span class="display-4">{{ master.first_name|first|default:master.user.phone|first|upper }}</span>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="avatar-upload">
+                        <label class="btn btn-outline-pink btn-sm">
+                            <i class="fas fa-camera me-1"></i>Загрузить фото
+                            <input type="file" id="avatar-input" accept="image/*" style="display: none;">
+                        </label>
+                        <small class="text-muted d-block mt-2">Поддерживаются любые форматы изображений. Фото будет сжато до WebP.</small>
+                    </div>
+                    <div id="avatar-upload-progress" class="mt-2" style="display: none;">
+                        <div class="spinner-border spinner-border-sm" style="color: #ff85b3;"></div>
+                        <span class="ms-2">Загрузка и сжатие...</span>
+                    </div>
+                </div>
+                
                 <form method="post">
                     {% csrf_token %}
-                    
                     <div class="mb-3">
                         <label for="phone" class="form-label">Телефон</label>
                         <input type="tel" class="form-control" id="phone" name="phone" value="{{ master.phone }}" required>
-                        <small class="text-muted">Ваш контактный телефон</small>
                     </div>
                     
                     <div class="row">
@@ -29,23 +51,18 @@
                             <input type="text" class="form-control" id="last_name" name="last_name" value="{{ master.last_name }}">
                         </div>
                     </div>
-
-                   <div class="mb-3">
-    <label for="login" class="form-label">Логин (для красивой ссылки)</label>
-    <input type="text" class="form-control" id="login" name="login" 
-           value="{{ master.login|default:'' }}" 
-           placeholder="например: anna">
-    <small class="text-muted">
-        Только латиница, цифры, дефис и подчеркивание. Минимум 3 символа.
-        Если оставить пустым, ссылка будет с ID.
-        Ваша ссылка: {{ request.scheme }}://{{ request.get_host }}/{{ master.public_slug }}/
-    </small>
-</div>
+                    
+                    <div class="mb-3">
+                        <label for="login" class="form-label">Логин (для красивой ссылки)</label>
+                        <input type="text" class="form-control" id="login" name="login" value="{{ master.login|default:'' }}">
+                        <small class="text-muted">
+                            Ваша ссылка: {{ request.scheme }}://{{ request.get_host }}/<span id="login-preview">{{ master.public_slug }}</span>/
+                        </small>
+                    </div>
                     
                     <div class="mb-3">
                         <label for="bio" class="form-label">О себе</label>
                         <textarea class="form-control" id="bio" name="bio" rows="4">{{ master.bio }}</textarea>
-                        <small class="text-muted">Расскажите клиентам о себе и своем опыте</small>
                     </div>
                     
                     <button type="submit" class="btn btn-pink">Сохранить изменения</button>
@@ -56,13 +73,78 @@
 </div>
 
 <script>
+// Загрузка аватара
+document.getElementById('avatar-input')?.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    // Проверяем, что это изображение
+    if (!file.type.startsWith('image/')) {
+        alert('Пожалуйста, выберите изображение');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('avatar', file);
+    
+    const progressDiv = document.getElementById('avatar-upload-progress');
+    progressDiv.style.display = 'block';
+    
+    fetch('/api/upload-avatar/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        progressDiv.style.display = 'none';
+        if (data.success) {
+            // Обновляем аватар на странице
+            const avatarContainer = document.querySelector('.avatar-preview');
+            avatarContainer.innerHTML = `<img src="${data.avatar_url}?t=${Date.now()}" alt="Аватар" class="rounded-circle" width="120" height="120" style="object-fit: cover;">`;
+            // Обновляем аватар в шапке (если на той же странице)
+            const headerAvatar = document.querySelector('.user-avatar img');
+            if (headerAvatar) {
+                headerAvatar.src = `${data.avatar_url}?t=${Date.now()}`;
+            }
+            alert('Аватар успешно загружен!');
+        } else {
+            alert(data.error || 'Ошибка при загрузке');
+        }
+    })
+    .catch(error => {
+        progressDiv.style.display = 'none';
+        alert('Произошла ошибка при загрузке');
+    });
+});
+
+// Предпросмотр логина
 document.getElementById('login')?.addEventListener('input', function() {
+    const preview = document.getElementById('login-preview');
     const value = this.value.trim();
-    const previewSpan = document.getElementById('login-preview');
-    if (previewSpan) {
-        previewSpan.textContent = value || 'id{{ master.id }}';
+    if (preview) {
+        preview.textContent = value || 'id{{ master.id }}';
     }
 });
 </script>
 
+<style>
+.avatar-placeholder-lg {
+    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+    color: white;
+    font-size: 3rem;
+    font-weight: 600;
+}
+.btn-outline-pink {
+    border: 1px solid #ff85b3;
+    color: #ff85b3;
+    background: transparent;
+}
+.btn-outline-pink:hover {
+    background-color: #ff85b3;
+    color: white;
+}
+</style>
 {% endblock %}

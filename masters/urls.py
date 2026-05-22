@@ -83,4 +83,7 @@ urlpatterns = [
     path('api/mobile/register/', views.mobile_register, name='mobile_register'),
     path('api/mobile/verify/', views.mobile_verify, name='mobile_verify'),
     path('api/mobile/resend-code/', views.mobile_resend_code, name='mobile_resend_code'),
+
+    path('api/upload-avatar/', views.upload_avatar, name='upload_avatar'),
+    
 ]

@@ -1,5 +1,10 @@
-Django>=4.2,<5.0
-cryptography  # для шифрования
-python-dotenv  # для переменных окружения
-django-crispy-forms  # для красивых форм
-crispy-bootstrap5  # для Bootstrap 5
+asgiref==3.11.1
+cffi==2.0.0
+crispy-bootstrap5==2026.3
+cryptography==48.0.0
+Django==4.2.30
+django-crispy-forms==2.5
+pillow==12.2.0
+pycparser==3.0
+python-dotenv==1.2.2
+sqlparse==0.5.5

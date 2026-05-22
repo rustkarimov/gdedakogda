@@ -20,6 +20,12 @@ from datetime import datetime, timedelta, date
 import random
 import json
 
+from PIL import Image
+from io import BytesIO
+from django.core.files.base import ContentFile
+import os
+from datetime import datetime
+
 
 def get_weekday_ru(date_obj):
     weekdays = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
@@ -106,15 +112,18 @@ def get_calendar_schedule(request):
 
 @login_required
 def get_bookings_api(request):
-    """API для получения записей с пагинацией"""
+    """API для получения записей с пагинацией (только будущие)"""
     master = request.user.master
     page = int(request.GET.get('page', 1))
     limit = int(request.GET.get('limit', 10))
     offset = (page - 1) * limit
     
+    today = date.today()
+    
     bookings = Booking.objects.filter(
         master=master,
-        status='confirmed'
+        status='confirmed',
+        date__gte=today
     ).order_by('date', 'time')
     
     total = bookings.count()
@@ -122,14 +131,53 @@ def get_bookings_api(request):
     
     bookings_page = bookings[offset:offset + limit]
     
+    # Функция для склонения месяца
+    def get_month_name(month_num):
+        months = [
+            'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+            'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+        ]
+        return months[month_num - 1]
+    
+    # Получаем ключ мастера для расшифровки
+    from cryptography.fernet import Fernet, InvalidToken
+    key = master.get_encryption_key()
+    
     data = []
     for booking in bookings_page:
+        # Расшифровываем телефон
+        phone = ''
+        if key:
+            try:
+                f = Fernet(key)
+                decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
+                phone = decrypted
+            except (InvalidToken, Exception):
+                try:
+                    phone = booking.encrypted_phone.decode('utf-8')
+                except:
+                    phone = str(booking.encrypted_phone)
+        else:
+            try:
+                phone = booking.encrypted_phone.decode('utf-8')
+            except:
+                phone = str(booking.encrypted_phone)
+        
+        # Форматируем телефон для красоты
+        import re
+        phone_cleaned = re.sub(r'\D', '', phone)
+        if len(phone_cleaned) == 11:
+            formatted_phone = f"{phone_cleaned[0]} {phone_cleaned[1:4]} {phone_cleaned[4:7]}-{phone_cleaned[7:9]}-{phone_cleaned[9:11]}"
+        else:
+            formatted_phone = phone
+        
         data.append({
             'id': booking.id,
-            'date': booking.date.strftime('%d.%m.%Y'),
+            'date': f"{booking.date.day} {get_month_name(booking.date.month)}",
             'time': booking.time.strftime('%H:%M'),
             'client_name': booking.client_name,
             'service_name': booking.service.name,
+            'phone': formatted_phone  # добавляем номер
         })
     
     return JsonResponse({
@@ -686,13 +734,43 @@ def get_bookings_by_date(request):
         status='confirmed'
     ).order_by('time').select_related('service')
     
+    from cryptography.fernet import Fernet, InvalidToken
+    import re
+    key = master.get_encryption_key()
+    
     data = []
     for booking in bookings:
+        # Расшифровываем телефон
+        phone = ''
+        if key:
+            try:
+                f = Fernet(key)
+                decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
+                phone = decrypted
+            except (InvalidToken, Exception):
+                try:
+                    phone = booking.encrypted_phone.decode('utf-8')
+                except:
+                    phone = str(booking.encrypted_phone)
+        else:
+            try:
+                phone = booking.encrypted_phone.decode('utf-8')
+            except:
+                phone = str(booking.encrypted_phone)
+        
+        # Форматируем телефон
+        phone_cleaned = re.sub(r'\D', '', phone)
+        if len(phone_cleaned) == 11:
+            formatted_phone = f"{phone_cleaned[0]} {phone_cleaned[1:4]} {phone_cleaned[4:7]}-{phone_cleaned[7:9]}-{phone_cleaned[9:11]}"
+        else:
+            formatted_phone = phone
+        
         data.append({
             'id': booking.id,
             'time': booking.time.strftime('%H:%M'),
             'client_name': booking.client_name,
             'service_name': booking.service.name,
+            'phone': formatted_phone
         })
     
     return JsonResponse({'bookings': data})
@@ -1463,3 +1541,60 @@ def api_delete_extra_day_by_date(request):
     ExtraWorkingDay.objects.filter(master=master, date=target_date).delete()
     
     return JsonResponse({'success': True})
+
+
+
+
+@login_required
+def upload_avatar(request):
+    """Загрузка и сжатие аватара в WebP"""
+    if request.method == 'POST' and request.FILES.get('avatar'):
+        master = request.user.master
+        avatar_file = request.FILES['avatar']
+        
+        # Открываем изображение (любой формат)
+        try:
+            img = Image.open(avatar_file)
+        except Exception:
+            return JsonResponse({'error': 'Неверный формат изображения'}, status=400)
+        
+        # Конвертируем в RGB если нужно (для PNG с прозрачностью)
+        if img.mode in ('RGBA', 'P'):
+            # Сохраняем прозрачность для WebP
+            pass  # WebP поддерживает прозрачность, не конвертируем
+        elif img.mode != 'RGB':
+            img = img.convert('RGB')
+        
+        # Сжимаем до 300x300
+        max_size = (300, 300)
+        img.thumbnail(max_size, Image.Resampling.LANCZOS)
+        
+        # Сохраняем в буфер в формате WebP
+        buffer = BytesIO()
+        img.save(
+            buffer,
+            format='WEBP',
+            quality=80,      # Хорошее качество
+            method=6,        # Максимальное сжатие
+            lossless=False   # С потерями (для фото)
+        )
+        buffer.seek(0)
+        
+        # Формируем имя файла
+        filename = f"avatar_{master.id}_{datetime.now().strftime('%Y%m%d%H%M%S')}.webp"
+        
+        # Удаляем старый аватар, если есть
+        if master.avatar:
+            old_path = master.avatar.path
+            if os.path.isfile(old_path):
+                os.remove(old_path)
+        
+        # Сохраняем новый аватар
+        master.avatar.save(filename, ContentFile(buffer.getvalue()), save=True)
+        
+        return JsonResponse({
+            'success': True,
+            'avatar_url': master.avatar.url
+        })
+    
+    return JsonResponse({'error': 'Неверный запрос'}, status=400)

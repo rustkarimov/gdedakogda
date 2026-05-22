@@ -61,16 +61,13 @@
                         <td>{{ forloop.counter }}</td>
                         <td><strong>{{ client.name }}</strong></td>
                         <!-- колонка телефона -->
+                         
                            <td>
                                 {% if client.phone %}
-                                    <button class="btn btn-sm btn-outline-secondary show-phone-btn" 
-                                            onclick="togglePhone(this, '{{ client.phone|escapejs }}')">
-                                        <i class="fas fa-eye-slash"></i> Показать номер
-                                    </button>
+                                    {{ client.phone }}
                                 {% else %}
                                     —
                                 {% endif %}
-            
                             </td>
 
                         <td>
@@ -146,20 +143,6 @@ function escapeHtml(str) {
     });
 }
 
-// Функция для показа/скрытия номера
-function togglePhone(btn, phoneNumber) {
-    if (btn.dataset.visible === 'true') {
-        btn.innerHTML = '<i class="fas fa-eye-slash"></i> Показать номер';
-        btn.classList.remove('btn-outline-pink');
-        btn.classList.add('btn-outline-secondary');
-        btn.dataset.visible = 'false';
-    } else {
-        btn.innerHTML = `<i class="fas fa-eye"></i> ${escapeHtml(phoneNumber)}`;
-        btn.classList.remove('btn-outline-secondary');
-        btn.classList.add('btn-outline-pink');
-        btn.dataset.visible = 'true';
-    }
-}
 
 function showClientDetails(clientName, services) {
     document.getElementById('modalClientName').innerHTML = `<i class="fas fa-user me-2" style="color: #ff85b3;"></i>${escapeHtml(clientName)}`;
@@ -239,11 +222,7 @@ function renderClientsTable(clients) {
             <tr>
                 <td>${index + 1}</td>
                 <td><strong>${escapeHtml(client.name)}</strong></td>
-                <td>
-                    <button class="btn btn-sm btn-outline-secondary show-phone-btn" onclick="togglePhone(this, '${escapeHtml(client.phone)}')">
-                        <i class="fas fa-eye-slash"></i> Показать номер
-                    </button>
-                </td>
+                <td>${client.phone || '—'}</td>
                 <td><span class="badge bg-primary">${client.total_visits}</span></td>
                 <td>
                     <span class="badge bg-success">${escapeHtml(client.most_popular_service)}</span>
