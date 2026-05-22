@@ -546,72 +546,57 @@ def api_delete_schedule(request, schedule_id):
     })
 
 
-
-@login_required
-def get_extra_days(request):
-    """API для получения дополнительных рабочих дней"""
-    master = request.user.master
-    extra_days = ExtraWorkingDay.objects.filter(master=master).order_by('-date')
-    
-    data = []
-    for day in extra_days:
-        data.append({
-            'id': day.id,
-            'date': day.date.strftime('%Y-%m-%d'),
-            'date_display': day.date.strftime('%d.%m.%Y'),
-            'weekday': day.date.strftime('%A'),
-            'start_time': day.start_time.strftime('%H:%M'),
-            'end_time': day.end_time.strftime('%H:%M'),
-            'breaks': [{
-                'start': b.start_time.strftime('%H:%M'),
-                'end': b.end_time.strftime('%H:%M')
-            } for b in day.breaks.all()]
-        })
-    
-    return JsonResponse({'extra_days': data})
-
 # @login_required
-# @require_http_methods(["POST"])
-# def api_add_extra_day(request):
-#     """API добавления дополнительного рабочего дня"""
+# def get_extra_days(request):
+#     """API для получения дополнительных рабочих дней с пагинацией"""
 #     master = request.user.master
-#     data = json.loads(request.body)
+#     page = int(request.GET.get('page', 1))
+#     limit = int(request.GET.get('limit', 30))
+#     offset = (page - 1) * limit
     
-#     date_str = data.get('date')
-#     start_time = data.get('start_time')
-#     end_time = data.get('end_time')
-#     breaks = data.get('breaks', [])
+#     # Все дни (будущие и прошедшие)
+#     extra_days_all = ExtraWorkingDay.objects.filter(master=master).order_by('-date')
     
-#     if not date_str or not start_time or not end_time:
-#         return JsonResponse({'error': 'Заполните все обязательные поля'}, status=400)
+#     total = extra_days_all.count()
+#     has_more = offset + limit < total
     
-#     target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+#     extra_days_page = extra_days_all[offset:offset + limit]
     
-#     # Проверяем, не существует ли уже
-#     if ExtraWorkingDay.objects.filter(master=master, date=target_date).exists():
-#         return JsonResponse({'error': 'Этот день уже добавлен'}, status=400)
+#     # Функция для склонения месяца
+#     def get_month_name(month_num):
+#         months = [
+#             'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+#             'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+#         ]
+#         return months[month_num - 1]
     
-#     # Создаем дополнительный рабочий день
-#     extra_day = ExtraWorkingDay.objects.create(
-#         master=master,
-#         date=target_date,
-#         start_time=datetime.strptime(start_time, '%H:%M').time(),
-#         end_time=datetime.strptime(end_time, '%H:%M').time()
-#     )
+#     # Функция для дня недели на русском
+#     def get_weekday_name(date_obj):
+#         weekdays = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']
+#         return weekdays[date_obj.weekday()]
     
-#     # Добавляем перерывы
-#     for break_data in breaks:
-#         if break_data.get('start') and break_data.get('end'):
-#             ExtraWorkingDayBreak.objects.create(
-#                 extra_day=extra_day,
-#                 start_time=datetime.strptime(break_data['start'], '%H:%M').time(),
-#                 end_time=datetime.strptime(break_data['end'], '%H:%M').time()
-#             )
+#     data = []
+#     for day in extra_days_page:
+#         date_obj = day.date
+#         data.append({
+#             'id': day.id,
+#             'date': day.date.strftime('%Y-%m-%d'),
+#             'date_display': f"{date_obj.day} {get_month_name(date_obj.month)} ({get_weekday_name(date_obj)})",
+#             'start_time': day.start_time.strftime('%H:%M'),
+#             'end_time': day.end_time.strftime('%H:%M'),
+#             'breaks': [{
+#                 'start': b.start_time.strftime('%H:%M'),
+#                 'end': b.end_time.strftime('%H:%M')
+#             } for b in day.breaks.all()]
+#         })
     
 #     return JsonResponse({
-#         'success': True,
-#         'message': 'Дополнительный рабочий день добавлен'
+#         'extra_days': data,
+#         'total': total,
+#         'page': page,
+#         'has_more': has_more
 #     })
+
 
 @login_required
 @require_http_methods(["POST"])
@@ -665,43 +650,145 @@ def api_delete_extra_day(request, extra_day_id):
     })
 
 
+# @login_required
+# def get_extra_days_list(request):
+#     master = request.user.master
+#     extra_days = ExtraWorkingDay.objects.filter(master=master)
+    
+#     data = []
+#     for day in extra_days:
+#         data.append({
+#             'id': day.id,
+#             'date': day.date.strftime('%Y-%m-%d'),
+#             'start': day.start_time.strftime('%H:%M'),
+#             'end': day.end_time.strftime('%H:%M'),
+#             'breaks': [{
+#                 'start': b.start_time.strftime('%H:%M'),
+#                 'end': b.end_time.strftime('%H:%M')
+#             } for b in day.breaks.all()]
+#         })
+    
+#     return JsonResponse({'extra_days': data})
+
 @login_required
-def get_extra_days_list(request):
+def get_days_off_list(request):
+    """API для получения списка выходных дней (только будущие)"""
     master = request.user.master
-    extra_days = ExtraWorkingDay.objects.filter(master=master)
+    today = date.today()
+    days_off = DayOff.objects.filter(
+        master=master,
+        date__gte=today
+    ).order_by('date')
+    
+    def get_month_name(month_num):
+        months = [
+            'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+            'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+        ]
+        return months[month_num - 1]
+    
+    def get_weekday_name(date_obj):
+        weekdays = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']
+        return weekdays[date_obj.weekday()]
+    
+    data = [{
+        'id': d.id,
+        'date': d.date.strftime('%Y-%m-%d'),
+        'date_display': f"{d.date.day} {get_month_name(d.date.month)} ({get_weekday_name(d.date)})",
+        'reason': d.reason
+    } for d in days_off]
+    
+    return JsonResponse({'days_off': data})
+
+
+@login_required
+def get_extra_days_upcoming(request):
+    """API для получения будущих дополнительных рабочих дней (все сразу)"""
+    master = request.user.master
+    today = date.today()
+    
+    extra_days = ExtraWorkingDay.objects.filter(
+        master=master,
+        date__gte=today
+    ).order_by('date')
+    
+    def get_month_name(month_num):
+        months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+                  'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
+        return months[month_num - 1]
+    
+    def get_weekday_name(date_obj):
+        weekdays = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']
+        return weekdays[date_obj.weekday()]
     
     data = []
     for day in extra_days:
+        date_obj = day.date
         data.append({
             'id': day.id,
             'date': day.date.strftime('%Y-%m-%d'),
-            'start': day.start_time.strftime('%H:%M'),
-            'end': day.end_time.strftime('%H:%M'),
+            'date_display': f"{date_obj.day} {get_month_name(date_obj.month)} ({get_weekday_name(date_obj)})",
+            'start_time': day.start_time.strftime('%H:%M'),
+            'end_time': day.end_time.strftime('%H:%M'),
             'breaks': [{
                 'start': b.start_time.strftime('%H:%M'),
                 'end': b.end_time.strftime('%H:%M')
             } for b in day.breaks.all()]
         })
     
-    return JsonResponse({'extra_days': data})
+    return JsonResponse({'future_days': data})
+
 
 @login_required
-def get_days_off_list(request):
-    """API для получения списка выходных дней"""
+def get_extra_days_past(request):
+    """API для получения прошедших дополнительных рабочих дней с пагинацией"""
     master = request.user.master
-    days_off = DayOff.objects.filter(master=master).order_by('-date')
+    page = int(request.GET.get('page', 1))
+    limit = int(request.GET.get('limit', 30))
+    offset = (page - 1) * limit
+    today = date.today()
+    
+    extra_days_all = ExtraWorkingDay.objects.filter(
+        master=master,
+        date__lt=today
+    ).order_by('-date')
+    
+    total = extra_days_all.count()
+    has_more = offset + limit < total
+    
+    extra_days_page = extra_days_all[offset:offset + limit]
+    
+    def get_month_name(month_num):
+        months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+                  'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
+        return months[month_num - 1]
+    
+    def get_weekday_name(date_obj):
+        weekdays = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']
+        return weekdays[date_obj.weekday()]
     
     data = []
-    for day in days_off:
+    for day in extra_days_page:
+        date_obj = day.date
         data.append({
             'id': day.id,
             'date': day.date.strftime('%Y-%m-%d'),
-            'date_display': day.date.strftime('%d.%m.%Y'),
-            'weekday': day.date.strftime('%A'),
-            'reason': day.reason
+            'date_display': f"{date_obj.day} {get_month_name(date_obj.month)} ({get_weekday_name(date_obj)})",
+            'start_time': day.start_time.strftime('%H:%M'),
+            'end_time': day.end_time.strftime('%H:%M'),
+            'breaks': [{
+                'start': b.start_time.strftime('%H:%M'),
+                'end': b.end_time.strftime('%H:%M')
+            } for b in day.breaks.all()]
         })
     
-    return JsonResponse({'days_off': data})
+    return JsonResponse({
+        'past_days': data,
+        'total': total,
+        'page': page,
+        'has_more': has_more
+    })
+
 
 @login_required
 def get_bookings_counts(request):
@@ -891,6 +978,114 @@ def get_booking_slots_for_master(request):
 
 
 
+@login_required
+def get_booking_for_edit(request, booking_id):
+    """API для получения данных записи для редактирования"""
+    booking = get_object_or_404(Booking, id=booking_id, master=request.user.master)
+    
+    # Расшифровываем телефон
+    from cryptography.fernet import Fernet, InvalidToken
+    import re
+    key = request.user.master.get_encryption_key()
+    
+    phone = ''
+    if key:
+        try:
+            f = Fernet(key)
+            decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
+            phone = decrypted
+        except (InvalidToken, Exception):
+            try:
+                phone = booking.encrypted_phone.decode('utf-8')
+            except:
+                phone = str(booking.encrypted_phone)
+    else:
+        try:
+            phone = booking.encrypted_phone.decode('utf-8')
+        except:
+            phone = str(booking.encrypted_phone)
+    
+    return JsonResponse({
+        'id': booking.id,
+        'client_name': booking.client_name,
+        'client_phone': phone,
+        'service_id': booking.service.id,
+        'service_name': booking.service.name,
+        'service_duration': booking.service.duration,
+        'date': booking.date.strftime('%Y-%m-%d'),
+        'time': booking.time.strftime('%H:%M'),
+        'comment': booking.client_comment,
+        'status': booking.status
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_update_booking(request, booking_id):
+    """API обновления записи"""
+    booking = get_object_or_404(Booking, id=booking_id, master=request.user.master)
+    data = json.loads(request.body)
+    
+    service_id = data.get('service_id')
+    client_name = data.get('client_name')
+    client_phone = data.get('client_phone')
+    date_str = data.get('date')
+    time_str = data.get('time')
+    comment = data.get('comment', '')
+    status = data.get('status', 'confirmed')
+    
+    if not all([service_id, client_name, client_phone, date_str, time_str]):
+        return JsonResponse({'error': 'Заполните все поля'}, status=400)
+    
+    import re
+    client_phone_cleaned = re.sub(r'\D', '', client_phone)
+    if len(client_phone_cleaned) != 11 or not client_phone_cleaned.startswith('7'):
+        return JsonResponse({'error': 'Неверный формат телефона'}, status=400)
+    
+    service = get_object_or_404(Service, id=service_id, master=request.user.master)
+    target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    target_time = datetime.strptime(time_str, '%H:%M').time()
+    
+    # Проверяем, свободно ли новое время (исключая текущую запись)
+    calculator = ScheduleCalculator(request.user.master)
+    slots = calculator.generate_time_slots(target_date, service.duration)
+    is_available = any(slot['start'] == time_str for slot in slots)
+    
+    # Если время занято и это не текущая запись
+    if not is_available and (booking.date != target_date or booking.time != target_time):
+        return JsonResponse({'error': 'Это время уже занято'}, status=400)
+    
+    # Шифруем телефон
+    from cryptography.fernet import Fernet
+    key = request.user.master.get_encryption_key()
+    if key:
+        f = Fernet(key)
+        encrypted_phone = f.encrypt(client_phone_cleaned.encode())
+    else:
+        encrypted_phone = client_phone_cleaned.encode()
+    
+    booking.service = service
+    booking.client_name = client_name
+    booking.encrypted_phone = encrypted_phone
+    booking.client_comment = comment
+    booking.date = target_date
+    booking.time = target_time
+    booking.status = status
+    booking.save()
+    
+    return JsonResponse({'success': True, 'message': 'Запись обновлена'})
+
+
+@login_required
+@require_http_methods(["POST"])
+def api_delete_booking(request, booking_id):
+    """API удаления записи"""
+    booking = get_object_or_404(Booking, id=booking_id, master=request.user.master)
+    booking.delete()
+    
+    return JsonResponse({'success': True, 'message': 'Запись удалена'})
+    
+
 # @login_required
 # @require_http_methods(["POST"])
 # def api_add_day_off(request):
@@ -931,6 +1126,7 @@ def get_booking_slots_for_master(request):
 @login_required
 @require_http_methods(["POST"])
 def api_add_day_off(request):
+    """API добавления выходного дня"""
     master = request.user.master
     data = json.loads(request.body)
     
@@ -941,11 +1137,21 @@ def api_add_day_off(request):
         return JsonResponse({'error': 'Выберите дату'}, status=400)
     
     target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    day_of_week = target_date.weekday()
     
-    # Удаляем существующий выходной
+    # Проверяем, является ли день рабочим
+    has_schedule = Schedule.objects.filter(master=master, day_of_week=day_of_week).exists()
+    has_extra_day = ExtraWorkingDay.objects.filter(master=master, date=target_date).exists()
+    
+    # Если день нерабочий (нет расписания и нет доп. дня)
+    if not has_schedule and not has_extra_day:
+        return JsonResponse({
+            'success': False,
+            'message': '🎉 В этот день ты и так не работаешь! Хорошего отдыха!'
+        }, status=400)
+    
+    # Удаляем существующий выходной, если есть
     DayOff.objects.filter(master=master, date=target_date).delete()
-    # Удаляем дополнительный рабочий день, если есть
-    ExtraWorkingDay.objects.filter(master=master, date=target_date).delete()
     
     # Создаём выходной
     DayOff.objects.create(
@@ -954,7 +1160,10 @@ def api_add_day_off(request):
         reason=reason
     )
     
-    return JsonResponse({'success': True})
+    return JsonResponse({
+        'success': True,
+        'message': 'Выходной день добавлен'
+    })
 
 @login_required
 @require_http_methods(["POST"])

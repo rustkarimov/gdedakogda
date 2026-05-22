@@ -43,13 +43,18 @@ urlpatterns = [
     # Ручное добавление записи
     path('add-booking/', views.add_manual_booking, name='add_manual_booking'),
     path('api/get-slots/', views.get_booking_slots_for_master, name='api_get_slots'),
+
+    path('api/booking/<int:booking_id>/get/', views.get_booking_for_edit, name='api_booking_get'),
+    path('api/booking/<int:booking_id>/update/', views.api_update_booking, name='api_booking_update'),
+    path('api/booking/<int:booking_id>/delete/', views.api_delete_booking, name='api_booking_delete'),
     
     # Дополнительные рабочие дни
-    path('api/extra-days/', views.get_extra_days, name='api_extra_days'),
-    path('api/extra-days/list/', views.get_extra_days_list, name='api_extra_days_list'),
     path('api/extra-days/add/', views.api_add_extra_day, name='api_add_extra_day'),
     path('api/extra-days/<int:extra_day_id>/delete/', views.api_delete_extra_day, name='api_delete_extra_day'),
     path('api/extra-days/delete-by-date/', views.api_delete_extra_day_by_date, name='api_delete_extra_day_by_date'),
+
+    path('api/extra-days/upcoming/', views.get_extra_days_upcoming, name='api_extra_days_upcoming'),
+    path('api/extra-days/past/', views.get_extra_days_past, name='api_extra_days_past'),
 
     # Статус дня
     path('api/day-status/', views.get_day_status, name='api_day_status'),
