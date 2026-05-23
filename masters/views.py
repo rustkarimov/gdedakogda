@@ -882,6 +882,8 @@ def api_delete_day_off_by_date(request):
 def add_manual_booking(request):
     """Ручное добавление записи мастером"""
     master = request.user.master
+
+    prefill_date = request.GET.get('date', '')
     
     if request.method == 'POST':
         client_name = request.POST.get('client_name')
@@ -952,7 +954,8 @@ def add_manual_booking(request):
     return render(request, 'masters/add_manual_booking.html', {
         'services': services,
         'today': today,
-        'master': master
+        'master': master,
+        'prefill_date': prefill_date
     })
 
 @login_required

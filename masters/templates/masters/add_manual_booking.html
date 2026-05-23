@@ -114,6 +114,10 @@ let selectedDate = null;
 let selectedTime = null;
 let currentPublicSlug = "{{ master.public_slug }}";
 
+// Получаем дату из URL параметра
+const urlParams = new URLSearchParams(window.location.search);
+const prefillDate = urlParams.get('date');
+
 // Загрузка услуг с группировкой
 function loadServices() {
     fetch('/api/categories/')
@@ -256,9 +260,11 @@ function loadAvailableDates() {
             if (data.dates && data.dates.length > 0) {
                 let html = '';
                 data.dates.forEach(item => {
+                    // Если есть предзаполненная дата и она совпадает с этой, добавляем класс selected
+                    const isSelected = (prefillDate === item.date);
                     html += `
                         <div class="col-md-3 col-6 mb-3">
-                            <div class="card date-card text-center" 
+                            <div class="card date-card text-center ${isSelected ? 'border-pink' : ''}" 
                                  data-date="${item.date}" 
                                  onclick="selectDate('${item.date}', this)">
                                 <div class="card-body py-2">
@@ -270,6 +276,14 @@ function loadAvailableDates() {
                     `;
                 });
                 datesContainer.innerHTML = html;
+                
+                // Если есть предзаполненная дата, автоматически выбираем её
+                if (prefillDate) {
+                    const preselectedCard = document.querySelector(`.date-card[data-date="${prefillDate}"]`);
+                    if (preselectedCard) {
+                        preselectedCard.click();
+                    }
+                }
             } else {
                 datesContainer.innerHTML = `
                     <div class="col-12 text-center">

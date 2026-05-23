@@ -85,84 +85,164 @@
     </div>
 </div>
 
-<!-- МОДАЛЬНОЕ ОКНО -->
+<!-- МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalTitle">Подтверждение</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="confirmModalCancel">Отмена</button>
+                <button type="button" class="btn btn-pink" id="confirmModalOk">Да</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО УВЕДОМЛЕНИЯ -->
+<div class="modal fade" id="alertModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="alertModalTitle">Уведомление</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="alertModalMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-pink" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО ДНЯ -->
 <div class="modal fade" id="dayModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Редактирование дня</h5>
+                <h5 class="modal-title" id="dayModalTitle">Редактирование дня</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 {% csrf_token %}
-                <p class="text-muted" id="dayModalDate"></p>
-                <div class="alert alert-light" id="currentStatusAlert">
-                    <i class="fas fa-info-circle me-2"></i> <span id="currentStatusText">Загрузка...</span>
-                </div>
+                
+                <!-- ПАНЕЛЬ ПРОСМОТРА ДНЯ -->
+                <div id="viewDayPanel">
+                    <p class="text-muted" id="dayModalDate"></p>
+                    <div class="alert alert-light" id="currentStatusAlert">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <span id="currentStatusText">Загрузка...</span>
+                    </div>
 
-                <!-- Кнопки для рабочего дня (скрыты по умолчанию) -->
-                <div id="workingDayActions" class="d-grid gap-2 mb-3" style="display: none;">
-                    <button class="btn btn-outline-primary" onclick="showEditForm()">
-                        <i class="fas fa-edit me-2"></i>Изменить время и перерывы
-                    </button>
-                    <button class="btn btn-outline-danger" onclick="makeDayOff()">
-                        <i class="fas fa-calendar-times me-2"></i>Сделать выходным
-                    </button>
-                </div>
+                    <div id="workingDayActions" class="d-grid gap-2 mb-3" style="display: none;">
+                        <button class="btn btn-outline-primary" onclick="showEditForm()">
+                            <i class="fas fa-edit me-2"></i>Изменить время и перерывы
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="makeDayOff()">
+                            <i class="fas fa-calendar-times me-2"></i>Сделать выходным
+                        </button>
+                    </div>
 
-                <!-- Кнопка для выходного дня (скрыта по умолчанию) -->
-                <div id="dayOffActions" class="d-grid gap-2 mb-3" style="display: none;">
-                    <button class="btn btn-outline-success" onclick="makeWorkingFromDayOff()">
-                        <i class="fas fa-calendar-check me-2"></i>Сделать рабочим днём
-                    </button>
-                </div>
+                    <div id="dayOffActions" class="d-grid gap-2 mb-3" style="display: none;">
+                        <button class="btn btn-outline-success" onclick="makeWorkingFromDayOff()">
+                            <i class="fas fa-calendar-check me-2"></i>Сделать рабочим днём
+                        </button>
+                    </div>
 
-                <!-- Форма редактирования -->
-                <div id="editFormBlock" style="display: none;">
-                    <hr>
-                    <h6 class="mb-3">Настройка времени</h6>
-                    <div class="row mb-3">
-                        <div class="col-6">
-                            <label class="form-label">Начало работы</label>
-                            <input type="time" class="form-control" id="extraStartTime">
+                    <div id="editFormBlock" style="display: none;">
+                        <button class="btn btn-sm btn-outline-secondary mb-3" onclick="backToDayViewFromEdit()">
+                            <i class="fas fa-arrow-left me-2"></i>Назад к дню
+                        </button>
+                        <hr>
+                        <h6 class="mb-3">Настройка времени</h6>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label">Начало работы</label>
+                                <input type="time" class="form-control" id="extraStartTime">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Конец работы</label>
+                                <input type="time" class="form-control" id="extraEndTime">
+                            </div>
                         </div>
-                        <div class="col-6">
-                            <label class="form-label">Конец работы</label>
-                            <input type="time" class="form-control" id="extraEndTime">
+                        <div class="mb-3">
+                            <label class="form-label">Перерывы</label>
+                            <div id="extraBreaksContainer"></div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addExtraBreakField()">
+                                <i class="fas fa-plus me-1"></i>Добавить перерыв
+                            </button>
+                        </div>
+                        <button class="btn btn-primary w-100 mt-3" id="saveDayBtn" onclick="saveDayChanges()">
+                            <i class="fas fa-save me-2"></i>Сохранить изменения
+                        </button>
+                    </div>
+
+                    <div id="addBookingButtonContainer" class="d-grid gap-2 mb-3">
+                        <button class="btn btn-pink" onclick="showAddBookingPanel()">
+                            <i class="fas fa-pen-alt me-2"></i>Добавить запись
+                        </button>
+                    </div>
+
+                    <hr>
+                    <h6 class="mb-3"><i class="fas fa-list me-2"></i>Записи на этот день</h6>
+                    <div id="dayBookingsContainer">
+                        <div class="text-center py-2">
+                            <div class="spinner-border spinner-border-sm" style="color: #7c3aed;"></div>
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Перерывы</label>
-                        <div id="extraBreaksContainer">
-                            <div class="break-item row g-2 mb-2">
-                                <div class="col-5">
-                                    <input type="time" class="form-control form-control-sm break-start" placeholder="Начало">
-                                </div>
-                                <div class="col-5">
-                                    <input type="time" class="form-control form-control-sm break-end" placeholder="Конец">
-                                </div>
-                                <div class="col-2">
-                                    <button type="button" class="btn btn-sm btn-outline-danger w-100 remove-break">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                </div>
+
+                <!-- ПАНЕЛЬ ДОБАВЛЕНИЯ ЗАПИСИ -->
+                <div id="addBookingPanel" style="display: none;">
+                    <button class="btn btn-sm btn-outline-secondary mb-3" onclick="backToDayView()">
+                        <i class="fas fa-arrow-left me-2"></i>Назад к дню
+                    </button>
+                    <h6 class="mb-3">Добавление записи</h6>
+                    <form id="addBookingForm">
+                        <div class="mb-3">
+                            <label class="form-label">Имя клиента</label>
+                            <input type="text" class="form-control" id="add_client_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Телефон</label>
+                            <input type="tel" class="form-control" id="add_client_phone" placeholder="7 999 123-45-67" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Комментарий</label>
+                            <textarea class="form-control" id="add_comment" rows="2"></textarea>
+                        </div>
+                        <hr>
+                        <div class="mb-3">
+                            <label class="form-label">Услуга</label>
+                            <div id="add_services_list" class="row">
+                                <div class="col-12 text-center">
+                                    <div class="spinner-border spinner-border-sm" style="color: #7c3aed;"></div>
                                 </div>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addExtraBreakField()">
-                            <i class="fas fa-plus me-1"></i>Добавить перерыв
-                        </button>
-                    </div>
-                    <button class="btn btn-primary w-100 mt-3" id="saveDayBtn" onclick="saveDayChanges()">
-                        <i class="fas fa-save me-2"></i>Сохранить изменения
+                        <div id="add_dates_container" style="display: none;" class="mb-3">
+                            <label class="form-label">Дата</label>
+                            <div id="add_dates_list" class="row"></div>
+                        </div>
+                        <div id="add_times_container" style="display: none;" class="mb-3">
+                            <label class="form-label">Время</label>
+                            <div id="add_times_list" class="row"></div>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="add_force_booking">
+                            <label class="form-check-label" for="add_force_booking">Записать принудительно</label>
+                        </div>
+                    </form>
+                    <button class="btn btn-pink w-100 mt-3" onclick="saveNewBooking()">
+                        <i class="fas fa-save me-2"></i>Добавить запись
                     </button>
-                </div>
-
-                <hr>
-                <h6 class="mb-3"><i class="fas fa-list me-2"></i>Записи на этот день</h6>
-                <div id="dayBookingsContainer">
-                    <div class="text-center py-2">
-                        <div class="spinner-border spinner-border-sm" style="color: #7c3aed;"></div>
-                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -172,7 +252,141 @@
     </div>
 </div>
 
+<!-- МОДАЛЬНОЕ ОКНО ДЛЯ РЕДАКТИРОВАНИЯ ЗАПИСИ -->
+<div class="modal fade" id="editBookingModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактирование записи</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editBookingForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="edit_booking_id">
+                    <div class="mb-3">
+                        <label class="form-label">Имя клиента</label>
+                        <input type="text" class="form-control" id="edit_client_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Телефон</label>
+                        <input type="tel" class="form-control" id="edit_client_phone" placeholder="7 999 123-45-67" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Услуга</label>
+                        <div id="edit_services_list_modal" class="row">
+                            <div class="col-12 text-center">
+                                <div class="spinner-border spinner-border-sm" style="color: #7c3aed;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="edit_dates_container_modal" style="display: none;" class="mb-3">
+                        <label class="form-label">Дата</label>
+                        <div id="edit_dates_list_modal" class="row"></div>
+                    </div>
+                    <div id="edit_times_container_modal" style="display: none;" class="mb-3">
+                        <label class="form-label">Время</label>
+                        <div id="edit_times_list_modal" class="row"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Статус</label>
+                        <select class="form-select" id="edit_status">
+                            <option value="confirmed">Подтверждена</option>
+                            <option value="cancelled">Отменена</option>
+                            <option value="completed">Выполнена</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Комментарий</label>
+                        <textarea class="form-control" id="edit_comment" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-pink" onclick="saveEditedBooking()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+// ============================================================
+// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (кастомные модалки)
+// ============================================================
+
+function showConfirm(message, onConfirm) {
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'), {
+        backdrop: true
+    });
+    document.getElementById('confirmModalMessage').innerText = message;
+    const okBtn = document.getElementById('confirmModalOk');
+    const cancelBtn = document.getElementById('confirmModalCancel');
+    
+    const handleOk = () => {
+        modal.hide();
+        okBtn.removeEventListener('click', handleOk);
+        cancelBtn.removeEventListener('click', handleCancel);
+        onConfirm(true);
+    };
+    
+    const handleCancel = () => {
+        modal.hide();
+        okBtn.removeEventListener('click', handleOk);
+        cancelBtn.removeEventListener('click', handleCancel);
+        onConfirm(false);
+    };
+    
+    okBtn.addEventListener('click', handleOk);
+    cancelBtn.addEventListener('click', handleCancel);
+    modal.show();
+}
+
+function showAlert(message, title = 'Уведомление') {
+    const modal = new bootstrap.Modal(document.getElementById('alertModal'), {
+        backdrop: true
+    });
+    document.getElementById('alertModalTitle').innerText = title;
+    document.getElementById('alertModalMessage').innerHTML = message;
+    modal.show();
+}
+
+// ============================================================
+// МАСКА ТЕЛЕФОНА
+// ============================================================
+function phoneMask(input) {
+    let value = input.value.replace(/\D/g, '');
+    if (value.length === 0) {
+        input.value = '';
+        return;
+    }
+    if (value[0] !== '7' && value[0] !== '8') {
+        value = '7' + value;
+    }
+    if (value[0] === '8') {
+        value = '7' + value.slice(1);
+    }
+    if (value.length > 11) {
+        value = value.slice(0, 11);
+    }
+    let formatted = '';
+    if (value.length > 0) {
+        formatted = value[0];
+        if (value.length > 1) formatted += ' ' + value.slice(1, 4);
+        if (value.length > 4) formatted += ' ' + value.slice(4, 7);
+        if (value.length > 7) formatted += '-' + value.slice(7, 9);
+        if (value.length > 9) formatted += '-' + value.slice(9, 11);
+    }
+    input.value = formatted;
+}
+
+function initPhoneMasks() {
+    document.querySelectorAll('input[type="tel"]').forEach(input => {
+        input.removeEventListener('input', function() { phoneMask(this); });
+        input.addEventListener('input', function() { phoneMask(this); });
+    });
+}
+
 // ============================================================
 // КОПИРОВАНИЕ ССЫЛКИ
 // ============================================================
@@ -181,7 +395,7 @@ function copyPublicLink() {
     t.select();
     t.setSelectionRange(0, 99999);
     navigator.clipboard.writeText(t.value);
-    alert("Ссылка скопирована!");
+    showAlert('Ссылка скопирована!', 'Готово');
 }
 
 // ============================================================
@@ -278,9 +492,14 @@ function openDayModal(dateStr) {
     const monthNames = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
     document.getElementById('dayModalDate').innerHTML = `${dateObj.getDate()} ${monthNames[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
 
+    document.getElementById('viewDayPanel').style.display = 'block';
+    document.getElementById('addBookingPanel').style.display = 'none';
+    document.getElementById('dayModalTitle').innerText = 'Редактирование дня';
+    
     document.getElementById('editFormBlock').style.display = 'none';
     document.getElementById('workingDayActions').style.display = 'none';
     document.getElementById('dayOffActions').style.display = 'none';
+    document.getElementById('addBookingButtonContainer').style.display = 'block';
     document.getElementById('dayBookingsContainer').innerHTML = '<div class="text-center py-2"><div class="spinner-border spinner-border-sm" style="color: #7c3aed;"></div></div>';
     document.getElementById('currentStatusText').innerHTML = 'Загрузка...';
 
@@ -305,7 +524,10 @@ function openDayModal(dateStr) {
                     statusText = 'Нерабочий день (нет расписания)';
                 }
                 document.getElementById('currentStatusText').innerHTML = statusText;
-                if (!isPast) document.getElementById('dayOffActions').style.display = 'block';
+                if (!isPast) {
+                    document.getElementById('dayOffActions').style.display = 'block';
+                    document.getElementById('addBookingButtonContainer').style.display = 'none';
+                }
             } else {
                 if (data.is_extra) {
                     statusText = `Рабочий день (дополнительный: ${data.extra_start} - ${data.extra_end})`;
@@ -313,16 +535,16 @@ function openDayModal(dateStr) {
                     statusText = `Рабочий день (по расписанию: ${data.schedule_start} - ${data.schedule_end})`;
                 }
                 document.getElementById('currentStatusText').innerHTML = statusText;
-                if (!isPast) document.getElementById('workingDayActions').style.display = 'block';
+                if (!isPast) {
+                    document.getElementById('workingDayActions').style.display = 'block';
+                    document.getElementById('addBookingButtonContainer').style.display = 'block';
+                }
             }
         });
 
     new bootstrap.Modal(document.getElementById('dayModal')).show();
 }
 
-// ============================================================
-// ОТОБРАЖЕНИЕ ЗАПИСЕЙ В МОДАЛЬНОМ ОКНЕ
-// ============================================================
 function renderDayBookings(bookings) {
     const container = document.getElementById('dayBookingsContainer');
     if (!bookings || bookings.length === 0) {
@@ -332,13 +554,13 @@ function renderDayBookings(bookings) {
     let html = '<div class="table-responsive"><table class="table table-sm">';
     html += '<thead><tr><th>Время</th><th>Клиент</th><th>Услуга</th><th>Телефон</th><th>Действия</th></tr></thead><tbody>';
     bookings.forEach(b => {
-        html += `<td>
+        html += `<tr>
                     <td>${b.time}</td>
                     <td>${escapeHtml(b.client_name)}</td>
                     <td>${escapeHtml(b.service_name)}</td>
                     <td>${b.phone || '—'}</td>
                     <td>
-                        <button class="btn btn-sm btn-outline-pink" onclick="editBooking(${b.id})" title="Редактировать">
+                        <button class="btn btn-sm btn-outline-pink" onclick="editBookingInModal(${b.id})" title="Редактировать">
                             <i class="fas fa-edit"></i>
                         </button>
                         <button class="btn btn-sm btn-outline-danger" onclick="deleteBooking(${b.id}, '${escapeHtml(b.client_name)}', '${b.time}')" title="Удалить">
@@ -347,12 +569,12 @@ function renderDayBookings(bookings) {
                     </td>
                 </tr>`;
     });
-    html += '</tbody><tr></div>';
+    html += '</tbody></table></div>';
     container.innerHTML = html;
 }
 
 // ============================================================
-// ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ КАЛЕНДАРЯ (перерывы, выходные)
+// ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ КАЛЕНДАРЯ
 // ============================================================
 function addExtraBreakField(s = '', e = '') {
     const c = document.getElementById('extraBreaksContainer');
@@ -369,6 +591,7 @@ function addExtraBreakField(s = '', e = '') {
 function showEditForm() {
     document.getElementById('workingDayActions').style.display = 'none';
     document.getElementById('editFormBlock').style.display = 'block';
+    document.getElementById('addBookingButtonContainer').style.display = 'none';  // ← скрываем кнопку
     document.getElementById('extraStartTime').value = currentDayData.extra_start || '09:00';
     document.getElementById('extraEndTime').value = currentDayData.extra_end || '18:00';
     document.getElementById('extraBreaksContainer').innerHTML = '';
@@ -378,18 +601,33 @@ function showEditForm() {
     }
 }
 
+function backToDayViewFromEdit() {
+    document.getElementById('editFormBlock').style.display = 'none';
+    document.getElementById('workingDayActions').style.display = 'block';
+    document.getElementById('addBookingButtonContainer').style.display = 'block';  // ← показываем кнопку
+    if (currentSelectedDate) {
+        fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
+            .then(r => r.json())
+            .then(data => renderDayBookings(data.bookings));
+    }
+}
+
 function makeDayOff() {
-    if (!confirm('Сделать этот день выходным?')) return;
-    fetch('/api/days-off/add/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
-        body: JSON.stringify({ date: currentSelectedDate, reason: 'Выходной' })
-    }).then(r => r.json()).then(d => { if (d.success) { bootstrap.Modal.getInstance(document.getElementById('dayModal')).hide(); loadCalendar(); } });
+    showConfirm('Сделать этот день выходным?', (confirmed) => {
+        if (confirmed) {
+            fetch('/api/days-off/add/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+                body: JSON.stringify({ date: currentSelectedDate, reason: 'Выходной' })
+            }).then(r => r.json()).then(d => { if (d.success) { bootstrap.Modal.getInstance(document.getElementById('dayModal')).hide(); loadCalendar(); } });
+        }
+    });
 }
 
 function makeWorkingFromDayOff() {
     document.getElementById('dayOffActions').style.display = 'none';
     document.getElementById('editFormBlock').style.display = 'block';
+    document.getElementById('addBookingButtonContainer').style.display = 'none';  // ← скрываем
     document.getElementById('extraStartTime').value = '09:00';
     document.getElementById('extraEndTime').value = '18:00';
     document.getElementById('extraBreaksContainer').innerHTML = '';
@@ -399,7 +637,7 @@ function makeWorkingFromDayOff() {
 
 function saveDayChanges() {
     const s = document.getElementById('extraStartTime').value, e = document.getElementById('extraEndTime').value;
-    if (!s || !e) { alert('Заполните время'); return; }
+    if (!s || !e) { showAlert('Заполните время', 'Ошибка'); return; }
     const breaks = [];
     document.querySelectorAll('#extraBreaksContainer .break-item').forEach(i => {
         const st = i.querySelector('.break-start').value, en = i.querySelector('.break-end').value;
@@ -410,65 +648,60 @@ function saveDayChanges() {
     fetch('/api/extra-days/delete-by-date/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }, body: JSON.stringify({ date: currentSelectedDate }) })
     .then(() => fetch('/api/days-off/delete-by-date/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }, body: JSON.stringify({ date: currentSelectedDate }) }))
     .then(() => fetch('/api/extra-days/add/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }, body: JSON.stringify({ date: currentSelectedDate, start_time: s, end_time: e, breaks: breaks }) }))
-    .then(r => r.json()).then(d => { if (d.success) { bootstrap.Modal.getInstance(document.getElementById('dayModal')).hide(); loadCalendar(); } else alert(d.error || 'Ошибка'); })
-    .catch(err => { console.error(err); alert('Ошибка'); })
+    .then(r => r.json()).then(d => { if (d.success) { bootstrap.Modal.getInstance(document.getElementById('dayModal')).hide(); loadCalendar(); } else showAlert(d.error || 'Ошибка', 'Ошибка'); })
+    .catch(err => { console.error(err); showAlert('Произошла ошибка', 'Ошибка'); })
     .finally(() => { btn.innerHTML = orig; btn.disabled = false; });
 }
 
 // ============================================================
-// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+// ПАНЕЛЬ ДОБАВЛЕНИЯ ЗАПИСИ
 // ============================================================
-function escapeHtml(str) {
-    return str ? str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m) : '';
-}
-
-// ============================================================
-// РЕДАКТИРОВАНИЕ И УДАЛЕНИЕ ЗАПИСЕЙ
-// ============================================================
-let editSelectedServiceId = null;
-let editSelectedDate = null;
-let editSelectedTime = null;
+let addSelectedServiceId = null;
+let addSelectedDate = null;
+let addSelectedTime = null;
 let editCurrentSlug = "{{ master.public_slug }}";
 
-function editBooking(bookingId) {
-    fetch(`/api/booking/${bookingId}/get/`)
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('edit_booking_id').value = data.id;
-            document.getElementById('edit_client_name').value = data.client_name;
-            document.getElementById('edit_client_phone').value = data.client_phone;
-            document.getElementById('edit_comment').value = data.comment || '';
-            document.getElementById('edit_status').value = data.status;
-            editSelectedDate = data.date;
-            editSelectedTime = data.time;
-            
-            loadEditServices(data.service_id, data.date, data.time);
-        });
+function showAddBookingPanel() {
+    document.getElementById('viewDayPanel').style.display = 'none';
+    document.getElementById('addBookingPanel').style.display = 'block';
+    document.getElementById('dayModalTitle').innerText = 'Добавление записи';
     
-    new bootstrap.Modal(document.getElementById('editBookingModal')).show();
+    addSelectedDate = currentSelectedDate;
+    addSelectedServiceId = null;
+    addSelectedTime = null;
+    
+    loadAddServices();
+    initPhoneMasks();
 }
 
-function loadEditServices(selectedServiceId, selectedDate, selectedTime) {
+function backToDayView() {
+    document.getElementById('viewDayPanel').style.display = 'block';
+    document.getElementById('addBookingPanel').style.display = 'none';
+    document.getElementById('dayModalTitle').innerText = 'Редактирование дня';
+    
+    addSelectedServiceId = null;
+    addSelectedDate = currentSelectedDate;
+    addSelectedTime = null;
+    
+    if (currentSelectedDate) {
+        fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
+            .then(r => r.json())
+            .then(data => renderDayBookings(data.bookings));
+    }
+}
+
+function loadAddServices() {
     fetch('/api/categories/')
         .then(response => response.json())
         .then(data => {
-            editSelectedServiceId = selectedServiceId;
-            editSelectedDate = selectedDate;
-            editSelectedTime = selectedTime;
-            
             let html = '<div class="row">';
             for (const cat of data.categories) {
                 if (cat.services.length === 0) continue;
-                html += `<div class="col-12 mb-2"><strong>${escapeHtml(cat.name)}</strong></div>`;
-                html += `<div class="row mb-3">`;
+                html += `<div class="col-12 mb-2"><strong>${escapeHtml(cat.name)}</strong></div><div class="row mb-3">`;
                 cat.services.forEach(service => {
-                    const isSelected = service.id == selectedServiceId;
                     html += `
                         <div class="col-md-4 mb-2">
-                            <div class="card service-card ${isSelected ? 'border-pink' : ''}" 
-                                 data-service-id="${service.id}"
-                                 data-service-duration="${service.duration}"
-                                 onclick="selectEditService(${service.id}, ${service.duration})">
+                            <div class="card service-card" data-service-id="${service.id}" data-service-duration="${service.duration}" onclick="selectAddService(this, ${service.id})">
                                 <div class="card-body p-2">
                                     <div class="fw-bold small">${escapeHtml(service.name)}</div>
                                     <div class="small text-muted">${service.duration} мин / ${service.price} ₽</div>
@@ -480,16 +713,11 @@ function loadEditServices(selectedServiceId, selectedDate, selectedTime) {
                 html += `</div>`;
             }
             if (data.uncategorized.length > 0) {
-                html += `<div class="col-12 mb-2"><strong>Без категории</strong></div>`;
-                html += `<div class="row mb-3">`;
+                html += `<div class="col-12 mb-2"><strong>Без категории</strong></div><div class="row mb-3">`;
                 data.uncategorized.forEach(service => {
-                    const isSelected = service.id == selectedServiceId;
                     html += `
                         <div class="col-md-4 mb-2">
-                            <div class="card service-card ${isSelected ? 'border-pink' : ''}" 
-                                 data-service-id="${service.id}"
-                                 data-service-duration="${service.duration}"
-                                 onclick="selectEditService(${service.id}, ${service.duration})">
+                            <div class="card service-card" data-service-id="${service.id}" data-service-duration="${service.duration}" onclick="selectAddService(this, ${service.id})">
                                 <div class="card-body p-2">
                                     <div class="fw-bold small">${escapeHtml(service.name)}</div>
                                     <div class="small text-muted">${service.duration} мин / ${service.price} ₽</div>
@@ -501,41 +729,35 @@ function loadEditServices(selectedServiceId, selectedDate, selectedTime) {
                 html += `</div>`;
             }
             html += '</div>';
-            document.getElementById('edit_services_list').innerHTML = html;
-            
-            if (selectedServiceId) {
-                loadEditDatesForService(selectedServiceId, selectedDate);
-            }
+            document.getElementById('add_services_list').innerHTML = html;
         });
 }
 
-function selectEditService(serviceId, duration) {
-    editSelectedServiceId = serviceId;
-    document.querySelectorAll('#edit_services_list .service-card').forEach(card => {
+function selectAddService(element, serviceId) {
+    document.querySelectorAll('#add_services_list .service-card').forEach(card => {
         card.classList.remove('border-pink');
     });
-    event.currentTarget.classList.add('border-pink');
-    loadEditDatesForService(serviceId, editSelectedDate);
+    element.classList.add('border-pink');
+    addSelectedServiceId = serviceId;
+    loadAddDatesForService(serviceId);
 }
 
-function loadEditDatesForService(serviceId, selectedDate) {
+function loadAddDatesForService(serviceId) {
     fetch(`/api/${editCurrentSlug}/dates/?service_id=${serviceId}`)
         .then(response => response.json())
         .then(data => {
-            const container = document.getElementById('edit_dates_list');
+            const container = document.getElementById('add_dates_list');
             if (data.dates.length === 0) {
                 container.innerHTML = '<p class="text-muted">Нет доступных дат</p>';
-                document.getElementById('edit_dates_container').style.display = 'block';
+                document.getElementById('add_dates_container').style.display = 'block';
                 return;
             }
             let html = '<div class="row">';
             data.dates.forEach(date => {
-                const isSelected = date.date === selectedDate;
+                const isSelected = addSelectedDate === date.date;
                 html += `
                     <div class="col-md-3 col-4 mb-2">
-                        <div class="card date-card text-center ${isSelected ? 'border-pink' : ''}" 
-                             data-date="${date.date}"
-                             onclick="selectEditDate('${date.date}')">
+                        <div class="card date-card text-center ${isSelected ? 'border-pink' : ''}" data-date="${date.date}" onclick="selectAddDate(this, '${date.date}')">
                             <div class="card-body py-1">
                                 <div class="small">${date.day_of_week}</div>
                                 <div class="fw-bold small">${date.display}</div>
@@ -546,43 +768,236 @@ function loadEditDatesForService(serviceId, selectedDate) {
             });
             html += '</div>';
             container.innerHTML = html;
-            document.getElementById('edit_dates_container').style.display = 'block';
-            
-            if (selectedDate) {
-                loadEditSlotsForDate(serviceId, selectedDate, editSelectedTime);
+            document.getElementById('add_dates_container').style.display = 'block';
+            if (addSelectedDate) {
+                loadAddSlotsForDate(serviceId, addSelectedDate);
             }
         });
 }
 
-function selectEditDate(date) {
-    editSelectedDate = date;
-    document.querySelectorAll('#edit_dates_list .date-card').forEach(card => {
+function selectAddDate(element, date) {
+    document.querySelectorAll('#add_dates_list .date-card').forEach(card => {
         card.classList.remove('border-pink');
     });
-    event.currentTarget.classList.add('border-pink');
-    loadEditSlotsForDate(editSelectedServiceId, date, null);
+    element.classList.add('border-pink');
+    addSelectedDate = date;
+    loadAddSlotsForDate(addSelectedServiceId, date);
 }
 
-function loadEditSlotsForDate(serviceId, date, selectedTime) {
+function loadAddSlotsForDate(serviceId, date) {
     fetch(`/api/${editCurrentSlug}/slots/?service_id=${serviceId}&date=${date}`)
         .then(response => response.json())
         .then(data => {
-            const container = document.getElementById('edit_times_list');
+            const container = document.getElementById('add_times_list');
             if (data.slots.length === 0) {
                 container.innerHTML = '<p class="text-muted">Нет свободного времени</p>';
-                document.getElementById('edit_times_container').style.display = 'block';
+                document.getElementById('add_times_container').style.display = 'block';
                 return;
             }
             let html = '<div class="row">';
             data.slots.forEach(slot => {
-                const isSelected = slot.start === selectedTime;
+                const isSelected = addSelectedTime === slot.start;
                 html += `
                     <div class="col-md-2 col-3 mb-2">
-                        <div class="card slot-card text-center ${isSelected ? 'border-pink' : ''}" 
-                             data-time="${slot.start}"
-                             onclick="selectEditTime('${slot.start}')">
+                        <div class="card slot-card text-center ${isSelected ? 'border-pink' : ''}" data-time="${slot.start}" onclick="selectAddTime(this, '${slot.start}')">
+                            <div class="card-body py-1">${slot.start}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+            document.getElementById('add_times_container').style.display = 'block';
+        });
+}
+
+function selectAddTime(element, time) {
+    document.querySelectorAll('#add_times_list .slot-card').forEach(card => {
+        card.classList.remove('border-pink');
+    });
+    element.classList.add('border-pink');
+    addSelectedTime = time;
+}
+
+function saveNewBooking() {
+    const clientName = document.getElementById('add_client_name').value.trim();
+    let clientPhone = document.getElementById('add_client_phone').value.trim();
+    clientPhone = clientPhone.replace(/\D/g, '');
+    if (clientPhone.length === 11 && clientPhone[0] === '7') {
+        clientPhone = clientPhone;
+    } else if (clientPhone.length === 10) {
+        clientPhone = '7' + clientPhone;
+    }
+    const comment = document.getElementById('add_comment').value;
+    const force = document.getElementById('add_force_booking').checked;
+    
+    if (!clientName || !clientPhone || clientPhone.length !== 11 || !addSelectedServiceId || !addSelectedDate || !addSelectedTime) {
+        showAlert('Заполните все поля правильно. Телефон должен содержать 11 цифр.', 'Ошибка');
+        return;
+    }
+    
+    const saveBtn = event.target;
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Добавление...';
+    saveBtn.disabled = true;
+    
+    fetch(`/api/${editCurrentSlug}/book/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            service_id: addSelectedServiceId,
+            client_name: clientName,
+            client_phone: clientPhone,
+            date: addSelectedDate,
+            time: addSelectedTime,
+            comment: comment,
+            force: force
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('add_client_name').value = '';
+            document.getElementById('add_client_phone').value = '';
+            document.getElementById('add_comment').value = '';
+            document.getElementById('add_force_booking').checked = false;
+            addSelectedServiceId = null;
+            addSelectedTime = null;
+            
+            backToDayView();
+            loadCalendar();
+            loadBookings(1, false);
+            if (currentSelectedDate) {
+                fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
+                    .then(r => r.json())
+                    .then(data => renderDayBookings(data.bookings));
+            }
+            showAlert('✅ Запись добавлена!', 'Готово');
+        } else {
+            showAlert('Ошибка: ' + data.error, 'Ошибка');
+        }
+    })
+    .catch(error => {
+        showAlert('Произошла ошибка', 'Ошибка');
+    })
+    .finally(() => {
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
+    });
+}
+
+// ============================================================
+// РЕДАКТИРОВАНИЕ ЗАПИСЕЙ (отдельное модальное окно)
+// ============================================================
+let editSelectedServiceId = null;
+let editSelectedDate = null;
+let editSelectedTime = null;
+let editOriginalBookingId = null;
+
+function editBookingInModal(bookingId) {
+    editOriginalBookingId = bookingId;
+    fetch(`/api/booking/${bookingId}/get/`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('edit_booking_id').value = data.id;
+            document.getElementById('edit_client_name').value = data.client_name;
+            document.getElementById('edit_client_phone').value = data.client_phone;
+            document.getElementById('edit_comment').value = data.comment || '';
+            document.getElementById('edit_status').value = data.status;
+            editSelectedDate = data.date;
+            editSelectedTime = data.time;
+            
+            loadEditServicesForModal(data.service_id, data.date, data.time);
+            initPhoneMasks();
+        });
+    
+    new bootstrap.Modal(document.getElementById('editBookingModal')).show();
+}
+
+function loadEditServicesForModal(selectedServiceId, selectedDate, selectedTime) {
+    fetch('/api/categories/')
+        .then(response => response.json())
+        .then(data => {
+            editSelectedServiceId = selectedServiceId;
+            editSelectedDate = selectedDate;
+            editSelectedTime = selectedTime;
+            
+            let html = '<div class="row">';
+            for (const cat of data.categories) {
+                if (cat.services.length === 0) continue;
+                html += `<div class="col-12 mb-2"><strong>${escapeHtml(cat.name)}</strong></div><div class="row mb-3">`;
+                cat.services.forEach(service => {
+                    const isSelected = service.id == selectedServiceId;
+                    html += `
+                        <div class="col-md-4 mb-2">
+                            <div class="card service-card ${isSelected ? 'border-pink' : ''}" data-service-id="${service.id}" data-service-duration="${service.duration}" onclick="selectEditServiceModal(this, ${service.id})">
+                                <div class="card-body p-2">
+                                    <div class="fw-bold small">${escapeHtml(service.name)}</div>
+                                    <div class="small text-muted">${service.duration} мин / ${service.price} ₽</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+            if (data.uncategorized.length > 0) {
+                html += `<div class="col-12 mb-2"><strong>Без категории</strong></div><div class="row mb-3">`;
+                data.uncategorized.forEach(service => {
+                    const isSelected = service.id == selectedServiceId;
+                    html += `
+                        <div class="col-md-4 mb-2">
+                            <div class="card service-card ${isSelected ? 'border-pink' : ''}" data-service-id="${service.id}" data-service-duration="${service.duration}" onclick="selectEditServiceModal(this, ${service.id})">
+                                <div class="card-body p-2">
+                                    <div class="fw-bold small">${escapeHtml(service.name)}</div>
+                                    <div class="small text-muted">${service.duration} мин / ${service.price} ₽</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+            html += '</div>';
+            document.getElementById('edit_services_list_modal').innerHTML = html;
+            
+            if (selectedServiceId) {
+                loadEditDatesForServiceModal(selectedServiceId, selectedDate);
+            }
+        });
+}
+
+function selectEditServiceModal(element, serviceId) {
+    document.querySelectorAll('#edit_services_list_modal .service-card').forEach(card => {
+        card.classList.remove('border-pink');
+    });
+    element.classList.add('border-pink');
+    editSelectedServiceId = serviceId;
+    loadEditDatesForServiceModal(serviceId, editSelectedDate);
+}
+
+function loadEditDatesForServiceModal(serviceId, selectedDate) {
+    fetch(`/api/${editCurrentSlug}/dates/?service_id=${serviceId}`)
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('edit_dates_list_modal');
+            if (data.dates.length === 0) {
+                container.innerHTML = '<p class="text-muted">Нет доступных дат</p>';
+                document.getElementById('edit_dates_container_modal').style.display = 'block';
+                return;
+            }
+            let html = '<div class="row">';
+            data.dates.forEach(date => {
+                const isSelected = date.date === selectedDate;
+                html += `
+                    <div class="col-md-3 col-4 mb-2">
+                        <div class="card date-card text-center ${isSelected ? 'border-pink' : ''}" data-date="${date.date}" onclick="selectEditDateModal(this, '${date.date}')">
                             <div class="card-body py-1">
-                                ${slot.start}
+                                <div class="small">${date.day_of_week}</div>
+                                <div class="fw-bold small">${date.display}</div>
                             </div>
                         </div>
                     </div>
@@ -590,27 +1005,68 @@ function loadEditSlotsForDate(serviceId, date, selectedTime) {
             });
             html += '</div>';
             container.innerHTML = html;
-            document.getElementById('edit_times_container').style.display = 'block';
+            document.getElementById('edit_dates_container_modal').style.display = 'block';
+            if (selectedDate) {
+                loadEditSlotsForDateModal(serviceId, selectedDate, editSelectedTime);
+            }
         });
 }
 
-function selectEditTime(time) {
-    editSelectedTime = time;
-    document.querySelectorAll('#edit_times_list .slot-card').forEach(card => {
+function selectEditDateModal(element, date) {
+    document.querySelectorAll('#edit_dates_list_modal .date-card').forEach(card => {
         card.classList.remove('border-pink');
     });
-    event.currentTarget.classList.add('border-pink');
+    element.classList.add('border-pink');
+    editSelectedDate = date;
+    loadEditSlotsForDateModal(editSelectedServiceId, date, null);
+}
+
+function loadEditSlotsForDateModal(serviceId, date, selectedTime) {
+    fetch(`/api/${editCurrentSlug}/slots/?service_id=${serviceId}&date=${date}`)
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('edit_times_list_modal');
+            if (data.slots.length === 0) {
+                container.innerHTML = '<p class="text-muted">Нет свободного времени</p>';
+                document.getElementById('edit_times_container_modal').style.display = 'block';
+                return;
+            }
+            let html = '<div class="row">';
+            data.slots.forEach(slot => {
+                const isSelected = slot.start === selectedTime;
+                html += `
+                    <div class="col-md-2 col-3 mb-2">
+                        <div class="card slot-card text-center ${isSelected ? 'border-pink' : ''}" data-time="${slot.start}" onclick="selectEditTimeModal(this, '${slot.start}')">
+                            <div class="card-body py-1">${slot.start}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+            document.getElementById('edit_times_container_modal').style.display = 'block';
+        });
+}
+
+function selectEditTimeModal(element, time) {
+    document.querySelectorAll('#edit_times_list_modal .slot-card').forEach(card => {
+        card.classList.remove('border-pink');
+    });
+    element.classList.add('border-pink');
+    editSelectedTime = time;
 }
 
 function saveEditedBooking() {
     const bookingId = document.getElementById('edit_booking_id').value;
     const clientName = document.getElementById('edit_client_name').value.trim();
-    const clientPhone = document.getElementById('edit_client_phone').value.trim();
+    let clientPhone = document.getElementById('edit_client_phone').value.trim();
+    clientPhone = clientPhone.replace(/\D/g, '');
+    if (clientPhone.length === 10) clientPhone = '7' + clientPhone;
     const comment = document.getElementById('edit_comment').value;
     const status = document.getElementById('edit_status').value;
     
-    if (!clientName || !clientPhone || !editSelectedServiceId || !editSelectedDate || !editSelectedTime) {
-        alert('Заполните все поля');
+    if (!clientName || !clientPhone || clientPhone.length !== 11 || !editSelectedServiceId || !editSelectedDate || !editSelectedTime) {
+        showAlert('Заполните все поля правильно. Телефон должен содержать 11 цифр.', 'Ошибка');
         return;
     }
     
@@ -646,12 +1102,13 @@ function saveEditedBooking() {
                     .then(r => r.json())
                     .then(data => renderDayBookings(data.bookings));
             }
+            showAlert('✅ Запись обновлена!', 'Готово');
         } else {
-            alert(data.error || 'Ошибка при сохранении');
+            showAlert(data.error || 'Ошибка при сохранении', 'Ошибка');
         }
     })
     .catch(error => {
-        alert('Произошла ошибка');
+        showAlert('Произошла ошибка', 'Ошибка');
     })
     .finally(() => {
         saveBtn.innerHTML = originalText;
@@ -660,33 +1117,36 @@ function saveEditedBooking() {
 }
 
 function deleteBooking(bookingId, clientName, time) {
-    if (confirm(`Удалить запись клиента "${clientName}" на ${time}?`)) {
-        fetch(`/api/booking/${bookingId}/delete/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                loadCalendar();
-                loadBookings(1, false);
-                if (currentSelectedDate) {
-                    fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
-                        .then(r => r.json())
-                        .then(data => renderDayBookings(data.bookings));
+    showConfirm(`Удалить запись клиента "${clientName}" на ${time}?`, (confirmed) => {
+        if (confirmed) {
+            fetch(`/api/booking/${bookingId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
                 }
-            } else {
-                alert(data.error || 'Ошибка при удалении');
-            }
-        });
-    }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    loadCalendar();
+                    loadBookings(1, false);
+                    if (currentSelectedDate) {
+                        fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
+                            .then(r => r.json())
+                            .then(data => renderDayBookings(data.bookings));
+                    }
+                    showAlert('Запись удалена', 'Готово');
+                } else {
+                    showAlert(data.error || 'Ошибка при удалении', 'Ошибка');
+                }
+            });
+        }
+    });
 }
 
 // ============================================================
-// БЛИЖАЙШИЕ ЗАПИСИ (пагинация)
+// БЛИЖАЙШИЕ ЗАПИСИ
 // ============================================================
 let bookingsPage = 1, bookingsHasMore = true;
 
@@ -721,7 +1181,7 @@ function renderBookings(b) {
     h += '<tr><th>Дата</th><th>Время</th><th>Клиент</th><th>Услуга</th><th>Телефон</th><th>Действия</th><th>Статус</th></tr>';
     h += '</thead><tbody>';
     b.forEach(bb => { h += createBookingRow(bb); });
-    h += '</tbody></table></div>';
+    h += '</tbody></tr></div>';
     c.innerHTML = h;
 }
 
@@ -733,7 +1193,7 @@ function createBookingRow(b) {
         <td>${b.service_name}</td>
         <td>${b.phone || '—'}</td>
         <td>
-            <button class="btn btn-sm btn-outline-pink" onclick="editBooking(${b.id})" title="Редактировать">
+            <button class="btn btn-sm btn-outline-pink" onclick="editBookingInModal(${b.id})" title="Редактировать">
                 <i class="fas fa-edit"></i>
             </button>
             <button class="btn btn-sm btn-outline-danger" onclick="deleteBooking(${b.id}, '${escapeHtml(b.client_name)}', '${b.time}')" title="Удалить">
@@ -747,79 +1207,19 @@ function createBookingRow(b) {
 function loadMoreBookings() { if (bookingsHasMore) loadBookings(bookingsPage + 1, true); }
 
 // ============================================================
-// ИНИЦИАЛИЗАЦИЯ
+// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 // ============================================================
+function escapeHtml(str) {
+    return str ? str.replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : m === '>' ? '&gt;' : m) : '';
+}
+
+// ИНИЦИАЛИЗАЦИЯ
 document.addEventListener('DOMContentLoaded', () => {
     loadCalendar();
     loadBookings(1, false);
+    initPhoneMasks();
 });
 </script>
-
-<!-- МОДАЛЬНОЕ ОКНО ДЛЯ РЕДАКТИРОВАНИЯ ЗАПИСИ -->
-<div class="modal fade" id="editBookingModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Редактирование записи</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="editBookingForm">
-                    {% csrf_token %}
-                    <input type="hidden" id="edit_booking_id">
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Имя клиента</label>
-                        <input type="text" class="form-control" id="edit_client_name" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Телефон</label>
-                        <input type="tel" class="form-control" id="edit_client_phone" required>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Статус</label>
-                        <select class="form-select" id="edit_status">
-                            <option value="confirmed">Подтверждена</option>
-                            <option value="cancelled">Отменена</option>
-                            <option value="completed">Выполнена</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label">Комментарий</label>
-                        <textarea class="form-control" id="edit_comment" rows="2"></textarea>
-                    </div>
-                    
-                    <hr>
-                    <div id="edit_services_container" class="mb-3">
-                        <label class="form-label">Услуга</label>
-                        <div id="edit_services_list" class="row">
-                            <div class="col-12 text-center">
-                                <div class="spinner-border spinner-border-sm" style="color: #7c3aed;"></div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div id="edit_dates_container" style="display: none;" class="mb-3">
-                        <label class="form-label">Дата</label>
-                        <div id="edit_dates_list" class="row"></div>
-                    </div>
-                    
-                    <div id="edit_times_container" style="display: none;" class="mb-3">
-                        <label class="form-label">Время</label>
-                        <div id="edit_times_list" class="row"></div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <button type="button" class="btn btn-pink" onclick="saveEditedBooking()">Сохранить</button>
-            </div>
-        </div>
-    </div>
-</div>
 
 <style>
 .dashboard-stat {
@@ -898,11 +1298,78 @@ document.addEventListener('DOMContentLoaded', () => {
 .service-card:hover, .date-card:hover, .slot-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
 .border-pink { border: 2px solid #ff85b3 !important; background-color: #fff9fb !important; }
 
-/* Принудительное скрытие/показ блоков */
 #workingDayActions { display: none !important; }
 #workingDayActions[style*="display: block"] { display: block !important; }
 #dayOffActions { display: none !important; }
 #dayOffActions[style*="display: block"] { display: block !important; }
+
+
+/* Убираем затемнение для всплывающих окон */
+#confirmModal .modal-backdrop,
+#alertModal .modal-backdrop {
+    display: none !important;
+}
+
+
+/* Убеждаемся, что всплывающие окна поверх основного */
+#confirmModal,
+#alertModal {
+    z-index: 1060 !important;
+}
+
+/* Принудительное скрытие кнопки "Добавить запись" в режиме редактирования дня */
+#dayModal .modal-body:has(#editFormBlock[style*="display: block"]) #addBookingButtonContainer {
+    display: none !important;
+}
+
+
+/* Принудительное скрытие кнопки в выходных днях */
+#dayOffActions[style*="display: block"] ~ #addBookingButtonContainer,
+#dayOffActions[style*="display: block"] + hr + #addBookingButtonContainer,
+body:has(#dayOffActions[style*="display: block"]) #addBookingButtonContainer {
+    display: none !important;
+}
+
+/* Убеждаемся, что в рабочих днях кнопка видна */
+#workingDayActions[style*="display: block"] ~ #addBookingButtonContainer,
+#workingDayActions[style*="display: block"] + hr + #addBookingButtonContainer,
+body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer {
+    display: block !important;
+}
+
+/* Стили для всплывающих окон (отличаются от основного) */
+#confirmModal .modal-content,
+#alertModal .modal-content {
+    background-color: #f8f9fa !important;  /* светло-серый фон */
+    border: 1px solid #dee2e6 !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
+}
+
+#confirmModal .modal-header,
+#alertModal .modal-header {
+    background-color: #e9ecef !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    border-radius: 8px 8px 0 0 !important;
+}
+
+#confirmModal .modal-footer,
+#alertModal .modal-footer {
+    background-color: #f8f9fa !important;
+    border-top: 1px solid #dee2e6 !important;
+}
+
+#confirmModal .btn-pink,
+#alertModal .btn-pink {
+    background-color: #ff85b3 !important;
+    color: white !important;
+}
+
+#confirmModal .btn-secondary,
+#alertModal .btn-secondary {
+    background-color: #6c757d !important;
+    color: white !important;
+}
+
 </style>
 {% endblock %}
 
