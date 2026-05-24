@@ -1538,40 +1538,45 @@ import json
 
 def get_available_dates(request, login):
     """API для получения доступных дат"""
-    # master = get_object_or_404(Master, slug=slug)
-    master = get_object_or_404(Master, login=login)
-    service_id = request.GET.get('service_id')
-    
-    if not service_id:
-        return JsonResponse({'error': 'Выберите услугу'}, status=400)
-    
     try:
-        service = Service.objects.get(id=service_id, master=master)
-    except Service.DoesNotExist:
-        return JsonResponse({'error': 'Услуга не найдена'}, status=404)
-    
-    calculator = ScheduleCalculator(master)
-    available_dates = calculator.get_available_dates(
-        days_ahead=60,
-        min_service_duration=service.duration
-    )
-    
-    dates_list = [{
-        'date': d.strftime('%Y-%m-%d'),
-        'display': f"{d.day} {get_month_ru(d)} {d.year}",
-        'day_of_week': get_weekday_ru(d)
-    } for d in available_dates]
-    
-    return JsonResponse({'dates': dates_list})
+        master = get_object_or_404(Master, login=login)
+        service_id = request.GET.get('service_id')
+        
+        if not service_id:
+            return JsonResponse({'error': 'Выберите услугу'}, status=400)
+        
+        try:
+            service = Service.objects.get(id=service_id, master=master)
+        except Service.DoesNotExist:
+            return JsonResponse({'error': 'Услуга не найдена'}, status=404)
+        
+        calculator = ScheduleCalculator(master)
+        available_dates = calculator.get_available_dates(
+            days_ahead=60,
+            min_service_duration=service.duration
+        )
+        
+        dates_list = [{
+            'date': d.strftime('%Y-%m-%d'),
+            'display': f"{d.day} {get_month_ru(d)} {d.year}",
+            'day_of_week': get_weekday_ru(d)
+        } for d in available_dates]
+        
+        return JsonResponse({'dates': dates_list})
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 
 def get_available_slots(request, login):
     """API для получения свободных слотов на выбранную дату"""
-    # master = get_object_or_404(Master, slug=slug)
     master = get_object_or_404(Master, login=login)
     service_id = request.GET.get('service_id')
     date_str = request.GET.get('date')
+    exclude_booking_id = request.GET.get('exclude_booking_id')  # для редактирования
     
     if not service_id or not date_str:
         return JsonResponse({'error': 'Не указаны параметры'}, status=400)
@@ -1582,9 +1587,12 @@ def get_available_slots(request, login):
     except (Service.DoesNotExist, ValueError):
         return JsonResponse({'error': 'Неверные параметры'}, status=404)
     
-    # Рассчитываем свободные слоты
     calculator = ScheduleCalculator(master)
-    slots = calculator.generate_time_slots(target_date, service.duration)
+    slots = calculator.generate_time_slots(
+        target_date, 
+        service.duration,
+        exclude_booking_id=int(exclude_booking_id) if exclude_booking_id else None
+    )
     
     return JsonResponse({'slots': slots})
 
@@ -1700,7 +1708,6 @@ def format_phone(phone):
     return f"{phone[0]} {phone[1:4]} {phone[4:7]}-{phone[7:9]}-{phone[9:11]}"
 
 
-
 @login_required
 def get_day_status(request):
     """API для получения статуса конкретного дня"""
@@ -1717,25 +1724,82 @@ def get_day_status(request):
     is_day_off = DayOff.objects.filter(master=master, date=target_date).exists()
     schedule = Schedule.objects.filter(master=master, day_of_week=day_of_week).first()
     
-    # Формируем список перерывов
-    breaks = []
+    # Определяем рабочие часы (приоритет: extra_day > schedule)
+    start_time = None
+    end_time = None
+
+       
     if extra_day:
+        start_time = extra_day.start_time.strftime('%H:%M')
+        end_time = extra_day.end_time.strftime('%H:%M')
+        # Берём перерывы из extra_day
         breaks = [{
             'start': b.start_time.strftime('%H:%M'),
             'end': b.end_time.strftime('%H:%M')
         } for b in extra_day.breaks.all()]
+    elif schedule:
+        start_time = schedule.start_time.strftime('%H:%M')
+        end_time = schedule.end_time.strftime('%H:%M')
+        # Берём перерывы из schedule
+        breaks = [{
+            'start': b.start_time.strftime('%H:%M'),
+            'end': b.end_time.strftime('%H:%M')
+        } for b in schedule.breaks.all()]
+    else:
+        breaks = []
     
     return JsonResponse({
         'is_extra': extra_day is not None,
         'is_day_off': is_day_off,
         'has_schedule': schedule is not None,
-        'schedule_start': schedule.start_time.strftime('%H:%M') if schedule else None,
-        'schedule_end': schedule.end_time.strftime('%H:%M') if schedule else None,
-        'extra_start': extra_day.start_time.strftime('%H:%M') if extra_day else None,
-        'extra_end': extra_day.end_time.strftime('%H:%M') if extra_day else None,
+        'schedule_start': start_time,
+        'schedule_end': end_time,
+        'extra_start': start_time,  # для совместимости с шаблоном
+        'extra_end': end_time,      # для совместимости с шаблоном
         'breaks': breaks,
         'date': date_str
     })
+
+# @login_required
+# def get_day_status(request):
+#     """API для получения статуса конкретного дня (с перерывами)"""
+#     master = request.user.master
+#     date_str = request.GET.get('date')
+    
+#     if not date_str:
+#         return JsonResponse({'error': 'Дата не указана'}, status=400)
+    
+#     target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+#     day_of_week = target_date.weekday()
+    
+#     extra_day = ExtraWorkingDay.objects.filter(master=master, date=target_date).first()
+#     is_day_off = DayOff.objects.filter(master=master, date=target_date).exists()
+#     schedule = Schedule.objects.filter(master=master, day_of_week=day_of_week).first()
+    
+#     # Формируем список перерывов (из доп. дня ИЛИ из расписания)
+#     breaks = []
+#     if extra_day:
+#         breaks = [{
+#             'start': b.start_time.strftime('%H:%M'),
+#             'end': b.end_time.strftime('%H:%M')
+#         } for b in extra_day.breaks.all()]
+#     elif schedule:
+#         breaks = [{
+#             'start': b.start_time.strftime('%H:%M'),
+#             'end': b.end_time.strftime('%H:%M')
+#         } for b in schedule.breaks.all()]
+    
+#     return JsonResponse({
+#         'is_extra': extra_day is not None,
+#         'is_day_off': is_day_off,
+#         'has_schedule': schedule is not None,
+#         'schedule_start': schedule.start_time.strftime('%H:%M') if schedule else None,
+#         'schedule_end': schedule.end_time.strftime('%H:%M') if schedule else None,
+#         'extra_start': extra_day.start_time.strftime('%H:%M') if extra_day else None,
+#         'extra_end': extra_day.end_time.strftime('%H:%M') if extra_day else None,
+#         'breaks': breaks,
+#         'date': date_str
+#     })
 
 
 @login_required

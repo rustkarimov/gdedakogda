@@ -516,6 +516,13 @@ function openDayModal(dateStr) {
         .then(data => {
             currentDayData = data;
             let statusText = '';
+            
+            // Добавляем информацию о перерывах
+            let breaksText = '';
+            if (data.breaks && data.breaks.length > 0) {
+                const breaksStr = data.breaks.map(b => `${b.start} - ${b.end}`).join(', ');
+                breaksText = `<br><span class="text-warning">⚠️ Перерывы: ${breaksStr}</span>`;
+            }
 
             if (data.is_day_off === true || (data.has_schedule === false && data.is_extra === false)) {
                 if (data.is_day_off) {
@@ -523,22 +530,15 @@ function openDayModal(dateStr) {
                 } else {
                     statusText = 'Нерабочий день (нет расписания)';
                 }
-                document.getElementById('currentStatusText').innerHTML = statusText;
-                if (!isPast) {
-                    document.getElementById('dayOffActions').style.display = 'block';
-                    document.getElementById('addBookingButtonContainer').style.display = 'none';
-                }
+                document.getElementById('currentStatusText').innerHTML = statusText + breaksText;
+                if (!isPast) document.getElementById('dayOffActions').style.display = 'block';
             } else {
-                if (data.is_extra) {
-                    statusText = `Рабочий день (дополнительный: ${data.extra_start} - ${data.extra_end})`;
-                } else if (data.has_schedule) {
-                    statusText = `Рабочий день (по расписанию: ${data.schedule_start} - ${data.schedule_end})`;
-                }
-                document.getElementById('currentStatusText').innerHTML = statusText;
-                if (!isPast) {
-                    document.getElementById('workingDayActions').style.display = 'block';
-                    document.getElementById('addBookingButtonContainer').style.display = 'block';
-                }
+                // Упрощённое отображение: просто "Рабочий день: 09:00 - 18:00"
+                const workStart = data.schedule_start || data.extra_start || '--:--';
+                const workEnd = data.schedule_end || data.extra_end || '--:--';
+                statusText = `Рабочий день: ${workStart} - ${workEnd}`;
+                document.getElementById('currentStatusText').innerHTML = statusText + breaksText;
+                if (!isPast) document.getElementById('workingDayActions').style.display = 'block';
             }
         });
 
@@ -591,13 +591,17 @@ function addExtraBreakField(s = '', e = '') {
 function showEditForm() {
     document.getElementById('workingDayActions').style.display = 'none';
     document.getElementById('editFormBlock').style.display = 'block';
-    document.getElementById('addBookingButtonContainer').style.display = 'none';  // ← скрываем кнопку
-    document.getElementById('extraStartTime').value = currentDayData.extra_start || '09:00';
-    document.getElementById('extraEndTime').value = currentDayData.extra_end || '18:00';
+    document.getElementById('extraStartTime').value = currentDayData.extra_start || currentDayData.schedule_start || '09:00';
+    document.getElementById('extraEndTime').value = currentDayData.extra_end || currentDayData.schedule_end || '18:00';
+    
+    // Очищаем и загружаем перерывы
     document.getElementById('extraBreaksContainer').innerHTML = '';
-    addExtraBreakField();
     if (currentDayData.breaks && currentDayData.breaks.length > 0) {
-        currentDayData.breaks.forEach(b => addExtraBreakField(b.start, b.end));
+        currentDayData.breaks.forEach(b => {
+            addExtraBreakField(b.start, b.end);
+        });
+    } else {
+        addExtraBreakField();
     }
 }
 
@@ -636,21 +640,62 @@ function makeWorkingFromDayOff() {
 }
 
 function saveDayChanges() {
-    const s = document.getElementById('extraStartTime').value, e = document.getElementById('extraEndTime').value;
+    const s = document.getElementById('extraStartTime').value;
+    const e = document.getElementById('extraEndTime').value;
     if (!s || !e) { showAlert('Заполните время', 'Ошибка'); return; }
+    
     const breaks = [];
-    document.querySelectorAll('#extraBreaksContainer .break-item').forEach(i => {
-        const st = i.querySelector('.break-start').value, en = i.querySelector('.break-end').value;
-        if (st && en) breaks.push({ start: st, end: en });
+    document.querySelectorAll('#extraBreaksContainer .break-item').forEach(item => {
+        const start = item.querySelector('.break-start').value;
+        const end = item.querySelector('.break-end').value;
+        if (start && end) {
+            breaks.push({ start: start, end: end });
+        }
     });
-    const btn = document.getElementById('saveDayBtn'), orig = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...'; btn.disabled = true;
-    fetch('/api/extra-days/delete-by-date/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }, body: JSON.stringify({ date: currentSelectedDate }) })
-    .then(() => fetch('/api/days-off/delete-by-date/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }, body: JSON.stringify({ date: currentSelectedDate }) }))
-    .then(() => fetch('/api/extra-days/add/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }, body: JSON.stringify({ date: currentSelectedDate, start_time: s, end_time: e, breaks: breaks }) }))
-    .then(r => r.json()).then(d => { if (d.success) { bootstrap.Modal.getInstance(document.getElementById('dayModal')).hide(); loadCalendar(); } else showAlert(d.error || 'Ошибка', 'Ошибка'); })
-    .catch(err => { console.error(err); showAlert('Произошла ошибка', 'Ошибка'); })
-    .finally(() => { btn.innerHTML = orig; btn.disabled = false; });
+    
+    const btn = document.getElementById('saveDayBtn');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
+    btn.disabled = true;
+    
+    fetch('/api/extra-days/delete-by-date/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+        body: JSON.stringify({ date: currentSelectedDate })
+    })
+    .then(() => fetch('/api/days-off/delete-by-date/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+        body: JSON.stringify({ date: currentSelectedDate })
+    }))
+    .then(() => fetch('/api/extra-days/add/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+        body: JSON.stringify({
+            date: currentSelectedDate,
+            start_time: s,
+            end_time: e,
+            breaks: breaks
+        })
+    }))
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('dayModal')).hide();
+            loadCalendar();
+            showAlert('✅ Изменения сохранены!', 'Готово');
+        } else {
+            showAlert(data.error || 'Ошибка', 'Ошибка');
+        }
+    })
+    .catch(err => {
+        console.error('Ошибка:', err);
+        showAlert('Произошла ошибка', 'Ошибка');
+    })
+    .finally(() => {
+        btn.innerHTML = orig;
+        btn.disabled = false;
+    });
 }
 
 // ============================================================
@@ -1372,4 +1417,3 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
 </style>
 {% endblock %}
-
