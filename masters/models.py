@@ -11,6 +11,9 @@ from django.utils.text import slugify
 from cryptography.fernet import Fernet
 import random
 
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
+
 # Кастомный менеджер пользователей
 class CustomUserManager(BaseUserManager):
     def create_user(self, phone, password=None, **extra_fields):
@@ -246,6 +249,11 @@ class Booking(models.Model):
         ('completed', 'Выполнена'),
     ]
     
+    CREATED_BY_CHOICES = [
+        ('client', 'Клиент'),
+        ('master', 'Мастер'),
+    ]
+    
     master = models.ForeignKey(Master, on_delete=models.CASCADE, related_name='bookings')
     service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='bookings')
     
@@ -260,6 +268,9 @@ class Booking(models.Model):
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='confirmed', verbose_name="Статус")
     
+    # 👇 ДОБАВЬТЕ ЭТУ СТРОКУ
+    created_by = models.CharField(max_length=10, choices=CREATED_BY_CHOICES, default='client', verbose_name="Кто создал")
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -267,7 +278,6 @@ class Booking(models.Model):
         verbose_name = "Запись"
         verbose_name_plural = "Записи"
         ordering = ['date', 'time']
-        # Нельзя дважды записать на одно и то же время
         unique_together = ['master', 'date', 'time']
     
     def __str__(self):
@@ -282,6 +292,7 @@ class BlacklistedClient(models.Model):
     """Чёрный список клиентов"""
     master = models.ForeignKey(Master, on_delete=models.CASCADE, related_name='blacklisted_clients')
     phone = models.CharField(max_length=20, verbose_name="Телефон")
+    name = models.CharField(max_length=100, verbose_name="Имя", blank=True)
     reason = models.TextField(verbose_name="Причина блокировки", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
@@ -293,6 +304,36 @@ class BlacklistedClient(models.Model):
     def __str__(self):
         return f"{self.phone} - {self.reason[:50]}"
 
+
+
+
+class Notification(models.Model):
+    TYPES = [
+        ('new_booking', 'Новая запись'),
+        ('cancelled_booking', 'Отмена записи'),
+        ('changed_booking', 'Изменение записи'),
+        ('system', 'Системное'),
+        ('promo', 'Реклама/Акция'),
+        ('warning', 'Предупреждение'),
+    ]
+    
+    master = models.ForeignKey(Master, on_delete=models.CASCADE, related_name='notifications')
+    type = models.CharField(max_length=20, choices=TYPES)
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    # Для ссылки на связанный объект (например, Booking)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
+    object_id = models.PositiveIntegerField(null=True, blank=True)
+    content_object = GenericForeignKey('content_type', 'object_id')
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"{self.get_type_display()}: {self.title[:50]}"
 
 # from django.db import models
 # from django.contrib.auth.models import User, AbstractUser

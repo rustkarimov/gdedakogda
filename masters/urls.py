@@ -93,5 +93,10 @@ urlpatterns = [
 
     path('api/blacklist/add/', views.api_blacklist_add, name='api_blacklist_add'),
     path('api/blacklist/<int:client_id>/delete/', views.api_blacklist_delete, name='api_blacklist_delete'),
+
+    path('api/notifications/', views.get_notifications, name='api_notifications'),
+    path('api/notifications/<int:notification_id>/read/', views.mark_notification_read, name='api_mark_read'),
+    path('api/notifications/<int:notification_id>/unread/', views.mark_notification_unread, name='api_mark_unread'),
+    path('api/notifications/mark-all-read/', views.mark_all_read, name='api_mark_all_read'),
     
 ]

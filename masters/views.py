@@ -8,7 +8,7 @@ from django.contrib.auth import logout as auth_logout
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from .models import BlacklistedClient, Master, Service, Booking, Schedule, DayOff, PhoneVerification, CustomUser, Break, ExtraWorkingDay, ExtraWorkingDayBreak, ServiceCategory
+from .models import BlacklistedClient, Master, Service, Booking, Schedule, DayOff, PhoneVerification, CustomUser, Break, ExtraWorkingDay, ExtraWorkingDayBreak, ServiceCategory, Notification
 from .forms import PhoneRegistrationForm, PhoneVerificationForm
 
 from django.views.decorators.http import require_http_methods
@@ -945,7 +945,8 @@ def add_manual_booking(request):
             client_comment=comment,
             date=booking_date,
             time=booking_time,
-            status='confirmed'
+            status='confirmed',
+            created_by='master'
         )
         
         messages.success(request, f'Запись для {client_name} добавлена!')
@@ -1186,7 +1187,7 @@ def api_delete_day_off(request, dayoff_id):
 
 @login_required
 def clients_statistics(request):
-    """Статистика клиентов мастера"""
+    """Статистика клиентов мастера + чёрный список"""
     master = request.user.master
     
     # Получаем все записи мастера
@@ -1199,12 +1200,11 @@ def clients_statistics(request):
     import re
     from cryptography.fernet import Fernet, InvalidToken
     
-    # Получаем ключ мастера
     key = master.get_encryption_key()
     
     # Группируем по клиентам
     clients_data = defaultdict(lambda: {
-        'name': '',
+        'names': set(),
         'phone': '',
         'total_visits': 0,
         'services': defaultdict(int),
@@ -1221,75 +1221,65 @@ def clients_statistics(request):
                 decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
                 phone = decrypted
             except (InvalidToken, Exception):
-                # Если не получилось расшифровать, пробуем как обычную строку
                 try:
                     phone = booking.encrypted_phone.decode('utf-8')
                 except:
                     phone = str(booking.encrypted_phone)
         else:
-            # Если ключа нет, пробуем как обычную строку
             try:
                 phone = booking.encrypted_phone.decode('utf-8')
             except:
                 phone = str(booking.encrypted_phone)
         
-        # Очищаем телефон от не-цифр и форматируем
         phone_cleaned = re.sub(r'\D', '', phone)
-        if len(phone_cleaned) == 11:
-            formatted_phone = f"{phone_cleaned[0]} {phone_cleaned[1:4]} {phone_cleaned[4:7]}-{phone_cleaned[7:9]}-{phone_cleaned[9:11]}"
-        else:
-            formatted_phone = phone
-        
-        # Ключ для группировки (имя + телефон)
-        # client_key = f"{booking.client_name}_{phone_cleaned}"
         client_key = phone_cleaned
         
-        clients_data[client_key]['name'] = booking.client_name
-        clients_data[client_key]['phone'] = formatted_phone
+        clients_data[client_key]['names'].add(booking.client_name)
+        clients_data[client_key]['phone'] = phone_cleaned
         clients_data[client_key]['total_visits'] += 1
         clients_data[client_key]['services'][booking.service.name] += 1
         
-        # Обновляем даты
         if clients_data[client_key]['first_visit'] is None or booking.date < clients_data[client_key]['first_visit']:
             clients_data[client_key]['first_visit'] = booking.date
         if clients_data[client_key]['last_visit'] is None or booking.date > clients_data[client_key]['last_visit']:
             clients_data[client_key]['last_visit'] = booking.date
     
+    # Получаем список заблокированных телефонов
+    blacklisted_phones = set(BlacklistedClient.objects.filter(master=master).values_list('phone', flat=True))
+    
     # Преобразуем в список для шаблона
     clients_list = []
     for client_key, data in clients_data.items():
-        # Находим самую популярную услугу
-        most_popular_service = max(data['services'].items(), key=lambda x: x[1]) if data['services'] else ('Нет', 0)
+        names_list = list(data['names'])
+        if len(names_list) == 1:
+            client_name = names_list[0]
+        else:
+            client_name = f"{names_list[0]} (+{len(names_list)-1})"
         
         clients_list.append({
-            'name': data['name'],
+            'key': client_key,
+            'name': client_name,
             'phone': data['phone'],
             'total_visits': data['total_visits'],
-            'most_popular_service': most_popular_service[0],
-            'most_popular_service_count': most_popular_service[1],
             'first_visit': data['first_visit'],
             'last_visit': data['last_visit'],
-            'services': dict(data['services'])
+            'services': dict(data['services']),
+            'all_names': list(data['names']),
+            'is_blacklisted': client_key in blacklisted_phones
         })
     
-    # Сортируем по количеству визитов
     clients_list.sort(key=lambda x: x['total_visits'], reverse=True)
     
-    # Общая статистика
-    total_clients = len(clients_list)
-    total_bookings = bookings.count()
-    avg_visits_per_client = round(total_bookings / total_clients, 1) if total_clients > 0 else 0
-
     # Чёрный список
     blacklisted_clients = BlacklistedClient.objects.filter(master=master).order_by('-created_at')
     
     context = {
         'clients': clients_list,
-        'total_clients': total_clients,
-        'total_bookings': total_bookings,
-        'avg_visits_per_client': avg_visits_per_client,
+        'total_clients': len(clients_list),
+        'total_bookings': bookings.count(),
+        'avg_visits_per_client': round(bookings.count() / len(clients_list), 1) if clients_list else 0,
         'master': master,
-        'blacklisted_clients': blacklisted_clients,  # добавляем
+        'blacklisted_clients': blacklisted_clients,
     }
     
     return render(request, 'masters/clients_statistics.html', context)
@@ -1671,7 +1661,8 @@ def create_booking(request, login):
             client_comment=comment,
             date=booking_date,
             time=booking_time,
-            status='confirmed' if not force else 'confirmed'
+            status='confirmed' if not force else 'confirmed',
+            created_by='client'
         )
         
         return JsonResponse({
@@ -1894,6 +1885,7 @@ def api_blacklist_add(request):
     data = json.loads(request.body)
     
     phone = data.get('phone')
+    name = data.get('name', '')
     reason = data.get('reason', '')
     
     import re
@@ -1902,18 +1894,49 @@ def api_blacklist_add(request):
     if not phone_cleaned or len(phone_cleaned) != 11:
         return JsonResponse({'error': 'Неверный формат номера'}, status=400)
     
+    # Добавляем или обновляем
     obj, created = BlacklistedClient.objects.update_or_create(
         master=master,
         phone=phone_cleaned,
-        defaults={'reason': reason}
+        defaults={'name': name, 'reason': reason}
     )
+    
+    # Отменяем все будущие записи этого клиента
+    from django.utils import timezone
+    today = date.today()
+    
+    # Находим все будущие записи этого клиента (нужно расшифровать телефон)
+    from cryptography.fernet import Fernet
+    key = master.get_encryption_key()
+    
+    cancelled_count = 0
+    if key:
+        f = Fernet(key)
+        # Перебираем все будущие записи мастера
+        future_bookings = Booking.objects.filter(
+            master=master,
+            date__gte=today,
+            status='confirmed'
+        )
+        
+        for booking in future_bookings:
+            try:
+                decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
+                if re.sub(r'\D', '', decrypted) == phone_cleaned:
+                    booking.status = 'cancelled'
+                    booking.save()
+                    cancelled_count += 1
+            except:
+                pass
     
     return JsonResponse({
         'success': True,
         'created': created,
+        'cancelled_count': cancelled_count,
         'client': {
             'id': obj.id,
             'phone': obj.phone,
+            'name': obj.name,
             'reason': obj.reason,
             'created_at': obj.created_at.strftime('%d.%m.%Y %H:%M')
         }
@@ -1925,4 +1948,52 @@ def api_blacklist_delete(request, client_id):
     """Удаление из чёрного списка"""
     client = get_object_or_404(BlacklistedClient, id=client_id, master=request.user.master)
     client.delete()
+    return JsonResponse({'success': True})
+
+
+# views.py
+@login_required
+def get_notifications(request):
+    master = request.user.master
+    limit = int(request.GET.get('limit', 20))
+    offset = int(request.GET.get('offset', 0))
+    
+    notifications = Notification.objects.filter(master=master)
+    total = notifications.count()
+    unread = notifications.filter(is_read=False).count()
+    notifications_list = notifications[offset:offset+limit]
+    
+    data = [{
+        'id': n.id,
+        'type': n.type,
+        'title': n.title,
+        'message': n.message,
+        'is_read': n.is_read,
+        'created_at': n.created_at.strftime('%d.%m.%Y %H:%M'),
+    } for n in notifications_list]
+    
+    return JsonResponse({
+        'notifications': data,
+        'total': total,
+        'unread': unread,
+        'has_more': offset + limit < total
+    })
+
+@login_required
+def mark_notification_read(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, master=request.user.master)
+    notification.is_read = True
+    notification.save()
+    return JsonResponse({'success': True})
+
+@login_required
+def mark_all_read(request):
+    Notification.objects.filter(master=request.user.master, is_read=False).update(is_read=True)
+    return JsonResponse({'success': True})
+
+@login_required
+def mark_notification_unread(request, notification_id):
+    notification = get_object_or_404(Notification, id=notification_id, master=request.user.master)
+    notification.is_read = False
+    notification.save()
     return JsonResponse({'success': True})

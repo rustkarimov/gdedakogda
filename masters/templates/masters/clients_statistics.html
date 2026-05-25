@@ -33,11 +33,10 @@
     </div>
 </div>
 
-<!-- Таблица клиентов -->
+<!-- Таблица клиентов (упрощённая) -->
 <div class="card mb-4">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <div class="card-header bg-white">
         <h5 class="mb-0"><i class="fas fa-table me-2" style="color: #ff85b3;"></i>Список клиентов</h5>
-        <span class="badge bg-pink total-clients-count">0</span>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -48,38 +47,30 @@
                         <th>Имя клиента</th>
                         <th>Телефон</th>
                         <th>Количество визитов</th>
-                        <th>Самая популярная услуга</th>
-                        <th>Дата первого визита</th>
-                        <th>Дата последнего визита</th>
-                        <th>Детали</th>
+                        <th>Действия</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for client in clients %}
-                    <tr>
+                    <tr data-client-key="{{ client.key }}">
                         <td>{{ forloop.counter }}</td>
-                        <td><strong>{{ client.name }}</strong></td>
+                        <td>
+                            <strong>{{ client.name }}</strong>
+                            {% if client.is_blacklisted %}
+                                <span class="badge bg-danger ms-1">В чёрном списке</span>
+                            {% endif %}
+                        </td>
                         <td>{{ client.phone|default:"—" }}</td>
                         <td><span class="badge bg-primary">{{ client.total_visits }}</span></td>
                         <td>
-                            {% if client.most_popular_service != 'Нет' %}
-                                <span class="badge bg-success">{{ client.most_popular_service }}</span>
-                                <small class="text-muted">({{ client.most_popular_service_count }} раз)</small>
-                            {% else %}
-                                <span class="text-muted">—</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ client.first_visit|date:"d.m.Y"|default:"—" }}</td>
-                        <td>{{ client.last_visit|date:"d.m.Y"|default:"—" }}</td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-pink" onclick="showClientDetails('{{ client.name }}', {{ client.services|safe }})">
-                                <i class="fas fa-eye"></i> Все услуги
+                            <button class="btn btn-sm btn-outline-pink" onclick="showClientDetails('{{ client.key|escapejs }}')">
+                                <i class="fas fa-eye"></i> Подробности
                             </button>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="8" class="text-center">Нет данных о клиентах</td>
+                        <td colspan="5" class="text-center">Нет данных о клиентах</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -105,6 +96,7 @@
                     <table class="table table-sm" id="blacklist-table">
                         <thead>
                             <tr>
+                                <th>Имя</th>
                                 <th>Телефон</th>
                                 <th>Причина</th>
                                 <th>Дата добавления</th>
@@ -114,6 +106,7 @@
                         <tbody>
                             {% for client in blacklisted_clients %}
                             <tr id="blacklist-row-{{ client.id }}">
+                                <td>{{ client.name|default:"—" }}</td>
                                 <td>{{ client.phone }}</td>
                                 <td>{{ client.reason|default:"—" }}</td>
                                 <td>{{ client.created_at|date:"d.m.Y H:i" }}</td>
@@ -146,6 +139,10 @@
                 <form id="blacklistForm">
                     {% csrf_token %}
                     <div class="mb-3">
+                        <label class="form-label">Имя клиента (необязательно)</label>
+                        <input type="text" class="form-control" id="blacklist-name" placeholder="Имя клиента">
+                    </div>
+                    <div class="mb-3">
                         <label class="form-label">Телефон клиента</label>
                         <input type="tel" class="form-control" id="blacklist-phone" 
                                placeholder="7 999 123-45-67" required>
@@ -166,48 +163,88 @@
     </div>
 </div>
 
-<!-- Модальное окно с деталями услуг клиента -->
+<!-- Модальное окно с деталями клиента -->
 <div class="modal fade" id="clientDetailsModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalClientName"></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <h6>Услуги клиента:</h6>
-                <ul id="servicesList" class="list-group"></ul>
+                <div class="mb-3">
+                    <strong>📞 Телефон:</strong> <span id="modalClientPhone"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>📅 Первый визит:</strong> <span id="modalFirstVisit"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>📅 Последний визит:</strong> <span id="modalLastVisit"></span>
+                </div>
+                <div class="mb-3">
+                    <strong>👤 Все имена:</strong>
+                    <ul id="modalAllNames" class="mb-0"></ul>
+                </div>
+                <div class="mb-3">
+                    <strong>⭐ Услуги клиента:</strong>
+                    <ul id="servicesList" class="list-group"></ul>
+                </div>
+                <div class="mb-3">
+                    <strong>🚫 В чёрном списке:</strong> <span id="modalBlacklistStatus"></span>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-danger" id="blacklistBtn" style="display: none;" onclick="addCurrentToBlacklist()">
+                    <i class="fas fa-ban me-1"></i>Добавить в чёрный список
+                </button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-// Функция экранирования HTML
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
-}
+// Данные клиентов из шаблона
+const clientsData = {};
+{% for client in clients %}
+clientsData["{{ client.key }}"] = {
+    name: "{{ client.name|escapejs }}",
+    phone: "{{ client.phone }}",
+    total_visits: {{ client.total_visits }},
+    first_visit: "{{ client.first_visit|date:'d.m.Y'|default:'—' }}",
+    last_visit: "{{ client.last_visit|date:'d.m.Y'|default:'—' }}",
+    all_names: {{ client.all_names|safe }},
+    services: {{ client.services|safe }},
+    is_blacklisted: {{ client.is_blacklisted|yesno:'true,false' }}
+};
+{% endfor %}
 
 // Показать детали клиента
-function showClientDetails(clientName, services) {
-    document.getElementById('modalClientName').innerHTML = `<i class="fas fa-user me-2" style="color: #ff85b3;"></i>${escapeHtml(clientName)}`;
+function showClientDetails(clientKey) {
+    const client = clientsData[clientKey];
+    if (!client) return;
     
+    document.getElementById('modalClientName').innerHTML = `<i class="fas fa-user me-2" style="color: #ff85b3;"></i>${escapeHtml(client.name)}`;
+    document.getElementById('modalClientPhone').textContent = client.phone || '—';
+    document.getElementById('modalFirstVisit').textContent = client.first_visit;
+    document.getElementById('modalLastVisit').textContent = client.last_visit;
+    
+    // Все имена
+    const allNamesList = document.getElementById('modalAllNames');
+    allNamesList.innerHTML = '';
+    client.all_names.forEach(name => {
+        const li = document.createElement('li');
+        li.textContent = name;
+        allNamesList.appendChild(li);
+    });
+    
+    // Услуги
     const servicesList = document.getElementById('servicesList');
     servicesList.innerHTML = '';
-    
-    if (Object.keys(services).length === 0) {
+    if (Object.keys(client.services).length === 0) {
         servicesList.innerHTML = '<li class="list-group-item">Нет данных об услугах</li>';
     } else {
-        const sortedServices = Object.entries(services).sort((a, b) => b[1] - a[1]);
+        const sortedServices = Object.entries(client.services).sort((a, b) => b[1] - a[1]);
         sortedServices.forEach(([serviceName, count]) => {
             const li = document.createElement('li');
             li.className = 'list-group-item d-flex justify-content-between align-items-center';
@@ -219,7 +256,47 @@ function showClientDetails(clientName, services) {
         });
     }
     
+    // Чёрный список
+    const blacklistStatus = document.getElementById('modalBlacklistStatus');
+    const blacklistBtn = document.getElementById('blacklistBtn');
+    if (client.is_blacklisted) {
+        blacklistStatus.innerHTML = '<span class="badge bg-danger">В чёрном списке</span>';
+        blacklistBtn.style.display = 'none';
+    } else {
+        blacklistStatus.innerHTML = '<span class="badge bg-success">Не в чёрном списке</span>';
+        blacklistBtn.style.display = 'inline-block';
+        blacklistBtn.setAttribute('data-phone', client.phone);
+        blacklistBtn.setAttribute('data-name', client.name);
+    }
+    
     new bootstrap.Modal(document.getElementById('clientDetailsModal')).show();
+}
+
+// Добавить текущего клиента в чёрный список
+function addCurrentToBlacklist() {
+    const btn = document.getElementById('blacklistBtn');
+    const phone = btn.getAttribute('data-phone');
+    const name = btn.getAttribute('data-name');
+    
+    if (!confirm(`Добавить "${name}" (${phone}) в чёрный список?`)) return;
+    
+    fetch('/api/blacklist/add/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ phone: phone, name: name, reason: '' })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`✅ Клиент добавлен в чёрный список. ${data.cancelled_count > 0 ? `Отменено будущих записей: ${data.cancelled_count}` : ''}`);
+            location.reload();
+        } else {
+            alert(data.error || 'Ошибка');
+        }
+    });
 }
 
 // Маска телефона
@@ -249,8 +326,9 @@ function phoneMask(input) {
     input.value = formatted;
 }
 
-// Добавление в чёрный список
+// Добавление в чёрный список из модалки
 function addToBlacklist() {
+    const name = document.getElementById('blacklist-name').value;
     const phone = document.getElementById('blacklist-phone').value;
     const reason = document.getElementById('blacklist-reason').value;
     
@@ -270,34 +348,13 @@ function addToBlacklist() {
             'Content-Type': 'application/json',
             'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
         },
-        body: JSON.stringify({ phone: phone, reason: reason })
+        body: JSON.stringify({ name: name, phone: phone, reason: reason })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Добавляем строку в таблицу
-            const tbody = document.querySelector('#blacklist-table tbody');
-            if (tbody) {
-                const newRow = document.createElement('tr');
-                newRow.id = `blacklist-row-${data.client.id}`;
-                newRow.innerHTML = `
-                    <td>${escapeHtml(data.client.phone)}</td>
-                    <td>${escapeHtml(data.client.reason || '—')}</td>
-                    <td>${data.client.created_at}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteFromBlacklist(${data.client.id})">
-                            <i class="fas fa-trash"></i> Удалить
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(newRow);
-            }
-            
-            // Очищаем форму и закрываем модалку
-            document.getElementById('blacklist-phone').value = '';
-            document.getElementById('blacklist-reason').value = '';
-            bootstrap.Modal.getInstance(document.getElementById('blacklistModal')).hide();
-            alert('✅ Клиент добавлен в чёрный список');
+            alert(`✅ Клиент добавлен в чёрный список. ${data.cancelled_count > 0 ? `Отменено будущих записей: ${data.cancelled_count}` : ''}`);
+            location.reload();
         } else {
             alert(data.error || 'Ошибка');
         }
@@ -325,115 +382,21 @@ function deleteFromBlacklist(clientId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            const row = document.getElementById(`blacklist-row-${clientId}`);
-            if (row) row.remove();
-            
-            // Если таблица стала пустой, показываем сообщение
-            const tbody = document.querySelector('#blacklist-table tbody');
-            if (tbody && tbody.children.length === 0) {
-                const container = document.getElementById('blacklist-container');
-                container.innerHTML = '<p class="text-muted text-center mb-0">Чёрный список пуст</p>';
-            }
+            location.reload();
         } else {
             alert(data.error || 'Ошибка при удалении');
         }
     });
 }
 
-// Маска для поля телефона в модалке
-document.getElementById('blacklist-phone')?.addEventListener('input', function() {
-    phoneMask(this);
-});
-
-// Пагинация клиентов (если нужна)
-let clientsPage = 1;
-let clientsHasMore = true;
-let clientsTotal = 0;
-let allClients = [];
-
-function loadClients(page = 1, append = false) {
-    fetch(`/api/clients-statistics/?page=${page}&limit=20`)
-        .then(response => response.json())
-        .then(data => {
-            if (append) {
-                allClients = [...allClients, ...data.clients];
-                renderClientsTable(allClients);
-            } else {
-                allClients = data.clients;
-                renderClientsTable(data.clients);
-                const totalSpan = document.querySelector('.total-clients-count');
-                if (totalSpan) totalSpan.textContent = data.total;
-                clientsTotal = data.total;
-            }
-            
-            clientsHasMore = data.has_more;
-            clientsPage = page;
-            
-            const loadMoreBtn = document.getElementById('load-more-clients');
-            if (clientsHasMore && data.clients && data.clients.length > 0) {
-                if (!loadMoreBtn) {
-                    const btn = document.createElement('button');
-                    btn.id = 'load-more-clients';
-                    btn.className = 'btn btn-outline-pink mt-3';
-                    btn.innerHTML = '<i class="fas fa-chevron-down me-2"></i>Показать еще';
-                    btn.onclick = () => loadMoreClients();
-                    document.querySelector('.card-body').appendChild(btn);
-                } else {
-                    loadMoreBtn.style.display = 'inline-block';
-                }
-            } else if (loadMoreBtn) {
-                loadMoreBtn.style.display = 'none';
-            }
-        })
-        .catch(error => {
-            console.error('Ошибка:', error);
-        });
-}
-
-function renderClientsTable(clients) {
-    const tbody = document.querySelector('#clients-table tbody');
-    if (!tbody) return;
-    
-    if (clients.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center">Нет данных о клиентах</td></tr>';
-        return;
-    }
-    
-    let html = '';
-    clients.forEach((client, index) => {
-        html += `
-            <tr>
-                <td>${index + 1}</td>
-                <td><strong>${escapeHtml(client.name)}</strong></td>
-                <td>${client.phone || '—'}</td>
-                <td><span class="badge bg-primary">${client.total_visits}</span></td>
-                <td>
-                    <span class="badge bg-success">${escapeHtml(client.most_popular_service)}</span>
-                    <small class="text-muted">(${client.most_popular_service_count} раз)</small>
-                </td>
-                <td>${client.first_visit || '—'}</td>
-                <td>${client.last_visit || '—'}</td>
-                <td>
-                    <button class="btn btn-sm btn-outline-pink" onclick="showClientDetails('${escapeHtml(client.name)}', ${JSON.stringify(client.services)})">
-                        <i class="fas fa-eye"></i> Все услуги
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-    tbody.innerHTML = html;
-}
-
-function loadMoreClients() {
-    if (clientsHasMore) {
-        loadClients(clientsPage + 1, true);
-    }
-}
-
 // Поиск по таблице клиентов
 document.addEventListener('DOMContentLoaded', function() {
-    loadClients(1, false);
+    // Маска для поля телефона
+    document.getElementById('blacklist-phone')?.addEventListener('input', function() {
+        phoneMask(this);
+    });
     
+    // Поиск
     const searchInput = document.createElement('input');
     searchInput.type = 'text';
     searchInput.placeholder = '🔍 Поиск по имени или телефону...';
@@ -463,6 +426,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
 </script>
 
 <style>

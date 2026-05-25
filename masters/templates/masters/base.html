@@ -62,9 +62,17 @@
                     </button>
                     <div class="logo">
                         <i class="fas fa-calendar-check"></i>
-                        <span>Где Да Когда</span>
+                        <span>ДАТЫ</span>
                     </div>
                 </div>
+
+                <!-- Колокольчик в шапке -->
+<div class="notification-bell" onclick="toggleNotifications()" style="position: relative; cursor: pointer; margin-right: 15px;">
+    <i class="fas fa-bell" style="color: white; font-size: 1.3rem;"></i>
+    <span class="notification-dot" id="notification-dot" style="display: none; position: absolute; top: -3px; right: -5px; width: 10px; height: 10px; background-color: red; border-radius: 50%; border: 1px solid white;"></span>
+</div>
+
+
                 <div class="top-bar-right">
                     <a href="#" class="support-link">
                         <i class="fas fa-headset"></i>
@@ -108,6 +116,200 @@
                 
                 {% block content %}{% endblock %}
             </div>
+
+<!-- Модальное окно уведомлений -->
+<div id="notificationsModal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-bell me-2"></i>Уведомления
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="notification-header d-flex justify-content-between p-3 border-bottom">
+                    <span id="unread-count"></span>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="markAllRead()">
+                        <i class="fas fa-check-double me-1"></i>Прочитать все
+                    </button>
+                </div>
+                <div id="notifications-list" class="notifications-list">
+                    <!-- Уведомления будут загружены сюда -->
+                </div>
+                <div class="text-center p-3" id="load-more-notifications" style="display: none;">
+                    <button class="btn btn-sm btn-outline-pink" onclick="loadMoreNotifications()">
+                        Загрузить ещё
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let notificationsOffset = 0;
+let notificationsHasMore = true;
+let notificationsTotal = 0;
+
+function loadNotifications(append = false) {
+    if (!append) notificationsOffset = 0;
+    
+    fetch(`/api/notifications/?offset=${notificationsOffset}&limit=20`)
+        .then(r => r.json())
+        .then(data => {
+            if (!append) {
+                notificationsTotal = data.total;
+                document.getElementById('unread-count').innerHTML = `${data.unread} непрочитанных`;
+                
+                // Управление красной точкой (а не цифрой)
+                const dot = document.getElementById('notification-dot');
+                if (data.unread > 0) {
+                    dot.style.display = 'block';
+                } else {
+                    dot.style.display = 'none';
+                }
+            }
+            
+            renderNotifications(data.notifications, append);
+            notificationsHasMore = data.has_more;
+            notificationsOffset += data.notifications.length;
+            document.getElementById('load-more-notifications').style.display = notificationsHasMore ? 'block' : 'none';
+        });
+}
+
+function renderNotifications(notifications, append) {
+    const container = document.getElementById('notifications-list');
+    if (!append) container.innerHTML = '';
+    
+    notifications.forEach(n => {
+        const div = document.createElement('div');
+        div.className = `notification-item p-3 border-bottom ${n.is_read ? 'read' : 'unread'}`;
+        div.setAttribute('data-id', n.id);
+        div.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1" style="cursor: pointer;" onclick="toggleNotificationDetails(this)">
+                    <div class="notification-title">
+                        <span class="badge ${getTypeBadgeClass(n.type)} me-2">${getTypeName(n.type)}</span>
+                        <strong>${escapeHtml(n.title)}</strong>
+                    </div>
+                    <div class="notification-message text-muted small mt-1" style="display: none;">
+                        ${escapeHtml(n.message)}
+                        <div class="text-muted mt-1 small">${n.created_at}</div>
+                    </div>
+                </div>
+                <div class="notification-actions">
+                    <button class="btn btn-sm ${n.is_read ? 'btn-outline-secondary' : 'btn-outline-primary'}" 
+                            onclick="toggleReadStatus(${n.id}, ${!n.is_read})" title="Отметить ${n.is_read ? 'непрочитанным' : 'прочитанным'}">
+                        <i class="fas ${n.is_read ? 'fa-envelope-open' : 'fa-check'}"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function toggleNotificationDetails(element) {
+    const msgDiv = element.querySelector('.notification-message');
+    const isVisible = msgDiv.style.display === 'block';
+    msgDiv.style.display = isVisible ? 'none' : 'block';
+}
+
+function toggleReadStatus(notificationId, markAsRead) {
+    const url = markAsRead ? `/api/notifications/${notificationId}/read/` : `/api/notifications/${notificationId}/unread/`;
+    
+    fetch(url, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            loadNotifications(false);
+        }
+    });
+}
+
+function markAllRead() {
+    fetch('/api/notifications/mark-all-read/', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) loadNotifications(false);
+    });
+}
+
+function loadMoreNotifications() {
+    loadNotifications(true);
+}
+
+function toggleNotifications() {
+    const modal = new bootstrap.Modal(document.getElementById('notificationsModal'));
+    modal.show();
+    loadNotifications(false);
+}
+
+function getTypeBadgeClass(type) {
+    const classes = {
+        'new_booking': 'bg-success',
+        'cancelled_booking': 'bg-danger',
+        'changed_booking': 'bg-warning text-dark',
+        'system': 'bg-secondary',
+        'promo': 'bg-info',
+        'warning': 'bg-warning text-dark'
+    };
+    return classes[type] || 'bg-secondary';
+}
+
+function getTypeName(type) {
+    const names = {
+        'new_booking': '📅 Новая запись',
+        'cancelled_booking': '❌ Отмена',
+        'changed_booking': '✏️ Изменение',
+        'system': '🔧 Системное',
+        'promo': '🎉 Акция',
+        'warning': '⚠️ Важно'
+    };
+    return names[type] || type;
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
+document.addEventListener('DOMContentLoaded', function() {
+    // Загружаем количество непрочитанных уведомлений для отображения красной точки
+    fetch('/api/notifications/?offset=0&limit=1')
+        .then(r => r.json())
+        .then(data => {
+            const dot = document.getElementById('notification-dot');
+            if (data.unread > 0) {
+                dot.style.display = 'block';
+            } else {
+                dot.style.display = 'none';
+            }
+        })
+        .catch(error => console.error('Ошибка загрузки уведомлений:', error));
+});
+</script>
+
+
+
         </main>
     </div>
 
@@ -122,6 +324,32 @@
             });
         }
     </script>
+
+    <style>
+        /* Колокольчик уведомлений */
+.notification-bell {
+    position: relative;
+    cursor: pointer;
+    margin-right: 15px;
+}
+
+.notification-bell i {
+    color: white;
+    font-size: 1.3rem;
+}
+
+.notification-dot {
+    position: absolute;
+    top: -3px;
+    right: -5px;
+    width: 10px;
+    height: 10px;
+    background-color: #ff4444;
+    border-radius: 50%;
+    border: 1px solid white;
+    display: none;
+}
+    </style>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
