@@ -90,5 +90,8 @@ urlpatterns = [
     path('api/mobile/resend-code/', views.mobile_resend_code, name='mobile_resend_code'),
 
     path('api/upload-avatar/', views.upload_avatar, name='upload_avatar'),
+
+    path('api/blacklist/add/', views.api_blacklist_add, name='api_blacklist_add'),
+    path('api/blacklist/<int:client_id>/delete/', views.api_blacklist_delete, name='api_blacklist_delete'),
     
 ]

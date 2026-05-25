@@ -36,19 +36,7 @@
     </div>
 </div>
 
-<div class="card mb-4">
-    <div class="card-body">
-        <h5><i class="fas fa-share-alt me-2" style="color: #ff85b3;"></i>Ваша страница для записи</h5>
-        <div class="input-group">
-            <input type="text" class="form-control" id="publicLink" 
-                value="{{ request.scheme }}://{{ request.get_host }}/{{ master.public_slug }}/" readonly>
-            <button class="btn btn-pink" type="button" onclick="copyPublicLink()">
-                <i class="fas fa-copy"></i> Копировать
-            </button>
-        </div>
-        <small class="text-muted">Отправьте эту ссылку клиентам, и они смогут записаться к вам</small>
-    </div>
-</div>
+
 
 <div class="card mb-4">
     <div class="card-header bg-white"><h5 class="mb-0"><i class="far fa-calendar-alt me-2" style="color: #ff85b3;"></i>Календарь</h5></div>
@@ -82,6 +70,20 @@
                 <i class="fas fa-chevron-down me-2"></i>Показать еще
             </button>
         </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h5><i class="fas fa-share-alt me-2" style="color: #ff85b3;"></i>Ваша страница для записи</h5>
+        <div class="input-group">
+            <input type="text" class="form-control" id="publicLink" 
+                value="{{ request.scheme }}://{{ request.get_host }}/{{ master.public_slug }}/" readonly>
+            <button class="btn btn-pink" type="button" onclick="copyPublicLink()">
+                <i class="fas fa-copy"></i> Копировать
+            </button>
+        </div>
+        <small class="text-muted">Отправьте эту ссылку клиентам, и они смогут записаться к вам</small>
     </div>
 </div>
 
@@ -452,6 +454,7 @@ function renderCalendar(data, countsData, year, month) {
         const bookingCount = (countsData.counts && countsData.counts[dateStr]) ? countsData.counts[dateStr] : 0;
 
         let workingClass = '', statusText = '';
+        let hasBreaks = false;
 
         if (isDayOff) {
             workingClass = 'non-working';
@@ -459,9 +462,15 @@ function renderCalendar(data, countsData, year, month) {
         } else if (extraDay) {
             workingClass = 'working';
             statusText = `${extraDay.start} - ${extraDay.end}`;
+            if (extraDay.breaks && extraDay.breaks.length > 0) {
+                hasBreaks = true;
+            }
         } else if (schedule) {
             workingClass = 'working';
             statusText = `${schedule.start} - ${schedule.end}`;
+            if (schedule.breaks && schedule.breaks.length > 0) {
+                hasBreaks = true;
+            }
         } else {
             workingClass = 'non-working';
             statusText = '';
@@ -472,9 +481,12 @@ function renderCalendar(data, countsData, year, month) {
         const todayClass = isToday ? 'today' : '';
 
         html += `<div class="calendar-date ${workingClass} ${todayClass}" onclick="openDayModal('${dateStr}')">
-                    ${d}
+                    <div class="calendar-date-number">${d}</div>
                     <div class="calendar-time">${statusText}</div>
-                    ${bookingCount > 0 ? `<span class="booking-badge">${bookingCount}</span>` : ''}
+                    <div class="calendar-icons">
+                        ${bookingCount > 0 ? `<span class="booking-badge">${bookingCount}</span>` : ''}
+                        ${hasBreaks ? `<span class="break-badge" title="В этот день есть перерывы">⏸️</span>` : ''}
+                    </div>
                 </div>`;
     }
     html += '</div>';
@@ -644,58 +656,129 @@ function saveDayChanges() {
     const e = document.getElementById('extraEndTime').value;
     if (!s || !e) { showAlert('Заполните время', 'Ошибка'); return; }
     
-    const breaks = [];
-    document.querySelectorAll('#extraBreaksContainer .break-item').forEach(item => {
-        const start = item.querySelector('.break-start').value;
-        const end = item.querySelector('.break-end').value;
-        if (start && end) {
-            breaks.push({ start: start, end: end });
-        }
-    });
+    // Функция для перевода времени в минуты
+    function timeToMinutes(timeStr) {
+        const [hours, minutes] = timeStr.split(':');
+        return parseInt(hours) * 60 + parseInt(minutes);
+    }
     
-    const btn = document.getElementById('saveDayBtn');
-    const orig = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
-    btn.disabled = true;
+    // Получаем длительность услуги для каждого бронирования
+    function getServiceDuration(serviceName) {
+        // Можно заранее загрузить все услуги или передавать duration из API
+        // Временное решение — запросить длительность через API
+        return new Promise((resolve) => {
+            // Если у вас в bookings уже есть service_duration, используйте его
+            // Здесь упрощённо: предполагаем, что в data.bookings есть service_duration
+            resolve(60); // заглушка, нужно заменить на реальную
+        });
+    }
     
-    fetch('/api/extra-days/delete-by-date/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
-        body: JSON.stringify({ date: currentSelectedDate })
-    })
-    .then(() => fetch('/api/days-off/delete-by-date/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
-        body: JSON.stringify({ date: currentSelectedDate })
-    }))
-    .then(() => fetch('/api/extra-days/add/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
-        body: JSON.stringify({
-            date: currentSelectedDate,
-            start_time: s,
-            end_time: e,
-            breaks: breaks
+    // Проверяем, есть ли записи на этот день
+    fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.bookings && data.bookings.length > 0) {
+                const breaks = [];
+                document.querySelectorAll('#extraBreaksContainer .break-item').forEach(item => {
+                    const start = item.querySelector('.break-start').value;
+                    const end = item.querySelector('.break-end').value;
+                    if (start && end) {
+                        breaks.push({ start: start, end: end });
+                    }
+                });
+                
+                let hasConflict = false;
+                
+                // Для каждого перерыва
+                for (const breakItem of breaks) {
+                    const breakStart = timeToMinutes(breakItem.start);
+                    const breakEnd = timeToMinutes(breakItem.end);
+                    
+                    // Проверяем каждую запись
+                    for (const booking of data.bookings) {
+                        const bookingStart = timeToMinutes(booking.time);
+                        // Получаем длительность услуги (если есть в данных)
+                        const bookingDuration = booking.service_duration || 60; // запасной вариант
+                        const bookingEnd = bookingStart + bookingDuration;
+                        
+                        // Проверяем ПЕРЕСЕЧЕНИЕ интервалов
+                        // Два интервала пересекаются, если начало одного меньше конца другого И конец одного больше начала другого
+                        const isOverlap = (breakStart < bookingEnd && breakEnd > bookingStart);
+                        
+                        if (isOverlap) {
+                            hasConflict = true;
+                            showAlert(`❌ Нельзя установить перерыв с ${breakItem.start} до ${breakItem.end}, так как пересекается с записью клиента "${booking.client_name}" (${booking.time})`, 'Ошибка');
+                            break;
+                        }
+                    }
+                    if (hasConflict) break;
+                }
+                
+                if (hasConflict) return;
+            }
+            
+            // Если проверка пройдена — продолжаем сохранение
+            proceedWithSave();
         })
-    }))
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            bootstrap.Modal.getInstance(document.getElementById('dayModal')).hide();
-            loadCalendar();
-            showAlert('✅ Изменения сохранены!', 'Готово');
-        } else {
-            showAlert(data.error || 'Ошибка', 'Ошибка');
-        }
-    })
-    .catch(err => {
-        console.error('Ошибка:', err);
-        showAlert('Произошла ошибка', 'Ошибка');
-    })
-    .finally(() => {
-        btn.innerHTML = orig;
-        btn.disabled = false;
-    });
+        .catch(err => {
+            console.error('Ошибка проверки записей:', err);
+            proceedWithSave(); // в случае ошибки всё равно сохраняем
+        });
+    
+    function proceedWithSave() {
+        const breaks = [];
+        document.querySelectorAll('#extraBreaksContainer .break-item').forEach(item => {
+            const start = item.querySelector('.break-start').value;
+            const end = item.querySelector('.break-end').value;
+            if (start && end) {
+                breaks.push({ start: start, end: end });
+            }
+        });
+        
+        const btn = document.getElementById('saveDayBtn');
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
+        btn.disabled = true;
+        
+        fetch('/api/extra-days/delete-by-date/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+            body: JSON.stringify({ date: currentSelectedDate })
+        })
+        .then(() => fetch('/api/days-off/delete-by-date/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+            body: JSON.stringify({ date: currentSelectedDate })
+        }))
+        .then(() => fetch('/api/extra-days/add/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+            body: JSON.stringify({
+                date: currentSelectedDate,
+                start_time: s,
+                end_time: e,
+                breaks: breaks
+            })
+        }))
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('dayModal')).hide();
+                loadCalendar();
+                showAlert('✅ Изменения сохранены!', 'Готово');
+            } else {
+                showAlert(data.error || 'Ошибка', 'Ошибка');
+            }
+        })
+        .catch(err => {
+            console.error('Ошибка:', err);
+            showAlert('Произошла ошибка', 'Ошибка');
+        })
+        .finally(() => {
+            btn.innerHTML = orig;
+            btn.disabled = false;
+        });
+    }
 }
 
 // ============================================================
@@ -1067,7 +1150,7 @@ function selectEditDateModal(element, date) {
 }
 
 function loadEditSlotsForDateModal(serviceId, date, selectedTime) {
-    fetch(`/api/${editCurrentSlug}/slots/?service_id=${serviceId}&date=${date}`)
+    fetch(`/api/${editCurrentSlug}/slots/?service_id=${serviceId}&date=${date}&exclude_booking_id=${editOriginalBookingId}`)
         .then(response => response.json())
         .then(data => {
             const container = document.getElementById('edit_times_list_modal');
@@ -1266,8 +1349,9 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+
 <style>
-.dashboard-stat {
+    .dashboard-stat {
     text-align: center;
     padding: 20px;
     background: #fff;
@@ -1313,19 +1397,48 @@ document.addEventListener('DOMContentLoaded', () => {
     transition: all 0.2s;
     border: 1px solid #e5e7eb;
     position: relative;
+    display: flex;
+    flex-direction: column;
 }
-.calendar-date.empty { background-color: transparent; border: 0; cursor: default; box-shadow: none; }
+.calendar-date.empty {
+    background-color: transparent;
+    border: 0;
+    cursor: default;
+    box-shadow: none;
+    display: block;
+}
 .calendar-date.working { background-color: #d4edda; border-color: #28a745; }
 .calendar-date.non-working { background-color: #e9ecef; border-color: #ced4da; opacity: 0.7; }
 .calendar-date.past { opacity: 0.5; }
 .calendar-date.today { border: 2px solid #ff85b3; box-shadow: 0 0 0 2px rgba(255, 133, 179, 0.3); }
-.calendar-time { font-size: 0.65rem; margin-top: 5px; color: #666; }
+
+.calendar-date-number {
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.calendar-time {
+    font-size: 0.65rem;
+    margin-top: 2px;
+    color: #666;
+    line-height: 1.2;
+}
 .calendar-date.working .calendar-time { color: #155724; }
 
-.booking-badge {
+/* Контейнер для иконок в правом верхнем углу */
+/* Контейнер для иконок в правом верхнем углу */
+.calendar-icons {
     position: absolute;
-    top: 2px;
+    top: 4px;
     right: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.booking-badge {
     background-color: #ff85b3;
     color: #fff;
     font-size: 0.7rem;
@@ -1339,6 +1452,19 @@ document.addEventListener('DOMContentLoaded', () => {
     padding: 0 4px;
 }
 
+.break-badge {
+    font-size: 12px;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    cursor: help;
+}
+
 .service-card, .date-card, .slot-card { cursor: pointer; transition: all 0.2s ease; }
 .service-card:hover, .date-card:hover, .slot-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
 .border-pink { border: 2px solid #ff85b3 !important; background-color: #fff9fb !important; }
@@ -1348,13 +1474,11 @@ document.addEventListener('DOMContentLoaded', () => {
 #dayOffActions { display: none !important; }
 #dayOffActions[style*="display: block"] { display: block !important; }
 
-
 /* Убираем затемнение для всплывающих окон */
 #confirmModal .modal-backdrop,
 #alertModal .modal-backdrop {
     display: none !important;
 }
-
 
 /* Убеждаемся, что всплывающие окна поверх основного */
 #confirmModal,
@@ -1366,7 +1490,6 @@ document.addEventListener('DOMContentLoaded', () => {
 #dayModal .modal-body:has(#editFormBlock[style*="display: block"]) #addBookingButtonContainer {
     display: none !important;
 }
-
 
 /* Принудительное скрытие кнопки в выходных днях */
 #dayOffActions[style*="display: block"] ~ #addBookingButtonContainer,
@@ -1385,7 +1508,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 /* Стили для всплывающих окон (отличаются от основного) */
 #confirmModal .modal-content,
 #alertModal .modal-content {
-    background-color: #f8f9fa !important;  /* светло-серый фон */
+    background-color: #f8f9fa !important;
     border: 1px solid #dee2e6 !important;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
 }
@@ -1414,6 +1537,5 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     background-color: #6c757d !important;
     color: white !important;
 }
-
 </style>
 {% endblock %}

@@ -4,7 +4,6 @@ from django.utils.text import slugify  # <--- ДОБАВЬ ЭТУ СТРОКУ
 from cryptography.fernet import Fernet
 import os
 import base64  # тоже может пригодиться
-
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
@@ -279,7 +278,20 @@ class Booking(models.Model):
         f = Fernet(key)
         return f.decrypt(bytes(self.encrypted_phone)).decode()
 
-
+class BlacklistedClient(models.Model):
+    """Чёрный список клиентов"""
+    master = models.ForeignKey(Master, on_delete=models.CASCADE, related_name='blacklisted_clients')
+    phone = models.CharField(max_length=20, verbose_name="Телефон")
+    reason = models.TextField(verbose_name="Причина блокировки", blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        verbose_name = "Клиент в чёрном списке"
+        verbose_name_plural = "Чёрный список клиентов"
+        unique_together = ['master', 'phone']
+    
+    def __str__(self):
+        return f"{self.phone} - {self.reason[:50]}"
 
 
 # from django.db import models

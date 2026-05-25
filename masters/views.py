@@ -8,7 +8,7 @@ from django.contrib.auth import logout as auth_logout
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from .models import Master, Service, Booking, Schedule, DayOff, PhoneVerification, CustomUser, Break, ExtraWorkingDay, ExtraWorkingDayBreak, ServiceCategory
+from .models import BlacklistedClient, Master, Service, Booking, Schedule, DayOff, PhoneVerification, CustomUser, Break, ExtraWorkingDay, ExtraWorkingDayBreak, ServiceCategory
 from .forms import PhoneRegistrationForm, PhoneVerificationForm
 
 from django.views.decorators.http import require_http_methods
@@ -857,6 +857,7 @@ def get_bookings_by_date(request):
             'time': booking.time.strftime('%H:%M'),
             'client_name': booking.client_name,
             'service_name': booking.service.name,
+            'service_duration': booking.service.duration,  # ← ДОБАВЬТЕ ЭТУ СТРОКУ
             'phone': formatted_phone
         })
     
@@ -903,6 +904,9 @@ def add_manual_booking(request):
         client_phone_cleaned = re.sub(r'\D', '', client_phone)
         
         # Проверяем формат российского номера
+        if BlacklistedClient.objects.filter(master=master, phone=client_phone_cleaned).exists():
+            return JsonResponse({'error': 'Этот клиент находится в чёрном списке'}, status=403)
+    
         if len(client_phone_cleaned) != 11:
             messages.error(request, 'Номер телефона должен содержать 11 цифр')
             return redirect('add_manual_booking')
@@ -1275,13 +1279,17 @@ def clients_statistics(request):
     total_clients = len(clients_list)
     total_bookings = bookings.count()
     avg_visits_per_client = round(total_bookings / total_clients, 1) if total_clients > 0 else 0
+
+    # Чёрный список
+    blacklisted_clients = BlacklistedClient.objects.filter(master=master).order_by('-created_at')
     
     context = {
         'clients': clients_list,
         'total_clients': total_clients,
         'total_bookings': total_bookings,
         'avg_visits_per_client': avg_visits_per_client,
-        'master': master
+        'master': master,
+        'blacklisted_clients': blacklisted_clients,  # добавляем
     }
     
     return render(request, 'masters/clients_statistics.html', context)
@@ -1629,6 +1637,9 @@ def create_booking(request, login):
         if not client_phone_cleaned.startswith('7'):
             return JsonResponse({'error': 'Номер должен начинаться с 7'}, status=400)
         
+        if BlacklistedClient.objects.filter(master=master, phone=client_phone_cleaned).exists():
+            return JsonResponse({'error': 'Этот клиент находится в чёрном списке'}, status=403)
+        
         service = Service.objects.get(id=service_id, master=master)
         booking_date = datetime.strptime(date_str, '%Y-%m-%d').date()
         booking_time = datetime.strptime(time_str, '%H:%M').time()
@@ -1874,3 +1885,44 @@ def upload_avatar(request):
         })
     
     return JsonResponse({'error': 'Неверный запрос'}, status=400)
+
+@login_required
+@require_http_methods(["POST"])
+def api_blacklist_add(request):
+    """Добавление клиента в чёрный список"""
+    master = request.user.master
+    data = json.loads(request.body)
+    
+    phone = data.get('phone')
+    reason = data.get('reason', '')
+    
+    import re
+    phone_cleaned = re.sub(r'\D', '', phone)
+    
+    if not phone_cleaned or len(phone_cleaned) != 11:
+        return JsonResponse({'error': 'Неверный формат номера'}, status=400)
+    
+    obj, created = BlacklistedClient.objects.update_or_create(
+        master=master,
+        phone=phone_cleaned,
+        defaults={'reason': reason}
+    )
+    
+    return JsonResponse({
+        'success': True,
+        'created': created,
+        'client': {
+            'id': obj.id,
+            'phone': obj.phone,
+            'reason': obj.reason,
+            'created_at': obj.created_at.strftime('%d.%m.%Y %H:%M')
+        }
+    })
+
+@login_required
+@require_http_methods(["POST"])
+def api_blacklist_delete(request, client_id):
+    """Удаление из чёрного списка"""
+    client = get_object_or_404(BlacklistedClient, id=client_id, master=request.user.master)
+    client.delete()
+    return JsonResponse({'success': True})
