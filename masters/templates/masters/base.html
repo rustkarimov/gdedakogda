@@ -66,14 +66,15 @@
                     </div>
                 </div>
 
-                <!-- Колокольчик в шапке -->
-<div class="notification-bell" onclick="toggleNotifications()" style="position: relative; cursor: pointer; margin-right: 15px;">
-    <i class="fas fa-bell" style="color: white; font-size: 1.3rem;"></i>
-    <span class="notification-dot" id="notification-dot" style="display: none; position: absolute; top: -3px; right: -5px; width: 10px; height: 10px; background-color: red; border-radius: 50%; border: 1px solid white;"></span>
-</div>
-
-
+             
                 <div class="top-bar-right">
+
+                    <!-- Колокольчик в шапке -->
+                <div class="notification-bell" onclick="toggleNotifications()" style="position: relative; cursor: pointer">
+                    <i class="fas fa-bell" style="color: white; font-size: 1.3rem;"></i>
+                    <span class="notification-dot" id="notification-dot" style="display: none; position: absolute; top: -3px; right: -5px; width: 10px; height: 10px; background-color: red; border-radius: 50%; border: 1px solid white;"></span>
+                </div>
+
                     <a href="#" class="support-link">
                         <i class="fas fa-headset"></i>
                         <span>Поддержка</span>
@@ -186,9 +187,10 @@ function renderNotifications(notifications, append) {
         const div = document.createElement('div');
         div.className = `notification-item p-3 border-bottom ${n.is_read ? 'read' : 'unread'}`;
         div.setAttribute('data-id', n.id);
+        div.setAttribute('data-is-read', n.is_read);
         div.innerHTML = `
             <div class="d-flex justify-content-between align-items-start">
-                <div class="flex-grow-1" style="cursor: pointer;" onclick="toggleNotificationDetails(this)">
+                <div class="flex-grow-1" style="cursor: pointer;" onclick="openNotification(this, ${n.id}, ${!n.is_read})">
                     <div class="notification-title">
                         <span class="badge ${getTypeBadgeClass(n.type)} me-2">${getTypeName(n.type)}</span>
                         <strong>${escapeHtml(n.title)}</strong>
@@ -200,14 +202,63 @@ function renderNotifications(notifications, append) {
                 </div>
                 <div class="notification-actions">
                     <button class="btn btn-sm ${n.is_read ? 'btn-outline-secondary' : 'btn-outline-primary'}" 
-                            onclick="toggleReadStatus(${n.id}, ${!n.is_read})" title="Отметить ${n.is_read ? 'непрочитанным' : 'прочитанным'}">
-                        <i class="fas ${n.is_read ? 'fa-envelope-open' : 'fa-check'}"></i>
+                            onclick="event.stopPropagation(); toggleReadStatus(${n.id}, ${!n.is_read})" 
+                            title="${n.is_read ? 'Отметить непрочитанным' : 'Отметить прочитанным'}">
+                        <i class="fas ${n.is_read ? 'fa-envelope-open' : 'fa-envelope'}"></i>
                     </button>
                 </div>
             </div>
         `;
         container.appendChild(div);
     });
+}
+
+// Новая функция для открытия уведомления
+function openNotification(element, notificationId, markAsRead) {
+    // Переключаем видимость сообщения
+    const msgDiv = element.querySelector('.notification-message');
+    const isVisible = msgDiv.style.display === 'block';
+    msgDiv.style.display = isVisible ? 'none' : 'block';
+    
+    // Если уведомление непрочитанное — отмечаем как прочитанное
+    if (markAsRead) {
+        fetch(`/api/notifications/${notificationId}/read/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                // Обновляем внешний вид
+                const parentDiv = element.closest('.notification-item');
+                parentDiv.classList.remove('unread');
+                parentDiv.classList.add('read');
+                parentDiv.setAttribute('data-is-read', 'true');
+                
+                // Меняем иконку конверта
+                const btn = parentDiv.querySelector('.notification-actions button');
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-outline-secondary');
+                btn.innerHTML = '<i class="fas fa-envelope-open"></i>';
+                btn.setAttribute('onclick', `event.stopPropagation(); toggleReadStatus(${notificationId}, false)`);
+                btn.title = 'Отметить непрочитанным';
+                
+                // Обновляем счётчик непрочитанных
+                updateUnreadCount();
+            }
+        });
+    }
+}
+
+// Функция обновления количества непрочитанных
+function updateUnreadCount() {
+    fetch('/api/notifications/?offset=0&limit=1')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('unread-count').innerHTML = `${data.unread} непрочитанных`;
+            const dot = document.getElementById('notification-dot');
+            dot.style.display = data.unread > 0 ? 'block' : 'none';
+        });
 }
 
 function toggleNotificationDetails(element) {
@@ -226,7 +277,7 @@ function toggleReadStatus(notificationId, markAsRead) {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            loadNotifications(false);
+            loadNotifications(false);  // перезагружаем список
         }
     });
 }
@@ -326,17 +377,34 @@ document.addEventListener('DOMContentLoaded', function() {
     </script>
 
     <style>
-        /* Колокольчик уведомлений */
-.notification-bell {
-    position: relative;
+    
+    .notification-bell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 30px;
+    color: white;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s;
     cursor: pointer;
-    margin-right: 15px;
+}
+
+.notification-bell:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
 }
 
 .notification-bell i {
-    color: white;
-    font-size: 1.3rem;
+    font-size: 1.1rem;
 }
+
+.notification-bell span {
+    font-size: 0.9rem;
+}
+
 
 .notification-dot {
     position: absolute;
@@ -348,6 +416,21 @@ document.addEventListener('DOMContentLoaded', function() {
     border-radius: 50%;
     border: 1px solid white;
     display: none;
+}
+/* Стили для уведомлений */
+.notification-item.unread {
+    background-color: #f8f9fa;  /* светло-серый фон */
+    border-left: 3px solid #ff85b3;  /* розовая полоска слева */
+}
+
+.notification-item.read {
+    background-color: white;
+    border-left: 3px solid transparent;
+}
+
+.notification-item:hover {
+    background-color: #f1f3f5;
+    transition: background-color 0.2s ease;
 }
     </style>
     {% block extra_js %}{% endblock %}

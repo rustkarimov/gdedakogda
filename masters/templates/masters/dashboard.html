@@ -940,7 +940,8 @@ function saveNewBooking() {
     const originalText = saveBtn.innerHTML;
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Добавление...';
     saveBtn.disabled = true;
-    
+
+
     fetch(`/api/${editCurrentSlug}/book/`, {
         method: 'POST',
         headers: {
@@ -954,7 +955,8 @@ function saveNewBooking() {
             date: addSelectedDate,
             time: addSelectedTime,
             comment: comment,
-            force: force
+            force: force,
+            created_by: 'master'  // ← ДОБАВИТЬ ЭТУ СТРОКУ
         })
     })
     .then(response => response.json())

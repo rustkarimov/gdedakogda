@@ -948,6 +948,8 @@ def add_manual_booking(request):
             status='confirmed',
             created_by='master'
         )
+
+        print(f"🔍 Создана запись #{booking.id}, created_by={booking.created_by}")
         
         messages.success(request, f'Запись для {client_name} добавлена!')
         return redirect('dashboard')
@@ -1611,6 +1613,7 @@ def create_booking(request, login):
         time_str = data.get('time')
         comment = data.get('comment', '')
         force = data.get('force', False)
+        created_by = data.get('created_by', 'client')  # ← ДОБАВИТЬ ЭТУ СТРОКУ
         
         # Проверяем обязательные поля
         if not all([service_id, client_name, client_phone, date_str, time_str]):
@@ -1662,7 +1665,7 @@ def create_booking(request, login):
             date=booking_date,
             time=booking_time,
             status='confirmed' if not force else 'confirmed',
-            created_by='client'
+            created_by=created_by  # ← ИСПОЛЬЗОВАТЬ ПЕРЕДАННОЕ ЗНАЧЕНИЕ
         )
         
         return JsonResponse({

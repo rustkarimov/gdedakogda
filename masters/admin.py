@@ -107,6 +107,9 @@ class PhoneVerificationAdmin(admin.ModelAdmin):
 from django.contrib import admin
 from .models import Notification, Master
 
+from django.contrib import admin
+from .models import Notification, Master
+
 @admin.register(Notification)
 class NotificationAdmin(admin.ModelAdmin):
     list_display = ['master', 'type', 'title', 'is_read', 'created_at']
@@ -115,6 +118,7 @@ class NotificationAdmin(admin.ModelAdmin):
     actions = ['send_to_all_masters', 'send_to_selected_masters']
     
     def send_to_all_masters(self, request, queryset):
+        count = 0
         for master in Master.objects.all():
             for notification in queryset:
                 Notification.objects.create(
@@ -123,11 +127,15 @@ class NotificationAdmin(admin.ModelAdmin):
                     title=notification.title,
                     message=notification.message
                 )
-        self.message_user(request, f'Уведомления отправлены всем мастерам ({Master.objects.count()})')
-    send_to_all_masters.short_description = 'Отправить выбранные уведомления ВСЕМ мастерам'
+                count += 1
+        self.message_user(request, f'✅ Уведомления отправлены всем мастерам ({count})')
+    send_to_all_masters.short_description = '📢 Отправить ВСЕМ мастерам'
     
     def send_to_selected_masters(self, request, queryset):
-        masters = Master.objects.filter(id__in=request.POST.getlist('_selected_action'))
+        # Получаем выбранных мастеров из POST
+        master_ids = request.POST.getlist('_selected_action')
+        masters = Master.objects.filter(id__in=master_ids)
+        count = 0
         for master in masters:
             for notification in queryset:
                 Notification.objects.create(
@@ -136,5 +144,6 @@ class NotificationAdmin(admin.ModelAdmin):
                     title=notification.title,
                     message=notification.message
                 )
-        self.message_user(request, f'Уведомления отправлены выбранным мастерам ({masters.count()})')
-    send_to_selected_masters.short_description = 'Отправить выбранные уведомления ВЫБРАННЫМ мастерам'
+                count += 1
+        self.message_user(request, f'✅ Уведомления отправлены выбранным мастерам ({count})')
+    send_to_selected_masters.short_description = '📢 Отправить ВЫБРАННЫМ мастерам'
