@@ -81,7 +81,7 @@
                         <div class="mb-3">
                             <label for="client-phone" class="form-label">Телефон клиента <span class="text-danger">*</span></label>
                             <input type="tel" class="form-control" id="client-phone" 
-                                   placeholder="7 999 123-45-67" required>
+                                   placeholder="7" required>
                             <small class="text-muted">Номер будет зашифрован</small>
                         </div>
                         
@@ -118,7 +118,57 @@ let currentPublicSlug = "{{ master.public_slug }}";
 const urlParams = new URLSearchParams(window.location.search);
 const prefillDate = urlParams.get('date');
 
-// Загрузка услуг с группировкой
+// ============================================================
+// СТИЛИЗОВАННОЕ МОДАЛЬНОЕ ОКНО (вместо alert)
+// ============================================================
+function showStyledAlert(message, type = 'success') {
+    // Проверяем, есть ли уже контейнер для таких окон
+    let modalContainer = document.getElementById('styled-alert-modal');
+    if (!modalContainer) {
+        modalContainer = document.createElement('div');
+        modalContainer.id = 'styled-alert-modal';
+        modalContainer.className = 'modal fade';
+        modalContainer.tabIndex = '-1';
+        modalContainer.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="styled-alert-title"></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="styled-alert-message"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-pink" data-bs-dismiss="modal">OK</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modalContainer);
+    }
+    
+    const modalElement = document.getElementById('styled-alert-modal');
+    const titleElement = document.getElementById('styled-alert-title');
+    const messageElement = document.getElementById('styled-alert-message');
+    
+    if (type === 'success') {
+        titleElement.innerHTML = '<i class="fas fa-check-circle me-2" style="color: #28a745;"></i>Готово!';
+        titleElement.style.color = '#28a745';
+    } else {
+        titleElement.innerHTML = '<i class="fas fa-exclamation-triangle me-2" style="color: #dc3545;"></i>Ошибка';
+        titleElement.style.color = '#dc3545';
+    }
+    
+    messageElement.innerHTML = message;
+    
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+}
+
+// ============================================================
+// ЗАГРУЗКА УСЛУГ
+// ============================================================
 function loadServices() {
     fetch('/api/categories/')
         .then(response => response.json())
@@ -169,7 +219,7 @@ function renderServices(data) {
     }
     
     if (data.categories.length === 0 && data.uncategorized.length === 0) {
-        html = '<p class="text-muted text-center">У вас пока нет услуг. <a href="{% url 'services' %}">Добавьте услугу</a></p>';
+        html = '<p class="text-muted text-center">У вас пока нет услуг. <a href="{% url "services" %}">Добавьте услугу</a></p>';
     }
     
     container.innerHTML = html;
@@ -219,6 +269,9 @@ function escapeHtml(str) {
     });
 }
 
+// ============================================================
+// ВЫБОР УСЛУГИ
+// ============================================================
 function selectService(element) {
     document.querySelectorAll('.service-card').forEach(card => {
         card.classList.remove('border-pink', 'border-2');
@@ -244,6 +297,9 @@ function selectService(element) {
     }, 100);
 }
 
+// ============================================================
+// ЗАГРУЗКА ДАТ
+// ============================================================
 function loadAvailableDates() {
     const datesContainer = document.getElementById('dates-container');
     datesContainer.innerHTML = `
@@ -260,7 +316,6 @@ function loadAvailableDates() {
             if (data.dates && data.dates.length > 0) {
                 let html = '';
                 data.dates.forEach(item => {
-                    // Если есть предзаполненная дата и она совпадает с этой, добавляем класс selected
                     const isSelected = (prefillDate === item.date);
                     html += `
                         <div class="col-md-3 col-6 mb-3">
@@ -277,7 +332,6 @@ function loadAvailableDates() {
                 });
                 datesContainer.innerHTML = html;
                 
-                // Если есть предзаполненная дата, автоматически выбираем её
                 if (prefillDate) {
                     const preselectedCard = document.querySelector(`.date-card[data-date="${prefillDate}"]`);
                     if (preselectedCard) {
@@ -301,6 +355,9 @@ function loadAvailableDates() {
         });
 }
 
+// ============================================================
+// ВЫБОР ДАТЫ
+// ============================================================
 function selectDate(date, element) {
     document.querySelectorAll('.date-card').forEach(card => {
         card.classList.remove('border-pink', 'border-2');
@@ -324,6 +381,9 @@ function selectDate(date, element) {
     }, 100);
 }
 
+// ============================================================
+// ЗАГРУЗКА СЛОТОВ ВРЕМЕНИ
+// ============================================================
 function loadAvailableSlots() {
     const slotsContainer = document.getElementById('slots-container');
     slotsContainer.innerHTML = `
@@ -370,6 +430,9 @@ function loadAvailableSlots() {
         });
 }
 
+// ============================================================
+// ВЫБОР ВРЕМЕНИ
+// ============================================================
 function selectTime(time, element) {
     document.querySelectorAll('.slot-card').forEach(card => {
         card.classList.remove('border-pink', 'border-2', 'bg-light');
@@ -391,28 +454,39 @@ function selectTime(time, element) {
     }, 100);
 }
 
+// ============================================================
+// ОТПРАВКА ФОРМЫ (С ИСПОЛЬЗОВАНИЕМ СТИЛИЗОВАННОГО ОКНА)
+// ============================================================
 document.getElementById('manual-booking-form').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const clientName = document.getElementById('client-name').value.trim();
-    const clientPhone = document.getElementById('client-phone').value.trim();
+    let clientPhone = document.getElementById('client-phone').value.trim();
     const force = document.getElementById('force-booking').checked;
     
-    if (!clientName || !clientPhone) {
-        alert('Заполните имя и телефон клиента');
+    // Очищаем телефон от пробелов и тире для валидации
+    const phoneForValidation = clientPhone.replace(/\D/g, '');
+    
+    if (!clientName || !phoneForValidation || phoneForValidation.length !== 11) {
+        showStyledAlert('Заполните имя и телефон клиента (11 цифр)', 'error');
         return;
     }
     
     const formData = {
         service_id: selectedServiceId,
         client_name: clientName,
-        client_phone: clientPhone,
+        client_phone: phoneForValidation,
         date: selectedDate,
         time: selectedTime,
         comment: document.getElementById('client-comment').value,
         force: force,
         created_by: 'master'
     };
+    
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Добавление...';
+    submitBtn.disabled = true;
     
     fetch(`/api/${currentPublicSlug}/book/`, {
         method: 'POST',
@@ -425,17 +499,25 @@ document.getElementById('manual-booking-form').addEventListener('submit', functi
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Запись добавлена!');
+            showStyledAlert('✅ Запись успешно добавлена!', 'success');
             resetBooking();
         } else {
-            alert('Ошибка: ' + data.error);
+            showStyledAlert('Ошибка: ' + data.error, 'error');
         }
     })
     .catch(error => {
-        alert('Произошла ошибка');
+        console.error('Ошибка:', error);
+        showStyledAlert('Произошла ошибка при добавлении записи', 'error');
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
     });
 });
 
+// ============================================================
+// СБРОС ФОРМЫ
+// ============================================================
 function resetBooking() {
     document.querySelectorAll('.service-card').forEach(card => {
         card.classList.remove('border-pink', 'border-2');
@@ -454,8 +536,57 @@ function resetBooking() {
     document.getElementById('step-services').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+// ============================================================
+// МАСКА ТЕЛЕФОНА
+// ============================================================
+function phoneMask(input) {
+    let value = input.value.replace(/\D/g, '');
+    
+    if (value.length === 0) {
+        input.value = '';
+        return;
+    }
+    
+    if (value[0] !== '7' && value[0] !== '8') {
+        value = '7' + value;
+    }
+    
+    if (value[0] === '8') {
+        value = '7' + value.slice(1);
+    }
+    
+    if (value.length > 11) {
+        value = value.slice(0, 11);
+    }
+    
+    let formatted = '';
+    if (value.length > 0) {
+        formatted = value[0];
+        if (value.length > 1) formatted += ' ' + value.slice(1, 4);
+        if (value.length > 4) formatted += ' ' + value.slice(4, 7);
+        if (value.length > 7) formatted += '-' + value.slice(7, 9);
+        if (value.length > 9) formatted += '-' + value.slice(9, 11);
+    }
+    
+    input.value = formatted;
+}
+
+// ============================================================
+// ИНИЦИАЛИЗАЦИЯ
+// ============================================================
 document.addEventListener('DOMContentLoaded', function() {
     loadServices();
+    
+    // Маска для телефона
+    const phoneInput = document.getElementById('client-phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function() {
+            phoneMask(this);
+        });
+        if (phoneInput.value) {
+            phoneMask(phoneInput);
+        }
+    }
 });
 </script>
 

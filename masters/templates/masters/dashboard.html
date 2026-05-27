@@ -351,6 +351,43 @@ function showAlert(message, title = 'Уведомление') {
     modal.show();
 }
 
+// Быстрое уведомление (тост), которое исчезает через 2 секунды
+function showToast(message, type = 'success') {
+    // Проверяем, есть ли уже контейнер для тостов
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.style.position = 'fixed';
+        toastContainer.style.bottom = '20px';
+        toastContainer.style.right = '20px';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
+    
+    const toastId = 'toast-' + Date.now();
+    const bgColor = type === 'success' ? '#28a745' : (type === 'error' ? '#dc3545' : '#ff85b3');
+    
+    const toastHtml = `
+        <div id="${toastId}" class="toast show" role="alert" style="background: ${bgColor}; color: white; border-radius: 12px; margin-top: 10px; min-width: 200px;">
+            <div class="toast-body d-flex align-items-center justify-content-between">
+                <span>${message}</span>
+                <button type="button" class="btn-close btn-close-white ms-3" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    `;
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    
+    const toastElement = document.getElementById(toastId);
+    setTimeout(() => {
+        if (toastElement) {
+            toastElement.classList.remove('show');
+            setTimeout(() => toastElement.remove(), 300);
+        }
+    }, 2000);
+}
+
 // ============================================================
 // МАСКА ТЕЛЕФОНА
 // ============================================================
@@ -1124,7 +1161,9 @@ function selectEditDateModal(element, date) {
 }
 
 function loadEditSlotsForDateModal(serviceId, date, selectedTime) {
-    fetch(`/api/${editCurrentSlug}/slots/?service_id=${serviceId}&date=${date}&exclude_booking_id=${editOriginalBookingId}`)
+    const originalBookingId = editOriginalBookingId;  // ID редактируемой записи
+    
+    fetch(`/api/${editCurrentSlug}/slots/?service_id=${serviceId}&date=${date}&exclude_booking_id=${editOriginalBookingId}&original_booking_id=${originalBookingId}`)
         .then(response => response.json())
         .then(data => {
             const container = document.getElementById('edit_times_list_modal');
@@ -1166,6 +1205,17 @@ function saveEditedBooking() {
     if (clientPhone.length === 10) clientPhone = '7' + clientPhone;
     const comment = document.getElementById('edit_comment').value;
     const status = document.getElementById('edit_status').value;
+    
+    console.log("📤 Отправляем данные:", {
+        bookingId,
+        clientName,
+        clientPhone,
+        editSelectedServiceId,
+        editSelectedDate,
+        editSelectedTime,
+        comment,
+        status
+    });
     
     if (!clientName || !clientPhone || clientPhone.length !== 11 || !editSelectedServiceId || !editSelectedDate || !editSelectedTime) {
         showAlert('Заполните все поля правильно. Телефон должен содержать 11 цифр.', 'Ошибка');
@@ -1231,6 +1281,7 @@ function deleteBooking(bookingId, clientName, time) {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
+                    // Перезагружаем данные без лишних окон
                     loadCalendar();
                     loadBookings(1, false);
                     if (currentSelectedDate) {
@@ -1238,10 +1289,15 @@ function deleteBooking(bookingId, clientName, time) {
                             .then(r => r.json())
                             .then(data => renderDayBookings(data.bookings));
                     }
-                    showAlert('Запись удалена', 'Готово');
+                    // Показываем только одно уведомление (быстрое, без кнопки)
+                    showToast('✅ Запись удалена', 'success');
                 } else {
                     showAlert(data.error || 'Ошибка при удалении', 'Ошибка');
                 }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                showAlert('Произошла ошибка при удалении', 'Ошибка');
             });
         }
     });
@@ -1270,30 +1326,54 @@ function loadBookings(p = 1, a = false) {
             bookingsPage = p;
             const btn = document.getElementById('load-more-bookings');
             btn.style.display = (bookingsHasMore && d.bookings.length > 0) ? 'inline-block' : 'none';
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки записей:', error);
+            const container = document.getElementById('upcoming-bookings-container');
+            if (container) {
+                container.innerHTML = '<p class="text-danger text-center">Ошибка загрузки записей</p>';
+            }
         });
 }
 
 function renderBookings(b) {
     const c = document.getElementById('upcoming-bookings-container');
-    if (b.length === 0) {
-        c.innerHTML = '<p class="text-muted mb-0">Пока нет записей</p>';
+    if (!b || b.length === 0) {
+        c.innerHTML = '<p class="text-muted mb-0">Нет предстоящих записей</p>';
         return;
     }
     let h = '<div class="table-responsive"><table class="table" id="upcoming-bookings-table"><thead>';
     h += '<tr><th>Дата</th><th>Время</th><th>Клиент</th><th>Услуга</th><th>Телефон</th><th>Действия</th><th>Статус</th></tr>';
     h += '</thead><tbody>';
     b.forEach(bb => { h += createBookingRow(bb); });
-    h += '</tbody></tr></div>';
+    h += '</tbody></table></div>';
     c.innerHTML = h;
 }
 
 function createBookingRow(b) {
+    // Определяем, не прошла ли уже запись (если сегодня и время меньше текущего)
+    const now = new Date();
+    const today = now.toISOString().split('T')[0];
+    const bookingDate = b.date.includes('сегодня') ? today : parseDateFromDisplay(b.date);
+    
+    let isPast = false;
+    if (bookingDate === today) {
+        const [hours, minutes] = b.time.split(':');
+        const bookingTime = new Date();
+        bookingTime.setHours(parseInt(hours), parseInt(minutes), 0);
+        isPast = bookingTime < now;
+    } else if (bookingDate < today) {
+        isPast = true;
+    }
+    
+    const statusBadge = isPast ? '<span class="badge bg-secondary">Прошла</span>' : '<span class="badge bg-success">Подтверждена</span>';
+    
     return `<tr>
-        <td>${b.date}</td>
-        <td>${b.time}</td>
-        <td>${b.client_name}</td>
-        <td>${b.service_name}</td>
-        <td>${b.phone || '—'}</td>
+        <td>${escapeHtml(b.date)}</td>
+        <td>${escapeHtml(b.time)}</td>
+        <td>${escapeHtml(b.client_name)}</td>
+        <td>${escapeHtml(b.service_name)}</td>
+        <td>${escapeHtml(b.phone || '—')}</td>
         <td>
             <button class="btn btn-sm btn-outline-pink" onclick="editBookingInModal(${b.id})" title="Редактировать">
                 <i class="fas fa-edit"></i>
@@ -1302,11 +1382,53 @@ function createBookingRow(b) {
                 <i class="fas fa-trash"></i>
             </button>
         </td>
-        <td><span class="badge bg-success">Подтверждена</span></td>
+        <td>${statusBadge}</td>
     </tr>`;
 }
 
-function loadMoreBookings() { if (bookingsHasMore) loadBookings(bookingsPage + 1, true); }
+// Вспомогательная функция для парсинга даты из отображения
+function parseDateFromDisplay(dateDisplay) {
+    // dateDisplay имеет формат "27 мая" или "27 мая (сегодня)"
+    const cleanDate = dateDisplay.replace(' (сегодня)', '');
+    const months = {
+        'января': '01', 'февраля': '02', 'марта': '03', 'апреля': '04',
+        'мая': '05', 'июня': '06', 'июля': '07', 'августа': '08',
+        'сентября': '09', 'октября': '10', 'ноября': '11', 'декабря': '12'
+    };
+    
+    const parts = cleanDate.split(' ');
+    if (parts.length !== 2) return null;
+    
+    const day = parts[0].padStart(2, '0');
+    const month = months[parts[1]];
+    if (!month) return null;
+    
+    const year = new Date().getFullYear();
+    return `${year}-${month}-${day}`;
+}
+
+function loadMoreBookings() { 
+    if (bookingsHasMore) loadBookings(bookingsPage + 1, true); 
+}
+
+// Обновляем инициализацию, чтобы записи обновлялись каждую минуту (опционально)
+let refreshInterval = null;
+
+function startAutoRefresh() {
+    if (refreshInterval) clearInterval(refreshInterval);
+    refreshInterval = setInterval(() => {
+        // Перезагружаем записи с первой страницы
+        bookingsPage = 1;
+        loadBookings(1, false);
+    }, 300000); // каждую минуту
+}
+
+function stopAutoRefresh() {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+        refreshInterval = null;
+    }
+}
 
 // ============================================================
 // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -1316,10 +1438,17 @@ function escapeHtml(str) {
 }
 
 // ИНИЦИАЛИЗАЦИЯ
+
 document.addEventListener('DOMContentLoaded', () => {
     loadCalendar();
     loadBookings(1, false);
     initPhoneMasks();
+    startAutoRefresh();  // ← ДОБАВИТЬ ЭТУ СТРОКУ
+});
+
+// Останавливаем обновление при уходе со страницы (опционально)
+window.addEventListener('beforeunload', () => {
+    stopAutoRefresh();
 });
 </script>
 

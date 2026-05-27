@@ -112,24 +112,34 @@ def get_calendar_schedule(request):
 
 @login_required
 def get_bookings_api(request):
-    """API для получения записей с пагинацией (только будущие)"""
+    """API для получения записей с пагинацией (только будущие, включая сегодняшние непрошедшие)"""
     master = request.user.master
     page = int(request.GET.get('page', 1))
     limit = int(request.GET.get('limit', 10))
     offset = (page - 1) * limit
     
+    now = datetime.now()
     today = date.today()
+    current_time = now.time()
     
+    # Получаем все подтверждённые записи от сегодняшней даты и позже
     bookings = Booking.objects.filter(
         master=master,
         status='confirmed',
         date__gte=today
     ).order_by('date', 'time')
     
-    total = bookings.count()
+    # Фильтруем: если запись на сегодня, но время уже прошло — исключаем
+    filtered_bookings = []
+    for booking in bookings:
+        if booking.date == today and booking.time < current_time:
+            continue  # пропускаем прошедшие записи
+        filtered_bookings.append(booking)
+    
+    total = len(filtered_bookings)
     has_more = offset + limit < total
     
-    bookings_page = bookings[offset:offset + limit]
+    bookings_page = filtered_bookings[offset:offset + limit]
     
     # Функция для склонения месяца
     def get_month_name(month_num):
@@ -138,6 +148,10 @@ def get_bookings_api(request):
             'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
         ]
         return months[month_num - 1]
+    
+    # Функция для определения, сегодня ли дата
+    def is_today(date_obj):
+        return date_obj == today
     
     # Получаем ключ мастера для расшифровки
     from cryptography.fernet import Fernet, InvalidToken
@@ -171,13 +185,19 @@ def get_bookings_api(request):
         else:
             formatted_phone = phone
         
+        # Формируем отображение даты с пометкой "сегодня"
+        if is_today(booking.date):
+            date_display = f"{booking.date.day} {get_month_name(booking.date.month)} (сегодня)"
+        else:
+            date_display = f"{booking.date.day} {get_month_name(booking.date.month)}"
+        
         data.append({
             'id': booking.id,
-            'date': f"{booking.date.day} {get_month_name(booking.date.month)}",
+            'date': date_display,
             'time': booking.time.strftime('%H:%M'),
             'client_name': booking.client_name,
             'service_name': booking.service.name,
-            'phone': formatted_phone  # добавляем номер
+            'phone': formatted_phone
         })
     
     return JsonResponse({
@@ -982,7 +1002,18 @@ def get_booking_slots_for_master(request):
         return JsonResponse({'error': 'Неверные параметры'}, status=404)
     
     calculator = ScheduleCalculator(master)
-    slots = calculator.generate_time_slots(target_date, service.duration)
+    
+    # Определяем, нужно ли передавать текущее время
+    current_time = None
+    if target_date == date.today():
+        from datetime import datetime
+        current_time = datetime.now().time()
+    
+    slots = calculator.generate_time_slots(
+        target_date, 
+        service.duration,
+        current_time=current_time
+    )
     
     return JsonResponse({'slots': slots})
 
@@ -1036,6 +1067,9 @@ def api_update_booking(request, booking_id):
     booking = get_object_or_404(Booking, id=booking_id, master=request.user.master)
     data = json.loads(request.body)
     
+    # Добавьте отладочный вывод
+    print(f"📝 Получены данные для обновления: {data}")
+    
     service_id = data.get('service_id')
     client_name = data.get('client_name')
     client_phone = data.get('client_phone')
@@ -1044,12 +1078,15 @@ def api_update_booking(request, booking_id):
     comment = data.get('comment', '')
     status = data.get('status', 'confirmed')
     
+    # Проверка обязательных полей
     if not all([service_id, client_name, client_phone, date_str, time_str]):
+        print("❌ Ошибка: не все поля заполнены")
         return JsonResponse({'error': 'Заполните все поля'}, status=400)
     
     import re
     client_phone_cleaned = re.sub(r'\D', '', client_phone)
     if len(client_phone_cleaned) != 11 or not client_phone_cleaned.startswith('7'):
+        print(f"❌ Ошибка: неверный формат телефона {client_phone_cleaned}")
         return JsonResponse({'error': 'Неверный формат телефона'}, status=400)
     
     service = get_object_or_404(Service, id=service_id, master=request.user.master)
@@ -1058,11 +1095,18 @@ def api_update_booking(request, booking_id):
     
     # Проверяем, свободно ли новое время (исключая текущую запись)
     calculator = ScheduleCalculator(request.user.master)
-    slots = calculator.generate_time_slots(target_date, service.duration)
+    slots = calculator.generate_time_slots(
+        target_date, 
+        service.duration,
+        exclude_booking_id=booking.id,
+        original_booking_id=booking.id
+    )
+    
     is_available = any(slot['start'] == time_str for slot in slots)
     
     # Если время занято и это не текущая запись
     if not is_available and (booking.date != target_date or booking.time != target_time):
+        print(f"❌ Ошибка: время {time_str} занято")
         return JsonResponse({'error': 'Это время уже занято'}, status=400)
     
     # Шифруем телефон
@@ -1083,6 +1127,7 @@ def api_update_booking(request, booking_id):
     booking.status = status
     booking.save()
     
+    print(f"✅ Запись #{booking_id} успешно обновлена")
     return JsonResponse({'success': True, 'message': 'Запись обновлена'})
 
 
@@ -1576,7 +1621,8 @@ def get_available_slots(request, login):
     master = get_object_or_404(Master, login=login)
     service_id = request.GET.get('service_id')
     date_str = request.GET.get('date')
-    exclude_booking_id = request.GET.get('exclude_booking_id')  # для редактирования
+    exclude_booking_id = request.GET.get('exclude_booking_id')
+    original_booking_id = request.GET.get('original_booking_id')  # ← ДОБАВИТЬ
     
     if not service_id or not date_str:
         return JsonResponse({'error': 'Не указаны параметры'}, status=400)
@@ -1588,10 +1634,19 @@ def get_available_slots(request, login):
         return JsonResponse({'error': 'Неверные параметры'}, status=404)
     
     calculator = ScheduleCalculator(master)
+    
+    # Определяем, нужно ли передавать текущее время
+    current_time = None
+    if target_date == date.today():
+        from datetime import datetime as dt
+        current_time = dt.now().time()
+    
     slots = calculator.generate_time_slots(
         target_date, 
         service.duration,
-        exclude_booking_id=int(exclude_booking_id) if exclude_booking_id else None
+        exclude_booking_id=int(exclude_booking_id) if exclude_booking_id else None,
+        current_time=current_time,
+        original_booking_id=int(original_booking_id) if original_booking_id else None  # ← ДОБАВИТЬ
     )
     
     return JsonResponse({'slots': slots})

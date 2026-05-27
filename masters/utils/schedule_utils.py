@@ -46,15 +46,18 @@ class ScheduleCalculator:
             booked_slots.append((start, end, booking.id))  # добавляем ID
         return booked_slots
     
-    def generate_time_slots(self, target_date: date, service_duration: int, slot_step: int = 15, exclude_booking_id: int = None):
-        """Генерирует свободные слоты с учетом перерывов и занятых записей
+    def generate_time_slots(self, target_date: date, service_duration: int, slot_step: int = 15, exclude_booking_id: int = None, current_time: time = None, original_booking_id: int = None):
+        """Генерирует свободные слоты с учётом перерывов, занятых записей и текущего времени
         
         Args:
             target_date: дата
             service_duration: длительность услуги в минутах
             slot_step: шаг сетки в минутах
             exclude_booking_id: ID записи, которую нужно исключить из проверки (при редактировании)
+            current_time: текущее время (для сегодняшнего дня)
+            original_booking_id: ID исходной записи, время которой нужно временно разблокировать (если меняется услуга)
         """
+        
         working_hours = self.get_working_hours_for_date(target_date)
         if not working_hours:
             return []
@@ -67,6 +70,17 @@ class ScheduleCalculator:
         start_minutes = time_to_minutes(start_work)
         end_minutes = time_to_minutes(end_work)
         
+        # Если передан current_time (для сегодняшнего дня), начинаем с текущего времени
+        if current_time:
+            current_minutes = time_to_minutes(current_time)
+            # Округляем до следующего 15-минутного интервала
+            current_minutes = ((current_minutes + slot_step - 1) // slot_step) * slot_step
+            start_minutes = max(start_minutes, current_minutes)
+        
+        # Если старт больше или равен концу — слотов нет
+        if start_minutes >= end_minutes:
+            return []
+        
         # Получаем перерывы в минутах
         day_of_week = target_date.weekday()
         schedule = Schedule.objects.filter(master=self.master, day_of_week=day_of_week).first()
@@ -76,13 +90,37 @@ class ScheduleCalculator:
             for break_start, break_end in schedule.breaks.all().values_list('start_time', 'end_time'):
                 breaks.append((time_to_minutes(break_start), time_to_minutes(break_end)))
         
-        
         # Получаем занятые слоты в минутах (исключая текущую запись при редактировании)
         booked_slots = []
         for start, end, booking_id in self.get_booked_slots_for_date(target_date):
             if exclude_booking_id and booking_id == exclude_booking_id:
                 continue
             booked_slots.append((time_to_minutes(start), time_to_minutes(end)))
+        
+        # ========== НОВАЯ ЛОГИКА: временно разблокируем исходную запись ==========
+        if original_booking_id:
+            try:
+                from ..models import Booking
+                original_booking = Booking.objects.get(id=original_booking_id, master=self.master)
+                original_start = time_to_minutes(original_booking.time)
+                original_service = original_booking.service
+                original_duration = original_service.duration
+                original_end = original_start + original_duration
+                
+                # Удаляем из booked_slots диапазон исходной записи (с допуском 1 минута)
+                booked_slots = [
+                    (s, e) for (s, e) in booked_slots 
+                    if not (abs(s - original_start) <= 1 and abs(e - original_end) <= 1)
+                ]
+                
+                # Для отладки - выведем в консоль (временно)
+                print(f"🔓 Разблокирован диапазон {original_start}-{original_end} для записи #{original_booking_id}")
+                print(f"📋 Осталось заблокированных слотов: {len(booked_slots)}")
+                
+            except Booking.DoesNotExist:
+                print(f"⚠️ Запись #{original_booking_id} не найдена")
+                pass
+        # ================================================================
         
         # Создаем массив занятых минут
         busy_minutes = [False] * (24 * 60)
@@ -112,7 +150,11 @@ class ScheduleCalculator:
             for m in range(slot_start, slot_end):
                 if m < 1440 and busy_minutes[m]:
                     is_free = False
-                    current = m + 1
+                    # Перепрыгиваем на конец занятого блока
+                    m_end = m
+                    while m_end < 1440 and busy_minutes[m_end]:
+                        m_end += 1
+                    current = m_end
                     break
             
             if is_free:
@@ -123,31 +165,37 @@ class ScheduleCalculator:
                     'start_minutes': slot_start,
                     'end_minutes': slot_end,
                     'display': start_time,
-                    'id': len(all_slots)  # временный ID для слота
+                    'id': len(all_slots)
                 })
                 current += slot_step
-            else:
-                # current уже обновлён в цикле проверки
-                pass
+            # else: current уже обновлён в цикле
         
         return all_slots
 
 
     def get_available_dates(self, days_ahead: int = 60, min_service_duration: int = 30) -> List[date]:
-        """Получает список дат, в которые есть свободные окна"""
+        """Получает список дат, в которые есть свободные окна (с учётом текущего времени)"""
         available_dates = []
         today = date.today()
+        now = datetime.now().time()
         
         for i in range(days_ahead):
             check_date = today + timedelta(days=i)
             
-            # Проверяем, работает ли мастер в этот день (учитывает выходные)
+            # Проверяем, работает ли мастер в этот день
             working_hours = self.get_working_hours_for_date(check_date)
             if not working_hours:
                 continue
             
+            # Для сегодняшней даты передаём текущее время, чтобы не показывать прошедшие слоты
+            current_time = now if check_date == today else None
+            
             # Проверяем, есть ли хотя бы один свободный слот
-            slots = self.generate_time_slots(check_date, min_service_duration)
+            slots = self.generate_time_slots(
+                check_date, 
+                min_service_duration,
+                current_time=current_time  # передаём текущее время
+            )
             if slots:
                 available_dates.append(check_date)
         
