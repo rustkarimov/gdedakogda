@@ -200,3 +200,16 @@ class ScheduleCalculator:
                 available_dates.append(check_date)
         
         return available_dates
+    
+    # Добавьте новый метод в класс ScheduleCalculator
+
+    def generate_time_slots_for_multiple_services(self, target_date: date, services_durations: List[int], slot_step: int = 15, exclude_booking_ids: List[int] = None, current_time: time = None):
+        """Генерирует слоты для нескольких услуг подряд"""
+        total_duration = sum(services_durations)
+        return self.generate_time_slots(
+            target_date, 
+            total_duration, 
+            slot_step, 
+            exclude_booking_id=exclude_booking_ids[0] if exclude_booking_ids else None,
+            current_time=current_time
+        )

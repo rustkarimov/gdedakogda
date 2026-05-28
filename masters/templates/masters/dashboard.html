@@ -200,50 +200,63 @@
                 </div>
 
                 <!-- ПАНЕЛЬ ДОБАВЛЕНИЯ ЗАПИСИ -->
-                <div id="addBookingPanel" style="display: none;">
-                    <button class="btn btn-sm btn-outline-secondary mb-3" onclick="backToDayView()">
-                        <i class="fas fa-arrow-left me-2"></i>Назад к дню
-                    </button>
-                    <h6 class="mb-3">Добавление записи</h6>
-                    <form id="addBookingForm">
-                        <div class="mb-3">
-                            <label class="form-label">Имя клиента</label>
-                            <input type="text" class="form-control" id="add_client_name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Телефон</label>
-                            <input type="tel" class="form-control" id="add_client_phone" placeholder="7 999 123-45-67" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Комментарий</label>
-                            <textarea class="form-control" id="add_comment" rows="2"></textarea>
-                        </div>
-                        <hr>
-                        <div class="mb-3">
-                            <label class="form-label">Услуга</label>
-                            <div id="add_services_list" class="row">
-                                <div class="col-12 text-center">
-                                    <div class="spinner-border spinner-border-sm" style="color: #7c3aed;"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div id="add_dates_container" style="display: none;" class="mb-3">
-                            <label class="form-label">Дата</label>
-                            <div id="add_dates_list" class="row"></div>
-                        </div>
-                        <div id="add_times_container" style="display: none;" class="mb-3">
-                            <label class="form-label">Время</label>
-                            <div id="add_times_list" class="row"></div>
-                        </div>
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="add_force_booking">
-                            <label class="form-check-label" for="add_force_booking">Записать принудительно</label>
-                        </div>
-                    </form>
-                    <button class="btn btn-pink w-100 mt-3" onclick="saveNewBooking()">
-                        <i class="fas fa-save me-2"></i>Добавить запись
-                    </button>
-                </div>
+                <!-- ПАНЕЛЬ ДОБАВЛЕНИЯ ЗАПИСИ -->
+<div id="addBookingPanel" style="display: none;">
+    <button class="btn btn-sm btn-outline-secondary mb-3" onclick="backToDayView()">
+        <i class="fas fa-arrow-left me-2"></i>Назад к дню
+    </button>
+    <h6 class="mb-3">Добавление записи</h6>
+    
+    <!-- Блок выбора услуг -->
+    <div class="mb-3">
+        <label class="form-label">Услуги (можно выбрать несколько)</label>
+        <div id="add_services_list" class="row">
+            <div class="col-12 text-center">
+                <div class="spinner-border spinner-border-sm" style="color: #7c3aed;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Блок корзины -->
+    <div class="services-cart" id="add_services_cart" style="display: none;">
+        <div class="alert alert-light p-2 mb-2">
+            <strong><i class="fas fa-shopping-cart me-1"></i>Выбранные услуги:</strong>
+            <div id="add_selected_services_list" class="mt-2"></div>
+        </div>
+    </div>
+    
+    <div id="add_dates_container" style="display: none;" class="mb-3">
+        <label class="form-label">Дата</label>
+        <div id="add_dates_list" class="row"></div>
+    </div>
+    
+    <div id="add_times_container" style="display: none;" class="mb-3">
+        <label class="form-label">Время</label>
+        <div id="add_times_list" class="row"></div>
+    </div>
+    
+    <form id="addBookingForm">
+        <div class="mb-3">
+            <label class="form-label">Имя клиента</label>
+            <input type="text" class="form-control" id="add_client_name" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Телефон</label>
+            <input type="tel" class="form-control" id="add_client_phone" placeholder="7 999 123-45-67" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Комментарий</label>
+            <textarea class="form-control" id="add_comment" rows="2"></textarea>
+        </div>
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="add_force_booking">
+            <label class="form-check-label" for="add_force_booking">Записать принудительно</label>
+        </div>
+    </form>
+    <button class="btn btn-pink w-100 mt-3" onclick="saveMultipleBooking()">
+        <i class="fas fa-save me-2"></i>Добавить запись
+    </button>
+</div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
@@ -745,50 +758,405 @@ function saveDayChanges() {
         }
     });
     
-    const btn = document.getElementById('saveDayBtn');
-    const orig = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
-    btn.disabled = true;
-    
-    fetch('/api/extra-days/delete-by-date/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
-        body: JSON.stringify({ date: currentSelectedDate })
-    })
-    .then(() => fetch('/api/days-off/delete-by-date/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
-        body: JSON.stringify({ date: currentSelectedDate })
-    }))
-    .then(() => fetch('/api/extra-days/add/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
-        body: JSON.stringify({
-            date: currentSelectedDate,
-            start_time: s,
-            end_time: e,
-            breaks: breaks
+    // ========== НОВАЯ ПРОВЕРКА: пересечение с существующими записями ==========
+    // Получаем все записи на выбранную дату
+    fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
+        .then(response => response.json())
+        .then(bookingsData => {
+            const bookings = bookingsData.bookings || [];
+            
+            // Функция для преобразования времени в минуты
+            function timeToMinutes(timeStr) {
+                const [hours, minutes] = timeStr.split(':');
+                return parseInt(hours) * 60 + parseInt(minutes);
+            }
+            
+            // Функция для проверки пересечения
+            function isOverlap(breakStart, breakEnd, bookingStart, bookingEnd) {
+                const breakStartMin = timeToMinutes(breakStart);
+                const breakEndMin = timeToMinutes(breakEnd);
+                const bookingStartMin = timeToMinutes(bookingStart);
+                const bookingEndMin = timeToMinutes(bookingEnd);
+                
+                return (breakStartMin < bookingEndMin && breakEndMin > bookingStartMin);
+            }
+            
+            // Проверяем каждый перерыв
+            let hasConflict = false;
+            let conflictMessage = '';
+            
+            for (const breakItem of breaks) {
+                for (const booking of bookings) {
+                    // Нужно получить длительность услуги для расчёта конца записи
+                    const bookingDuration = booking.service_duration || 30; // запасное значение
+                    const bookingStart = booking.time;
+                    const bookingEndMin = timeToMinutes(bookingStart) + bookingDuration;
+                    const bookingEnd = `${Math.floor(bookingEndMin / 60).toString().padStart(2, '0')}:${(bookingEndMin % 60).toString().padStart(2, '0')}`;
+                    
+                    if (isOverlap(breakItem.start, breakItem.end, bookingStart, bookingEnd)) {
+                        hasConflict = true;
+                        conflictMessage = `Перерыв ${breakItem.start}-${breakItem.end} пересекается с записью клиента "${booking.client_name}" (${bookingStart}-${bookingEnd})`;
+                        break;
+                    }
+                }
+                if (hasConflict) break;
+            }
+            
+            if (hasConflict) {
+                showAlert(conflictMessage, 'Ошибка');
+                return;
+            }
+            
+            // Если конфликтов нет — продолжаем сохранение
+            proceedWithSave();
         })
-    }))
-    .then(r => r.json())
+        .catch(error => {
+            console.error('Ошибка проверки записей:', error);
+            // Если ошибка, всё равно пытаемся сохранить
+            proceedWithSave();
+        });
+    
+    function proceedWithSave() {
+        const btn = document.getElementById('saveDayBtn');
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
+        btn.disabled = true;
+        
+        fetch('/api/extra-days/delete-by-date/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+            body: JSON.stringify({ date: currentSelectedDate })
+        })
+        .then(() => fetch('/api/days-off/delete-by-date/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+            body: JSON.stringify({ date: currentSelectedDate })
+        }))
+        .then(() => fetch('/api/extra-days/add/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+            body: JSON.stringify({
+                date: currentSelectedDate,
+                start_time: s,
+                end_time: e,
+                breaks: breaks
+            })
+        }))
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('dayModal')).hide();
+                loadCalendar();
+                showAlert('✅ Изменения сохранены!', 'Готово');
+            } else {
+                showAlert(data.error || 'Ошибка', 'Ошибка');
+            }
+        })
+        .catch(err => {
+            console.error('Ошибка:', err);
+            showAlert('Произошла ошибка', 'Ошибка');
+        })
+        .finally(() => {
+            btn.innerHTML = orig;
+            btn.disabled = false;
+        });
+    }
+}
+
+
+// ============================================================
+// МНОЖЕСТВЕННЫЙ ВЫБОР УСЛУГ ДЛЯ МАСТЕРА (календарь)
+// ============================================================
+let masterSelectedServices = [];
+let masterSelectedDate = null;
+let masterSelectedTime = null;
+
+function masterAddService(serviceId, serviceName, serviceDuration, servicePrice) {
+    if (masterSelectedServices.some(s => s.id === serviceId)) {
+        showAlert('Эта услуга уже добавлена', 'Ошибка');
+        return;
+    }
+    
+    masterSelectedServices.push({
+        id: serviceId,
+        name: serviceName,
+        duration: serviceDuration,
+        price: servicePrice
+    });
+    
+    masterUpdateServicesUI();
+    masterUpdateServiceCards();  // ← ДОБАВИТЬ ЭТУ СТРОКУ
+    masterLoadDatesForServices();
+}
+
+function masterRemoveService(index) {
+    masterSelectedServices.splice(index, 1);
+    masterUpdateServicesUI();
+    masterUpdateServiceCards();  // ← ДОБАВИТЬ ЭТУ СТРОКУ
+    
+    if (masterSelectedServices.length === 0) {
+        document.getElementById('add_dates_container').style.display = 'none';
+        document.getElementById('add_times_container').style.display = 'none';
+        masterSelectedDate = null;
+        masterSelectedTime = null;
+    } else {
+        masterLoadDatesForServices();
+    }
+}
+
+function masterClearServices() {
+    masterSelectedServices = [];
+    masterUpdateServicesUI();
+    masterUpdateServiceCards();  // ← ДОБАВИТЬ ЭТУ СТРОКУ
+    document.getElementById('add_dates_container').style.display = 'none';
+    document.getElementById('add_times_container').style.display = 'none';
+    masterSelectedDate = null;
+    masterSelectedTime = null;
+}
+
+// Добавьте эту функцию:
+function masterUpdateServiceCards() {
+    // Снимаем выделение со всех карточек
+    document.querySelectorAll('#add_services_list .service-card').forEach(card => {
+        card.classList.remove('border-pink', 'border-2', 'selected');
+        const existingClose = card.querySelector('.service-close-btn');
+        if (existingClose) existingClose.remove();
+    });
+    
+    // Добавляем выделение и крестики для выбранных услуг
+    masterSelectedServices.forEach(service => {
+        const cards = document.querySelectorAll(`#add_services_list .service-card[data-service-id="${service.id}"]`);
+        cards.forEach(card => {
+            card.classList.add('border-pink', 'border-2', 'selected');
+            card.style.position = 'relative';
+            
+            if (!card.querySelector('.service-close-btn')) {
+                const closeBtn = document.createElement('button');
+                closeBtn.className = 'service-close-btn';
+                closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                closeBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    const index = masterSelectedServices.findIndex(s => s.id === service.id);
+                    if (index !== -1) masterRemoveService(index);
+                };
+                card.appendChild(closeBtn);
+            }
+        });
+    });
+}
+
+
+function masterUpdateServicesUI() {
+    const cartContainer = document.getElementById('add_selected_services_list');
+    const cartBlock = document.getElementById('add_services_cart');
+    
+    if (masterSelectedServices.length === 0) {
+        cartBlock.style.display = 'none';
+        return;
+    }
+    
+    cartBlock.style.display = 'block';
+    
+    let html = '';
+    let totalDuration = 0;
+    let totalPrice = 0;
+    
+    masterSelectedServices.forEach((service, index) => {
+        totalDuration += service.duration;
+        totalPrice += service.price;
+        html += `
+            <div class="d-flex justify-content-between align-items-center mb-1 p-1 bg-light rounded">
+                <span>${escapeHtml(service.name)} (${service.duration} мин / ${service.price} ₽)</span>
+                <button class="btn btn-sm btn-outline-danger" onclick="masterRemoveService(${index})">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+    });
+    
+    html += `<div class="mt-2 pt-1 border-top"><strong>Итого: ${totalDuration} мин / ${totalPrice} ₽</strong></div>`;
+    html += `<button class="btn btn-sm btn-outline-secondary mt-2 w-100" onclick="masterClearServices()">Очистить все</button>`;
+    
+    cartContainer.innerHTML = html;
+}
+
+function masterLoadDatesForServices() {
+    if (masterSelectedServices.length === 0) return;
+    
+    const totalDuration = masterSelectedServices.reduce((sum, s) => sum + s.duration, 0);
+    const container = document.getElementById('add_dates_list');
+    const datesContainer = document.getElementById('add_dates_container');
+    
+    container.innerHTML = '<div class="col-12 text-center"><div class="spinner-border spinner-border-sm"></div></div>';
+    datesContainer.style.display = 'block';
+    document.getElementById('add_times_container').style.display = 'none';
+    
+    fetch(`/api/${editCurrentSlug}/dates/?total_duration=${totalDuration}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.dates && data.dates.length > 0) {
+                let html = '<div class="row">';
+                data.dates.forEach(item => {
+                    const isSelected = masterSelectedDate === item.date;
+                    html += `
+                        <div class="col-md-3 col-4 mb-2">
+                            <div class="card date-card text-center ${isSelected ? 'border-pink' : ''}" 
+                                 data-date="${item.date}" onclick="masterSelectDate('${item.date}', this)">
+                                <div class="card-body py-1">
+                                    <div class="small">${item.day_of_week}</div>
+                                    <div class="fw-bold small">${item.display}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<div class="col-12 text-center text-muted">Нет доступных дат</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            container.innerHTML = '<div class="col-12 text-center text-danger">Ошибка загрузки дат</div>';
+        });
+}
+
+function masterSelectDate(date, element) {
+    document.querySelectorAll('#add_dates_list .date-card').forEach(card => {
+        card.classList.remove('border-pink');
+    });
+    element.classList.add('border-pink');
+    masterSelectedDate = date;
+    masterLoadSlotsForDate();  // ← ЭТА СТРОЧКА ДОЛЖНА БЫТЬ
+}
+
+function masterLoadSlotsForDate() {
+    const totalDuration = masterSelectedServices.reduce((sum, s) => sum + s.duration, 0);
+    const container = document.getElementById('add_times_list');
+    const timesContainer = document.getElementById('add_times_container');
+    
+    container.innerHTML = '<div class="col-12 text-center"><div class="spinner-border spinner-border-sm"></div></div>';
+    timesContainer.style.display = 'block';
+    
+    fetch(`/api/${editCurrentSlug}/slots/?total_duration=${totalDuration}&date=${masterSelectedDate}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.slots && data.slots.length > 0) {
+                let html = '<div class="row">';
+                data.slots.forEach(slot => {
+                    const isSelected = masterSelectedTime === slot.start;
+                    html += `
+                        <div class="col-md-2 col-3 mb-2">
+                            <div class="card slot-card text-center ${isSelected ? 'border-pink' : ''}" 
+                                 data-time="${slot.start}" onclick="masterSelectTime('${slot.start}', this)">
+                                <div class="card-body py-1">${slot.start}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<div class="col-12 text-center text-muted">Нет свободного времени</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            container.innerHTML = '<div class="col-12 text-center text-danger">Ошибка загрузки времени</div>';
+        });
+}
+
+function masterSelectTime(time, element) {
+    document.querySelectorAll('#add_times_list .slot-card').forEach(card => {
+        card.classList.remove('border-pink', 'bg-light');
+    });
+    element.classList.add('border-pink', 'bg-light');
+    masterSelectedTime = time;
+}
+
+function saveMultipleBooking() {
+    const clientName = document.getElementById('add_client_name').value.trim();
+    let clientPhone = document.getElementById('add_client_phone').value.trim();
+    clientPhone = clientPhone.replace(/\D/g, '');
+    if (clientPhone.length === 10) clientPhone = '7' + clientPhone;
+    const comment = document.getElementById('add_comment').value;
+    const force = document.getElementById('add_force_booking').checked;
+    
+    if (!clientName || !clientPhone || clientPhone.length !== 11) {
+        showAlert('Заполните имя и телефон (11 цифр)', 'Ошибка');
+        return;
+    }
+    
+    if (masterSelectedServices.length === 0) {
+        showAlert('Выберите хотя бы одну услугу', 'Ошибка');
+        return;
+    }
+    
+    if (!masterSelectedDate || !masterSelectedTime) {
+        showAlert('Выберите дату и время', 'Ошибка');
+        return;
+    }
+    
+    const serviceIds = masterSelectedServices.map(s => s.id);
+    
+    const saveBtn = event.target;
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Добавление...';
+    saveBtn.disabled = true;
+    
+    fetch(`/api/${editCurrentSlug}/book-multiple/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            services: serviceIds,
+            client_name: clientName,
+            client_phone: clientPhone,
+            date: masterSelectedDate,
+            start_time: masterSelectedTime,
+            comment: comment,
+            force: force,
+            created_by: 'master'
+        })
+    })
+    .then(response => response.json())
     .then(data => {
         if (data.success) {
-            bootstrap.Modal.getInstance(document.getElementById('dayModal')).hide();
+            document.getElementById('add_client_name').value = '';
+            document.getElementById('add_client_phone').value = '';
+            document.getElementById('add_comment').value = '';
+            document.getElementById('add_force_booking').checked = false;
+            
+            masterClearServices();
+            masterSelectedDate = null;
+            masterSelectedTime = null;
+            
+            backToDayView();
             loadCalendar();
-            showAlert('✅ Изменения сохранены!', 'Готово');
+            loadBookings(1, false);
+            if (currentSelectedDate) {
+                fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
+                    .then(r => r.json())
+                    .then(data => renderDayBookings(data.bookings));
+            }
+            showAlert('✅ Запись добавлена!', 'Готово');
         } else {
-            showAlert(data.error || 'Ошибка', 'Ошибка');
+            showAlert('Ошибка: ' + data.error, 'Ошибка');
         }
     })
-    .catch(err => {
-        console.error('Ошибка:', err);
+    .catch(error => {
+        console.error('Ошибка:', error);
         showAlert('Произошла ошибка', 'Ошибка');
     })
     .finally(() => {
-        btn.innerHTML = orig;
-        btn.disabled = false;
+        saveBtn.innerHTML = originalText;
+        saveBtn.disabled = false;
     });
 }
+
 
 // ============================================================
 // ПАНЕЛЬ ДОБАВЛЕНИЯ ЗАПИСИ
@@ -803,12 +1171,45 @@ function showAddBookingPanel() {
     document.getElementById('addBookingPanel').style.display = 'block';
     document.getElementById('dayModalTitle').innerText = 'Добавление записи';
     
-    addSelectedDate = currentSelectedDate;
-    addSelectedServiceId = null;
-    addSelectedTime = null;
+    // Очищаем предыдущие выборы
+    masterSelectedDate = null;
+    masterSelectedTime = null;
+    masterClearServices();
+    
+    // Устанавливаем текущую дату (дата из календаря, на которую кликнули)
+    if (currentSelectedDate) {
+        masterSelectedDate = currentSelectedDate;
+    }
     
     loadAddServices();
     initPhoneMasks();
+    
+    // Если дата уже выбрана, сразу загружаем услуги
+    if (masterSelectedDate) {
+        // Немного ждём, пока загрузятся услуги
+        setTimeout(() => {
+            if (masterSelectedServices.length > 0) {
+                masterLoadDatesForServices();
+                // После загрузки дат выделяем текущую
+                setTimeout(() => {
+                    highlightCurrentDate();
+                }, 500);
+            }
+        }, 500);
+    }
+}
+
+function highlightCurrentDate() {
+    if (!masterSelectedDate) return;
+    
+    const dateCards = document.querySelectorAll('#add_dates_list .date-card');
+    dateCards.forEach(card => {
+        if (card.getAttribute('data-date') === masterSelectedDate) {
+            card.classList.add('border-pink');
+            // Автоматически загружаем слоты для этой даты
+            masterSelectDate(masterSelectedDate, card);
+        }
+    });
 }
 
 function backToDayView() {
@@ -838,7 +1239,11 @@ function loadAddServices() {
                 cat.services.forEach(service => {
                     html += `
                         <div class="col-md-4 mb-2">
-                            <div class="card service-card" data-service-id="${service.id}" data-service-duration="${service.duration}" onclick="selectAddService(this, ${service.id})">
+                            <div class="card service-card" 
+                                 data-service-id="${service.id}"
+                                 data-service-duration="${service.duration}"
+                                 data-service-price="${service.price}"
+                                 onclick="masterAddService(${service.id}, '${escapeHtml(service.name)}', ${service.duration}, ${service.price})">
                                 <div class="card-body p-2">
                                     <div class="fw-bold small">${escapeHtml(service.name)}</div>
                                     <div class="small text-muted">${service.duration} мин / ${service.price} ₽</div>
@@ -854,7 +1259,11 @@ function loadAddServices() {
                 data.uncategorized.forEach(service => {
                     html += `
                         <div class="col-md-4 mb-2">
-                            <div class="card service-card" data-service-id="${service.id}" data-service-duration="${service.duration}" onclick="selectAddService(this, ${service.id})">
+                            <div class="card service-card" 
+                                 data-service-id="${service.id}"
+                                 data-service-duration="${service.duration}"
+                                 data-service-price="${service.price}"
+                                 onclick="masterAddService(${service.id}, '${escapeHtml(service.name)}', ${service.duration}, ${service.price})">
                                 <div class="card-body p-2">
                                     <div class="fw-bold small">${escapeHtml(service.name)}</div>
                                     <div class="small text-muted">${service.duration} мин / ${service.price} ₽</div>

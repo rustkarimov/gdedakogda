@@ -98,5 +98,7 @@ urlpatterns = [
     path('api/notifications/<int:notification_id>/read/', views.mark_notification_read, name='api_mark_read'),
     path('api/notifications/<int:notification_id>/unread/', views.mark_notification_unread, name='api_mark_unread'),
     path('api/notifications/mark-all-read/', views.mark_all_read, name='api_mark_all_read'),
+
+    path('api/<str:login>/book-multiple/', views.create_multiple_bookings, name='api_book_multiple'),
     
 ]

@@ -17,6 +17,7 @@
                 <div class="alert alert-info">
                     <i class="fas fa-info-circle me-2"></i>
                     Используйте эту форму, если клиент записался по телефону или лично.
+                    Можно выбрать несколько услуг — они будут выполнены подряд без пауз.
                 </div>
             </div>
         </div>
@@ -26,7 +27,10 @@
             <!-- Шаг 1: Услуги (всегда виден) -->
             <div class="card mb-4" id="step-services">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-cut me-2" style="color: #ff85b3;"></i>Шаг 1: Выберите услугу</h5>
+                    <h5 class="mb-0">
+                        <i class="fas fa-cut me-2" style="color: #ff85b3;"></i>
+                        Шаг 1: Выберите услуги (можно несколько)
+                    </h5>
                 </div>
                 <div class="card-body">
                     <div id="services-list">
@@ -37,15 +41,28 @@
                 </div>
             </div>
             
+            <!-- Блок корзины -->
+            <div class="card mb-4 services-cart" style="display: none;">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shopping-cart me-2" style="color: #ff85b3;"></i>
+                        Выбранные услуги
+                        <button class="btn btn-sm btn-outline-danger float-end" onclick="masterClearServices()">Очистить все</button>
+                    </h5>
+                </div>
+                <div class="card-body" id="selected-services-cart"></div>
+            </div>
+            
             <!-- Шаг 2: Даты (появляется после выбора услуги) -->
             <div class="card mb-4" id="step-dates" style="display: none;">
                 <div class="card-header bg-white">
                     <h5 class="mb-0"><i class="far fa-calendar-alt me-2" style="color: #ff85b3;"></i>Шаг 2: Выберите дату</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row" id="dates-container">
-                        <!-- Даты загрузятся через JS -->
+                    <div id="dates-loading" style="display: none;" class="text-center py-3">
+                        <div class="spinner-border" style="color: #ff85b3;"></div>
                     </div>
+                    <div class="row" id="dates-container"></div>
                 </div>
             </div>
             
@@ -55,9 +72,10 @@
                     <h5 class="mb-0"><i class="far fa-clock me-2" style="color: #ff85b3;"></i>Шаг 3: Выберите время</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row" id="slots-container">
-                        <!-- Слоты загрузятся через JS -->
+                    <div id="slots-loading" style="display: none;" class="text-center py-3">
+                        <div class="spinner-border" style="color: #ff85b3;"></div>
                     </div>
+                    <div class="row" id="slots-container"></div>
                 </div>
             </div>
             
@@ -69,9 +87,6 @@
                 <div class="card-body">
                     <form id="manual-booking-form">
                         {% csrf_token %}
-                        <input type="hidden" id="selected-service-id" name="service_id">
-                        <input type="hidden" id="selected-date" name="date">
-                        <input type="hidden" id="selected-time" name="time">
                         
                         <div class="mb-3">
                             <label for="client-name" class="form-label">Имя клиента <span class="text-danger">*</span></label>
@@ -81,7 +96,7 @@
                         <div class="mb-3">
                             <label for="client-phone" class="form-label">Телефон клиента <span class="text-danger">*</span></label>
                             <input type="tel" class="form-control" id="client-phone" 
-                                   placeholder="7" required>
+                                   placeholder="7 999 123-45-67" required>
                             <small class="text-muted">Номер будет зашифрован</small>
                         </div>
                         
@@ -109,61 +124,256 @@
 </div>
 
 <script>
-let selectedServiceId = null;
-let selectedDate = null;
-let selectedTime = null;
+// ============================================================
+// МНОЖЕСТВЕННЫЙ ВЫБОР УСЛУГ ДЛЯ МАСТЕРА (ручное добавление)
+// ============================================================
+let masterSelectedServices = [];
+let masterSelectedDate = null;
+let masterSelectedTime = null;
 let currentPublicSlug = "{{ master.public_slug }}";
+let prefillDate = "{{ prefill_date }}";
 
 // Получаем дату из URL параметра
 const urlParams = new URLSearchParams(window.location.search);
-const prefillDate = urlParams.get('date');
+const prefillDateFromUrl = urlParams.get('date');
 
-// ============================================================
-// СТИЛИЗОВАННОЕ МОДАЛЬНОЕ ОКНО (вместо alert)
-// ============================================================
-function showStyledAlert(message, type = 'success') {
-    // Проверяем, есть ли уже контейнер для таких окон
-    let modalContainer = document.getElementById('styled-alert-modal');
-    if (!modalContainer) {
-        modalContainer = document.createElement('div');
-        modalContainer.id = 'styled-alert-modal';
-        modalContainer.className = 'modal fade';
-        modalContainer.tabIndex = '-1';
-        modalContainer.innerHTML = `
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="styled-alert-title"></h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p id="styled-alert-message"></p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-pink" data-bs-dismiss="modal">OK</button>
-                    </div>
+function masterAddService(serviceId, serviceName, serviceDuration, servicePrice) {
+    if (masterSelectedServices.some(s => s.id === serviceId)) {
+        showStyledAlert('Эта услуга уже добавлена', 'warning');
+        return;
+    }
+    
+    masterSelectedServices.push({
+        id: serviceId,
+        name: serviceName,
+        duration: serviceDuration,
+        price: servicePrice
+    });
+    
+    masterUpdateServicesUI();
+    masterUpdateServiceCards();
+    masterLoadDatesForServices();
+}
+
+function masterRemoveService(index) {
+    masterSelectedServices.splice(index, 1);
+    masterUpdateServicesUI();
+    masterUpdateServiceCards();
+    
+    if (masterSelectedServices.length === 0) {
+        document.getElementById('step-dates').style.display = 'none';
+        document.getElementById('step-times').style.display = 'none';
+        document.getElementById('step-form').style.display = 'none';
+        masterSelectedDate = null;
+        masterSelectedTime = null;
+    } else {
+        masterLoadDatesForServices();
+    }
+}
+
+function masterClearServices() {
+    masterSelectedServices = [];
+    masterUpdateServicesUI();
+    masterUpdateServiceCards();
+    document.getElementById('step-dates').style.display = 'none';
+    document.getElementById('step-times').style.display = 'none';
+    document.getElementById('step-form').style.display = 'none';
+    masterSelectedDate = null;
+    masterSelectedTime = null;
+}
+
+function masterUpdateServicesUI() {
+    const cartContainer = document.getElementById('selected-services-cart');
+    const cartBlock = document.querySelector('.services-cart');
+    
+    if (masterSelectedServices.length === 0) {
+        if (cartBlock) cartBlock.style.display = 'none';
+        return;
+    }
+    
+    if (cartBlock) cartBlock.style.display = 'block';
+    
+    let html = '';
+    let totalDuration = 0;
+    let totalPrice = 0;
+    
+    masterSelectedServices.forEach((service, index) => {
+        totalDuration += service.duration;
+        totalPrice += service.price;
+        html += `
+            <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
+                <div>
+                    <strong>${escapeHtml(service.name)}</strong>
+                    <span class="text-muted ms-2">${service.duration} мин / ${service.price} ₽</span>
                 </div>
+                <button class="btn btn-sm btn-outline-danger" onclick="masterRemoveService(${index})">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
         `;
-        document.body.appendChild(modalContainer);
-    }
+    });
     
-    const modalElement = document.getElementById('styled-alert-modal');
-    const titleElement = document.getElementById('styled-alert-title');
-    const messageElement = document.getElementById('styled-alert-message');
+    html += `
+        <div class="cart-total mt-2 pt-2 border-top">
+            <div class="d-flex justify-content-between">
+                <strong>Итого:</strong>
+                <strong>${totalDuration} мин / ${totalPrice} ₽</strong>
+            </div>
+        </div>
+    `;
     
-    if (type === 'success') {
-        titleElement.innerHTML = '<i class="fas fa-check-circle me-2" style="color: #28a745;"></i>Готово!';
-        titleElement.style.color = '#28a745';
-    } else {
-        titleElement.innerHTML = '<i class="fas fa-exclamation-triangle me-2" style="color: #dc3545;"></i>Ошибка';
-        titleElement.style.color = '#dc3545';
-    }
+    cartContainer.innerHTML = html;
+}
+
+function masterUpdateServiceCards() {
+    // Снимаем выделение со всех карточек
+    document.querySelectorAll('#services-list .service-card').forEach(card => {
+        card.classList.remove('border-pink', 'border-2', 'selected');
+        const existingClose = card.querySelector('.service-close-btn');
+        if (existingClose) existingClose.remove();
+    });
     
-    messageElement.innerHTML = message;
+    // Добавляем выделение и крестики для выбранных услуг
+    masterSelectedServices.forEach(service => {
+        const cards = document.querySelectorAll(`#services-list .service-card[data-service-id="${service.id}"]`);
+        cards.forEach(card => {
+            card.classList.add('border-pink', 'border-2', 'selected');
+            card.style.position = 'relative';
+            
+            if (!card.querySelector('.service-close-btn')) {
+                const closeBtn = document.createElement('button');
+                closeBtn.className = 'service-close-btn';
+                closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+                closeBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    const index = masterSelectedServices.findIndex(s => s.id === service.id);
+                    if (index !== -1) masterRemoveService(index);
+                };
+                card.appendChild(closeBtn);
+            }
+        });
+    });
+}
+
+function masterLoadDatesForServices() {
+    if (masterSelectedServices.length === 0) return;
     
-    const modal = new bootstrap.Modal(modalElement);
-    modal.show();
+    const totalDuration = masterSelectedServices.reduce((sum, s) => sum + s.duration, 0);
+    const datesContainer = document.getElementById('dates-container');
+    const datesLoading = document.getElementById('dates-loading');
+    
+    datesLoading.style.display = 'block';
+    datesContainer.innerHTML = '';
+    document.getElementById('step-dates').style.display = 'block';
+    document.getElementById('step-times').style.display = 'none';
+    document.getElementById('step-form').style.display = 'none';
+    
+    fetch(`/api/${currentPublicSlug}/dates/?total_duration=${totalDuration}`)
+        .then(response => response.json())
+        .then(data => {
+            datesLoading.style.display = 'none';
+            
+            if (data.dates && data.dates.length > 0) {
+                let html = '<div class="row">';
+                data.dates.forEach(item => {
+                    const isSelected = masterSelectedDate === item.date;
+                    html += `
+                        <div class="col-md-3 col-4 mb-3">
+                            <div class="card date-card text-center ${isSelected ? 'border-pink' : ''}" 
+                                 data-date="${item.date}" onclick="masterSelectDate('${item.date}', this)">
+                                <div class="card-body py-2">
+                                    <div class="small text-muted">${item.day_of_week}</div>
+                                    <div class="fw-bold">${item.display}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                datesContainer.innerHTML = html;
+                
+                // Если есть предзаполненная дата, автоматически выбираем её
+                if (prefillDateFromUrl && !masterSelectedDate) {
+                    const preselectedCard = document.querySelector(`.date-card[data-date="${prefillDateFromUrl}"]`);
+                    if (preselectedCard) {
+                        preselectedCard.click();
+                    }
+                }
+            } else {
+                datesContainer.innerHTML = '<div class="col-12 text-center"><p class="text-muted">Нет свободных дат</p></div>';
+            }
+        })
+        .catch(error => {
+            datesLoading.style.display = 'none';
+            console.error('Ошибка:', error);
+            datesContainer.innerHTML = '<div class="col-12 text-center text-danger">Ошибка загрузки дат</div>';
+        });
+}
+
+function masterSelectDate(date, element) {
+    document.querySelectorAll('#dates-container .date-card').forEach(card => {
+        card.classList.remove('border-pink');
+    });
+    element.classList.add('border-pink');
+    masterSelectedDate = date;
+    masterLoadSlotsForDate();
+}
+
+function masterLoadSlotsForDate() {
+    const totalDuration = masterSelectedServices.reduce((sum, s) => sum + s.duration, 0);
+    const slotsContainer = document.getElementById('slots-container');
+    const slotsLoading = document.getElementById('slots-loading');
+    
+    slotsLoading.style.display = 'block';
+    slotsContainer.innerHTML = '';
+    document.getElementById('step-times').style.display = 'block';
+    document.getElementById('step-form').style.display = 'none';
+    
+    fetch(`/api/${currentPublicSlug}/slots/?total_duration=${totalDuration}&date=${masterSelectedDate}`)
+        .then(response => response.json())
+        .then(data => {
+            slotsLoading.style.display = 'none';
+            
+            if (data.slots && data.slots.length > 0) {
+                let html = '<div class="row">';
+                data.slots.forEach(slot => {
+                    const isSelected = masterSelectedTime === slot.start;
+                    html += `
+                        <div class="col-md-2 col-3 mb-3">
+                            <div class="card slot-card text-center ${isSelected ? 'border-pink' : ''}" 
+                                 data-time="${slot.start}" onclick="masterSelectTime('${slot.start}', this)">
+                                <div class="card-body py-2">
+                                    ${slot.start}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                slotsContainer.innerHTML = html;
+            } else {
+                slotsContainer.innerHTML = '<div class="col-12 text-center"><p class="text-muted">Нет свободного времени в этот день</p></div>';
+            }
+        })
+        .catch(error => {
+            slotsLoading.style.display = 'none';
+            console.error('Ошибка:', error);
+            slotsContainer.innerHTML = '<div class="col-12 text-center text-danger">Ошибка загрузки времени</div>';
+        });
+}
+
+function masterSelectTime(time, element) {
+    document.querySelectorAll('#slots-container .slot-card').forEach(card => {
+        card.classList.remove('border-pink', 'bg-light');
+    });
+    element.classList.add('border-pink', 'bg-light');
+    masterSelectedTime = time;
+    
+    document.getElementById('step-form').style.display = 'block';
+    
+    setTimeout(() => {
+        document.getElementById('step-form').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
 }
 
 // ============================================================
@@ -230,8 +440,10 @@ function renderServiceCard(service) {
         <div class="col-md-6 mb-3">
             <div class="card service-card h-100" 
                  data-service-id="${service.id}"
+                 data-service-name="${escapeHtml(service.name)}"
                  data-service-duration="${service.duration}"
-                 onclick="selectService(this)">
+                 data-service-price="${service.price}"
+                 onclick="masterAddService(${service.id}, '${escapeHtml(service.name)}', ${service.duration}, ${service.price})">
                 <div class="card-body">
                     <h6 class="card-title">${escapeHtml(service.name)}</h6>
                     <p class="card-text small text-muted">${escapeHtml(service.description || '')}</p>
@@ -270,192 +482,54 @@ function escapeHtml(str) {
 }
 
 // ============================================================
-// ВЫБОР УСЛУГИ
+// СТИЛИЗОВАННОЕ МОДАЛЬНОЕ ОКНО
 // ============================================================
-function selectService(element) {
-    document.querySelectorAll('.service-card').forEach(card => {
-        card.classList.remove('border-pink', 'border-2');
-    });
-    
-    element.classList.add('border-pink', 'border-2');
-    
-    selectedServiceId = element.dataset.serviceId;
-    
-    const datesCard = document.getElementById('step-dates');
-    datesCard.style.display = 'block';
-    
-    document.getElementById('step-times').style.display = 'none';
-    document.getElementById('step-form').style.display = 'none';
-    
-    selectedDate = null;
-    selectedTime = null;
-    
-    loadAvailableDates();
-    
-    setTimeout(() => {
-        datesCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-}
-
-// ============================================================
-// ЗАГРУЗКА ДАТ
-// ============================================================
-function loadAvailableDates() {
-    const datesContainer = document.getElementById('dates-container');
-    datesContainer.innerHTML = `
-        <div class="col-12 text-center">
-            <div class="spinner-border" style="color: #ff85b3;" role="status">
-                <span class="visually-hidden">Загрузка...</span>
-            </div>
-        </div>
-    `;
-    
-    fetch(`/api/${currentPublicSlug}/dates/?service_id=${selectedServiceId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.dates && data.dates.length > 0) {
-                let html = '';
-                data.dates.forEach(item => {
-                    const isSelected = (prefillDate === item.date);
-                    html += `
-                        <div class="col-md-3 col-6 mb-3">
-                            <div class="card date-card text-center ${isSelected ? 'border-pink' : ''}" 
-                                 data-date="${item.date}" 
-                                 onclick="selectDate('${item.date}', this)">
-                                <div class="card-body py-2">
-                                    <div class="small text-muted">${item.day_of_week}</div>
-                                    <div class="fw-bold">${item.display}</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-                datesContainer.innerHTML = html;
-                
-                if (prefillDate) {
-                    const preselectedCard = document.querySelector(`.date-card[data-date="${prefillDate}"]`);
-                    if (preselectedCard) {
-                        preselectedCard.click();
-                    }
-                }
-            } else {
-                datesContainer.innerHTML = `
-                    <div class="col-12 text-center">
-                        <p class="text-muted">Нет свободных дат в ближайший месяц</p>
+function showStyledAlert(message, type = 'success') {
+    let modalContainer = document.getElementById('styled-alert-modal');
+    if (!modalContainer) {
+        modalContainer = document.createElement('div');
+        modalContainer.id = 'styled-alert-modal';
+        modalContainer.className = 'modal fade';
+        modalContainer.tabIndex = '-1';
+        modalContainer.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="styled-alert-title"></h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                `;
-            }
-        })
-        .catch(error => {
-            datesContainer.innerHTML = `
-                <div class="col-12 text-center">
-                    <p class="text-danger">Ошибка загрузки дат</p>
-                </div>
-            `;
-        });
-}
-
-// ============================================================
-// ВЫБОР ДАТЫ
-// ============================================================
-function selectDate(date, element) {
-    document.querySelectorAll('.date-card').forEach(card => {
-        card.classList.remove('border-pink', 'border-2');
-    });
-    
-    element.classList.add('border-pink', 'border-2');
-    
-    selectedDate = date;
-    
-    const timesCard = document.getElementById('step-times');
-    timesCard.style.display = 'block';
-    
-    document.getElementById('step-form').style.display = 'none';
-    
-    selectedTime = null;
-    
-    loadAvailableSlots();
-    
-    setTimeout(() => {
-        timesCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-}
-
-// ============================================================
-// ЗАГРУЗКА СЛОТОВ ВРЕМЕНИ
-// ============================================================
-function loadAvailableSlots() {
-    const slotsContainer = document.getElementById('slots-container');
-    slotsContainer.innerHTML = `
-        <div class="col-12 text-center">
-            <div class="spinner-border" style="color: #ff85b3;" role="status">
-                <span class="visually-hidden">Загрузка...</span>
-            </div>
-        </div>
-    `;
-    
-    fetch(`/api/${currentPublicSlug}/slots/?service_id=${selectedServiceId}&date=${selectedDate}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.slots && data.slots.length > 0) {
-                let html = '';
-                data.slots.forEach(slot => {
-                    html += `
-                        <div class="col-md-2 col-3 mb-3">
-                            <div class="card slot-card text-center" 
-                                 data-time="${slot.start}"
-                                 onclick="selectTime('${slot.start}', this)">
-                                <div class="card-body py-2">
-                                    ${slot.start}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-                slotsContainer.innerHTML = html;
-            } else {
-                slotsContainer.innerHTML = `
-                    <div class="col-12 text-center">
-                        <p class="text-muted">Нет свободного времени в этот день</p>
+                    <div class="modal-body">
+                        <p id="styled-alert-message"></p>
                     </div>
-                `;
-            }
-        })
-        .catch(error => {
-            slotsContainer.innerHTML = `
-                <div class="col-12 text-center">
-                    <p class="text-danger">Ошибка загрузки времени</p>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-pink" data-bs-dismiss="modal">OK</button>
+                    </div>
                 </div>
-            `;
-        });
+            </div>
+        `;
+        document.body.appendChild(modalContainer);
+    }
+    
+    const modalElement = document.getElementById('styled-alert-modal');
+    const titleElement = document.getElementById('styled-alert-title');
+    const messageElement = document.getElementById('styled-alert-message');
+    
+    if (type === 'success') {
+        titleElement.innerHTML = '<i class="fas fa-check-circle me-2" style="color: #28a745;"></i>Готово!';
+        titleElement.style.color = '#28a745';
+    } else {
+        titleElement.innerHTML = '<i class="fas fa-exclamation-triangle me-2" style="color: #dc3545;"></i>Ошибка';
+        titleElement.style.color = '#dc3545';
+    }
+    
+    messageElement.innerHTML = message;
+    
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
 }
 
 // ============================================================
-// ВЫБОР ВРЕМЕНИ
-// ============================================================
-function selectTime(time, element) {
-    document.querySelectorAll('.slot-card').forEach(card => {
-        card.classList.remove('border-pink', 'border-2', 'bg-light');
-    });
-    
-    element.classList.add('border-pink', 'border-2', 'bg-light');
-    
-    selectedTime = time;
-    
-    document.getElementById('selected-service-id').value = selectedServiceId;
-    document.getElementById('selected-date').value = selectedDate;
-    document.getElementById('selected-time').value = selectedTime;
-    
-    const formCard = document.getElementById('step-form');
-    formCard.style.display = 'block';
-    
-    setTimeout(() => {
-        formCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
-}
-
-// ============================================================
-// ОТПРАВКА ФОРМЫ (С ИСПОЛЬЗОВАНИЕМ СТИЛИЗОВАННОГО ОКНА)
+// ОТПРАВКА ФОРМЫ
 // ============================================================
 document.getElementById('manual-booking-form').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -463,6 +537,7 @@ document.getElementById('manual-booking-form').addEventListener('submit', functi
     const clientName = document.getElementById('client-name').value.trim();
     let clientPhone = document.getElementById('client-phone').value.trim();
     const force = document.getElementById('force-booking').checked;
+    const comment = document.getElementById('client-comment').value;
     
     // Очищаем телефон от пробелов и тире для валидации
     const phoneForValidation = clientPhone.replace(/\D/g, '');
@@ -472,13 +547,25 @@ document.getElementById('manual-booking-form').addEventListener('submit', functi
         return;
     }
     
+    if (masterSelectedServices.length === 0) {
+        showStyledAlert('Выберите хотя бы одну услугу', 'error');
+        return;
+    }
+    
+    if (!masterSelectedDate || !masterSelectedTime) {
+        showStyledAlert('Выберите дату и время', 'error');
+        return;
+    }
+    
+    const serviceIds = masterSelectedServices.map(s => s.id);
+    
     const formData = {
-        service_id: selectedServiceId,
+        services: serviceIds,
         client_name: clientName,
         client_phone: phoneForValidation,
-        date: selectedDate,
-        time: selectedTime,
-        comment: document.getElementById('client-comment').value,
+        date: masterSelectedDate,
+        start_time: masterSelectedTime,
+        comment: comment,
         force: force,
         created_by: 'master'
     };
@@ -488,7 +575,7 @@ document.getElementById('manual-booking-form').addEventListener('submit', functi
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Добавление...';
     submitBtn.disabled = true;
     
-    fetch(`/api/${currentPublicSlug}/book/`, {
+    fetch(`/api/${currentPublicSlug}/book-multiple/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -499,7 +586,7 @@ document.getElementById('manual-booking-form').addEventListener('submit', functi
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showStyledAlert('✅ Запись успешно добавлена!', 'success');
+            showStyledAlert(`✅ Запись добавлена!`, 'success');
             resetBooking();
         } else {
             showStyledAlert('Ошибка: ' + data.error, 'error');
@@ -515,21 +602,15 @@ document.getElementById('manual-booking-form').addEventListener('submit', functi
     });
 });
 
-// ============================================================
-// СБРОС ФОРМЫ
-// ============================================================
 function resetBooking() {
-    document.querySelectorAll('.service-card').forEach(card => {
-        card.classList.remove('border-pink', 'border-2');
-    });
+    masterClearServices();
+    
+    masterSelectedDate = null;
+    masterSelectedTime = null;
     
     document.getElementById('step-dates').style.display = 'none';
     document.getElementById('step-times').style.display = 'none';
     document.getElementById('step-form').style.display = 'none';
-    
-    selectedServiceId = null;
-    selectedDate = null;
-    selectedTime = null;
     
     document.getElementById('manual-booking-form').reset();
     
@@ -541,24 +622,19 @@ function resetBooking() {
 // ============================================================
 function phoneMask(input) {
     let value = input.value.replace(/\D/g, '');
-    
     if (value.length === 0) {
         input.value = '';
         return;
     }
-    
     if (value[0] !== '7' && value[0] !== '8') {
         value = '7' + value;
     }
-    
     if (value[0] === '8') {
         value = '7' + value.slice(1);
     }
-    
     if (value.length > 11) {
         value = value.slice(0, 11);
     }
-    
     let formatted = '';
     if (value.length > 0) {
         formatted = value[0];
@@ -567,7 +643,6 @@ function phoneMask(input) {
         if (value.length > 7) formatted += '-' + value.slice(7, 9);
         if (value.length > 9) formatted += '-' + value.slice(9, 11);
     }
-    
     input.value = formatted;
 }
 
@@ -594,6 +669,7 @@ document.addEventListener('DOMContentLoaded', function() {
 .service-card, .date-card, .slot-card {
     cursor: pointer;
     transition: all 0.2s ease;
+    position: relative;
 }
 
 .service-card:hover, .date-card:hover, .slot-card:hover {
@@ -604,6 +680,31 @@ document.addEventListener('DOMContentLoaded', function() {
 .border-pink {
     border: 2px solid #ff85b3 !important;
     background-color: #fff9fb !important;
+}
+
+/* Крестик на выбранной услуге */
+.service-close-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.service-close-btn:hover {
+    background-color: #c82333;
+    transform: scale(1.1);
 }
 
 .btn-pink {
@@ -620,9 +721,16 @@ document.addEventListener('DOMContentLoaded', function() {
     color: white;
 }
 
-/* Анимация появления */
-#step-dates, #step-times, #step-form {
+.services-cart {
     animation: fadeInUp 0.3s ease-out;
+}
+
+.cart-item {
+    transition: all 0.2s ease;
+}
+
+.cart-item:hover {
+    background-color: #e9ecef !important;
 }
 
 @keyframes fadeInUp {
@@ -634,6 +742,10 @@ document.addEventListener('DOMContentLoaded', function() {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+#step-dates, #step-times, #step-form {
+    animation: fadeInUp 0.4s ease-out;
 }
 </style>
 {% endblock %}

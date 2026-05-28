@@ -27,6 +27,7 @@ import os
 from datetime import datetime
 
 
+
 def get_weekday_ru(date_obj):
     weekdays = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
     return weekdays[date_obj.weekday()]
@@ -1582,23 +1583,32 @@ import json
 
 
 def get_available_dates(request, login):
-    """API для получения доступных дат"""
+    """API для получения доступных дат (поддерживает как одну услугу, так и суммарную длительность)"""
     try:
         master = get_object_or_404(Master, login=login)
         service_id = request.GET.get('service_id')
+        total_duration = request.GET.get('total_duration')
         
-        if not service_id:
-            return JsonResponse({'error': 'Выберите услугу'}, status=400)
+        # Определяем длительность для поиска слотов
+        duration = None
         
-        try:
-            service = Service.objects.get(id=service_id, master=master)
-        except Service.DoesNotExist:
-            return JsonResponse({'error': 'Услуга не найдена'}, status=404)
+        if total_duration:
+            # Новый режим: множественный выбор услуг
+            duration = int(total_duration)
+        elif service_id:
+            # Старый режим: одна услуга
+            try:
+                service = Service.objects.get(id=service_id, master=master)
+                duration = service.duration
+            except Service.DoesNotExist:
+                return JsonResponse({'error': 'Услуга не найдена'}, status=404)
+        else:
+            return JsonResponse({'error': 'Выберите услугу или укажите общую длительность'}, status=400)
         
         calculator = ScheduleCalculator(master)
         available_dates = calculator.get_available_dates(
             days_ahead=60,
-            min_service_duration=service.duration
+            min_service_duration=duration
         )
         
         dates_list = [{
@@ -1617,21 +1627,37 @@ def get_available_dates(request, login):
 
 
 def get_available_slots(request, login):
-    """API для получения свободных слотов на выбранную дату"""
+    """API для получения свободных слотов на выбранную дату (поддерживает как service_id, так и total_duration)"""
     master = get_object_or_404(Master, login=login)
     service_id = request.GET.get('service_id')
+    total_duration = request.GET.get('total_duration')
     date_str = request.GET.get('date')
     exclude_booking_id = request.GET.get('exclude_booking_id')
-    original_booking_id = request.GET.get('original_booking_id')  # ← ДОБАВИТЬ
+    original_booking_id = request.GET.get('original_booking_id')
     
-    if not service_id or not date_str:
-        return JsonResponse({'error': 'Не указаны параметры'}, status=400)
+    if not date_str:
+        return JsonResponse({'error': 'Не указана дата'}, status=400)
+    
+    # Определяем длительность
+    duration = None
+    
+    if total_duration:
+        # Множественный выбор: используем суммарную длительность
+        duration = int(total_duration)
+    elif service_id:
+        # Одна услуга
+        try:
+            service = Service.objects.get(id=service_id, master=master)
+            duration = service.duration
+        except Service.DoesNotExist:
+            return JsonResponse({'error': 'Услуга не найдена'}, status=404)
+    else:
+        return JsonResponse({'error': 'Не указана услуга или общая длительность'}, status=400)
     
     try:
-        service = Service.objects.get(id=service_id, master=master)
         target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-    except (Service.DoesNotExist, ValueError):
-        return JsonResponse({'error': 'Неверные параметры'}, status=404)
+    except ValueError:
+        return JsonResponse({'error': 'Неверный формат даты'}, status=400)
     
     calculator = ScheduleCalculator(master)
     
@@ -1643,10 +1669,10 @@ def get_available_slots(request, login):
     
     slots = calculator.generate_time_slots(
         target_date, 
-        service.duration,
+        duration,
         exclude_booking_id=int(exclude_booking_id) if exclude_booking_id else None,
         current_time=current_time,
-        original_booking_id=int(original_booking_id) if original_booking_id else None  # ← ДОБАВИТЬ
+        original_booking_id=int(original_booking_id) if original_booking_id else None
     )
     
     return JsonResponse({'slots': slots})
@@ -1656,7 +1682,6 @@ def create_booking(request, login):
     if request.method != 'POST':
         return JsonResponse({'error': 'Метод не поддерживается'}, status=405)
     
-    # master = get_object_or_404(Master, slug=slug)
     master = get_object_or_404(Master, login=login)
     
     try:
@@ -1668,17 +1693,16 @@ def create_booking(request, login):
         time_str = data.get('time')
         comment = data.get('comment', '')
         force = data.get('force', False)
-        created_by = data.get('created_by', 'client')  # ← ДОБАВИТЬ ЭТУ СТРОКУ
+        created_by = data.get('created_by', 'client')
         
         # Проверяем обязательные поля
         if not all([service_id, client_name, client_phone, date_str, time_str]):
             return JsonResponse({'error': 'Заполните все поля'}, status=400)
         
-        # ОЧИЩАЕМ И ВАЛИДИРУЕМ ТЕЛЕФОН
+        # Очищаем и валидируем телефон
         import re
         client_phone_cleaned = re.sub(r'\D', '', client_phone)
         
-        # Проверяем формат российского номера
         if len(client_phone_cleaned) != 11:
             return JsonResponse({'error': 'Номер телефона должен содержать 11 цифр'}, status=400)
         
@@ -1700,14 +1724,13 @@ def create_booking(request, login):
         if not is_available and not force:
             return JsonResponse({'error': 'Это время уже занято'}, status=400)
         
-        # Шифруем ОЧИЩЕННЫЙ телефон
+        # Шифруем телефон
         from cryptography.fernet import Fernet
         key = master.get_encryption_key()
         if key:
             f = Fernet(key)
             encrypted_phone = f.encrypt(client_phone_cleaned.encode())
         else:
-            # Временное решение, если ключа нет
             encrypted_phone = client_phone_cleaned.encode()
         
         # Создаем запись
@@ -1719,8 +1742,8 @@ def create_booking(request, login):
             client_comment=comment,
             date=booking_date,
             time=booking_time,
-            status='confirmed' if not force else 'confirmed',
-            created_by=created_by  # ← ИСПОЛЬЗОВАТЬ ПЕРЕДАННОЕ ЗНАЧЕНИЕ
+            status='confirmed',
+            created_by=created_by
         )
         
         return JsonResponse({
@@ -1738,6 +1761,151 @@ def create_booking(request, login):
         return JsonResponse({'error': str(e)}, status=500)
 
 
+@csrf_exempt
+def create_multiple_bookings(request, login):
+    """Создание нескольких записей подряд (клиент или мастер)"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Метод не поддерживается'}, status=405)
+    
+    master = get_object_or_404(Master, login=login)
+    
+    try:
+        data = json.loads(request.body)
+        service_ids = data.get('services', [])
+        client_name = data.get('client_name')
+        client_phone = data.get('client_phone')
+        date_str = data.get('date')
+        start_time_str = data.get('start_time')
+        comment = data.get('comment', '')
+        created_by = data.get('created_by', 'client')
+        force = data.get('force', False)
+        
+        # Проверяем обязательные поля
+        if not service_ids or not client_name or not client_phone or not date_str or not start_time_str:
+            return JsonResponse({'error': 'Заполните все поля'}, status=400)
+        
+        # Очищаем и валидируем телефон
+        import re
+        client_phone_cleaned = re.sub(r'\D', '', client_phone)
+        
+        if len(client_phone_cleaned) != 11:
+            return JsonResponse({'error': 'Номер телефона должен содержать 11 цифр'}, status=400)
+        
+        if not client_phone_cleaned.startswith('7'):
+            return JsonResponse({'error': 'Номер должен начинаться с 7'}, status=400)
+        
+        # Проверка чёрного списка
+        from .models import BlacklistedClient
+        if BlacklistedClient.objects.filter(master=master, phone=client_phone_cleaned).exists():
+            return JsonResponse({'error': 'Этот клиент находится в чёрном списке'}, status=403)
+        
+        # Получаем все услуги
+        services = []
+        total_duration = 0
+        for sid in service_ids:
+            service = get_object_or_404(Service, id=sid, master=master)
+            services.append(service)
+            total_duration += service.duration
+        
+        booking_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        start_time = datetime.strptime(start_time_str, '%H:%M').time()
+        
+        # Проверяем, свободно ли время для всех услуг
+        calculator = ScheduleCalculator(master)
+        slots = calculator.generate_time_slots(booking_date, total_duration)
+        is_available = any(slot['start'] == start_time_str for slot in slots)
+        
+        if not is_available and not force:
+            return JsonResponse({'error': 'Это время не подходит для всех выбранных услуг'}, status=400)
+        
+        # Шифруем телефон
+        from cryptography.fernet import Fernet
+        key = master.get_encryption_key()
+        if key:
+            f = Fernet(key)
+            encrypted_phone = f.encrypt(client_phone_cleaned.encode())
+        else:
+            encrypted_phone = client_phone_cleaned.encode()
+        
+        # Создаём записи последовательно
+        created_bookings = []
+        time_offset = 0
+        
+        # Формируем список услуг для уведомления
+        services_list = []
+        
+        for i, service in enumerate(services):
+            booking_time = (datetime.combine(date.today(), start_time) + timedelta(minutes=time_offset)).time()
+            
+            # Комментарий с указанием порядка услуг
+            if len(services) > 1:
+                service_comment = f"{comment} (услуга {i+1} из {len(services)}: {service.name})"
+            else:
+                service_comment = comment
+            
+            booking = Booking.objects.create(
+                master=master,
+                service=service,
+                client_name=client_name,
+                encrypted_phone=encrypted_phone,
+                client_comment=service_comment,
+                date=booking_date,
+                time=booking_time,
+                status='confirmed',
+                created_by=created_by
+            )
+            created_bookings.append(booking)
+            services_list.append(service.name)
+            time_offset += service.duration
+        
+        # Получаем время окончания
+        end_time = (datetime.combine(date.today(), start_time) + timedelta(minutes=total_duration)).strftime('%H:%M')
+        
+        # ========== СОЗДАЁМ УВЕДОМЛЕНИЕ ТОЛЬКО ДЛЯ КЛИЕНТОВ ==========
+        if created_by == 'client':
+            # Формируем красивое сообщение
+            if len(services_list) == 1:
+                services_text = services_list[0]
+            else:
+                services_text = ", ".join(services_list[:-1]) + " и " + services_list[-1]
+            
+            notification_message = (
+                f"{client_name} записался на {len(services_list)} услуги:\n"
+                f"📋 {services_text}\n"
+                f"📅 {booking_date.strftime('%d.%m.%Y')}\n"
+                f"⏰ {start_time_str} - {end_time}"
+            )
+            
+            Notification.objects.create(
+                master=master,
+                type='new_booking',
+                title=f'Новая запись от {client_name} ({len(services_list)} услуги)',
+                message=notification_message,
+                content_object=created_bookings[0]
+            )
+            print(f"📧 Создано общее уведомление для клиентской записи")
+        else:
+            print(f"📧 Общее уведомление НЕ создано (запись от мастера)")
+        # ============================================================
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'✅ Запись на {len(created_bookings)} услуг создана!',
+            'bookings': [{
+                'id': b.id,
+                'time': b.time.strftime('%H:%M'),
+                'service': b.service.name
+            } for b in created_bookings],
+            'total_duration': total_duration,
+            'start_time': start_time_str,
+            'end_time': end_time
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'error': str(e)}, status=500)
+    
 
 def master_by_id(request, master_id):
     """Публичная страница мастера по ID"""
