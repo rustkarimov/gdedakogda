@@ -187,6 +187,22 @@ function renderNotifications(notifications, append) {
     if (!append) container.innerHTML = '';
     
     notifications.forEach(n => {
+        // Разбиваем сообщение на строки
+        const lines = n.message.split('\n');
+        let messageHtml = '';
+        
+        lines.forEach(line => {
+            let displayLine = line;
+            if (line.startsWith('📅')) {
+                displayLine = line.replace('📅', '<i class="far fa-calendar-alt me-2"></i>');
+            } else if (line.startsWith('⏰')) {
+                displayLine = line.replace('⏰', '<i class="far fa-clock me-2"></i>');
+            } else if (line.startsWith('🕐')) {
+                displayLine = line.replace('🕐', '<i class="fas fa-info-circle me-2"></i>');
+            }
+            messageHtml += `<div class="notification-line">${displayLine}</div>`;
+        });
+        
         const div = document.createElement('div');
         div.className = `notification-item p-3 border-bottom ${n.is_read ? 'read' : 'unread'}`;
         div.setAttribute('data-id', n.id);
@@ -199,8 +215,7 @@ function renderNotifications(notifications, append) {
                         <strong>${escapeHtml(n.title)}</strong>
                     </div>
                     <div class="notification-message text-muted small mt-1" style="display: none;">
-                        ${escapeHtml(n.message)}
-                        <div class="text-muted mt-1 small">${n.created_at}</div>
+                        ${messageHtml}
                     </div>
                 </div>
                 <div class="notification-actions">
@@ -435,6 +450,25 @@ document.addEventListener('DOMContentLoaded', function() {
     background-color: #f1f3f5;
     transition: background-color 0.2s ease;
 }
+
+/* Стили для строк уведомлений */
+.notification-line {
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+}
+
+.notification-line:empty {
+    margin-bottom: 8px;
+    height: 0;
+}
+
+.notification-line i {
+    width: 20px;
+    color: #ff85b3;
+}
+
     </style>
     {% block extra_js %}{% endblock %}
 </body>

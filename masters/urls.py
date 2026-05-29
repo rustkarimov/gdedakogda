@@ -14,6 +14,9 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('api/schedule/calendar/', views.get_calendar_schedule, name='api_calendar_schedule'),
     path('api/bookings/', views.get_bookings_api, name='api_bookings'),
+
+    # Детали записи
+    path('api/booking/<int:booking_id>/details/', views.get_booking_details, name='api_booking_details'),
     
     # Услуги
     path('services/', views.services, name='services'),

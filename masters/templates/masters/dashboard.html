@@ -55,7 +55,17 @@
 <div class="card">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0"><i class="fas fa-clock me-2" style="color: #ff85b3;"></i>Ближайшие записи</h5>
-        <span class="badge bg-pink" id="total-bookings-count">0</span>
+        <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center">
+                <label class="form-label me-2 mb-0 small">Показывать:</label>
+                <select id="bookings-limit-select" class="form-select form-select-sm" style="width: 70px;">
+                    <option value="5" selected>5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                </select>
+            </div>
+            <span class="badge bg-pink" id="total-bookings-count">0</span>
+        </div>
     </div>
     <div class="card-body">
         <div id="upcoming-bookings-container">
@@ -70,6 +80,7 @@
         </div>
     </div>
 </div>
+
 
 <div class="card mb-4">
     <div class="card-body">
@@ -318,6 +329,31 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
                 <button type="button" class="btn btn-pink" onclick="saveEditedBooking()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- МОДАЛЬНОЕ ОКНО ПОДРОБНОСТЕЙ ЗАПИСИ -->
+<div class="modal fade" id="bookingDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-info-circle me-2" style="color: #ff85b3;"></i>
+                    Подробности записи
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="bookingDetailsContent">
+                <div class="text-center py-3">
+                    <div class="spinner-border" style="color: #ff85b3;"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
             </div>
         </div>
     </div>
@@ -749,53 +785,87 @@ function saveDayChanges() {
     const e = document.getElementById('extraEndTime').value;
     if (!s || !e) { showAlert('Заполните время', 'Ошибка'); return; }
     
+    // ========== НОВАЯ ПРОВЕРКА: время начала не может быть позже времени окончания ==========
+    if (s >= e) {
+        showAlert('Время начала не может быть позже или равно времени окончания', 'Ошибка');
+        return;
+    }
+    // ===================================================
+    
     const breaks = [];
+    let breaksValid = true;
+    let breaksError = '';
+    
     document.querySelectorAll('#extraBreaksContainer .break-item').forEach(item => {
         const start = item.querySelector('.break-start').value;
         const end = item.querySelector('.break-end').value;
         if (start && end) {
+            // ========== ПРОВЕРКА ДЛЯ КАЖДОГО ПЕРЕРЫВА ==========
+            if (start >= end) {
+                breaksValid = false;
+                breaksError = `Перерыв ${start}-${end}: время начала не может быть позже времени окончания`;
+                return;
+            }
+            // Проверка: перерыв должен быть в рамках рабочего дня
+            if (start < s || end > e) {
+                breaksValid = false;
+                breaksError = `Перерыв ${start}-${end} выходит за пределы рабочего дня (${s}-${e})`;
+                return;
+            }
+            // Проверка: перерывы не должны пересекаться между собой
             breaks.push({ start: start, end: end });
         }
     });
     
-    // ========== НОВАЯ ПРОВЕРКА: пересечение с существующими записями ==========
-    // Получаем все записи на выбранную дату
+    if (!breaksValid) {
+        showAlert(breaksError, 'Ошибка');
+        return;
+    }
+    
+    // ========== ПРОВЕРКА ПЕРЕСЕЧЕНИЯ ПЕРЕРЫВОВ МЕЖДУ СОБОЙ ==========
+    for (let i = 0; i < breaks.length; i++) {
+        for (let j = i + 1; j < breaks.length; j++) {
+            const break1 = breaks[i];
+            const break2 = breaks[j];
+            
+            // Проверяем пересечение
+            if (break1.start < break2.end && break2.start < break1.end) {
+                showAlert(`Перерывы ${break1.start}-${break1.end} и ${break2.start}-${break2.end} пересекаются`, 'Ошибка');
+                return;
+            }
+        }
+    }
+    // ============================================================
+    
+    // ========== ПРОВЕРКА ПЕРЕСЕЧЕНИЯ С СУЩЕСТВУЮЩИМИ ЗАПИСЯМИ ==========
     fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
         .then(response => response.json())
         .then(bookingsData => {
             const bookings = bookingsData.bookings || [];
             
-            // Функция для преобразования времени в минуты
             function timeToMinutes(timeStr) {
                 const [hours, minutes] = timeStr.split(':');
                 return parseInt(hours) * 60 + parseInt(minutes);
             }
             
-            // Функция для проверки пересечения
-            function isOverlap(breakStart, breakEnd, bookingStart, bookingEnd) {
+            function isOverlap(breakStart, breakEnd, bookingStart, bookingDuration) {
                 const breakStartMin = timeToMinutes(breakStart);
                 const breakEndMin = timeToMinutes(breakEnd);
                 const bookingStartMin = timeToMinutes(bookingStart);
-                const bookingEndMin = timeToMinutes(bookingEnd);
+                const bookingEndMin = bookingStartMin + bookingDuration;
                 
                 return (breakStartMin < bookingEndMin && breakEndMin > bookingStartMin);
             }
             
-            // Проверяем каждый перерыв
             let hasConflict = false;
             let conflictMessage = '';
             
             for (const breakItem of breaks) {
                 for (const booking of bookings) {
-                    // Нужно получить длительность услуги для расчёта конца записи
-                    const bookingDuration = booking.service_duration || 30; // запасное значение
-                    const bookingStart = booking.time;
-                    const bookingEndMin = timeToMinutes(bookingStart) + bookingDuration;
-                    const bookingEnd = `${Math.floor(bookingEndMin / 60).toString().padStart(2, '0')}:${(bookingEndMin % 60).toString().padStart(2, '0')}`;
-                    
-                    if (isOverlap(breakItem.start, breakItem.end, bookingStart, bookingEnd)) {
+                    const bookingDuration = booking.service_duration || 30;
+                    if (isOverlap(breakItem.start, breakItem.end, booking.time, bookingDuration)) {
                         hasConflict = true;
-                        conflictMessage = `Перерыв ${breakItem.start}-${breakItem.end} пересекается с записью клиента "${booking.client_name}" (${bookingStart}-${bookingEnd})`;
+                        conflictMessage = `Перерыв ${breakItem.start}-${breakItem.end} пересекается с записью клиента "${booking.client_name}" (${booking.time})`;
                         break;
                     }
                 }
@@ -807,12 +877,10 @@ function saveDayChanges() {
                 return;
             }
             
-            // Если конфликтов нет — продолжаем сохранение
             proceedWithSave();
         })
         .catch(error => {
             console.error('Ошибка проверки записей:', error);
-            // Если ошибка, всё равно пытаемся сохранить
             proceedWithSave();
         });
     
@@ -1712,16 +1780,25 @@ function deleteBooking(bookingId, clientName, time) {
     });
 }
 
-// ============================================================
-// БЛИЖАЙШИЕ ЗАПИСИ
-// ============================================================
-let bookingsPage = 1, bookingsHasMore = true;
 
-function loadBookings(p = 1, a = false) {
-    fetch(`/api/bookings/?page=${p}&limit=10`)
+// ============================================================
+// БЛИЖАЙШИЕ ЗАПИСИ (с выбором лимита 5/10/15)
+// ============================================================
+let bookingsPage = 1;
+let bookingsHasMore = true;
+let bookingsCurrentLimit = 5;
+
+function getBookingsLimit() {
+    return parseInt(document.getElementById('bookings-limit-select').value);
+}
+
+function loadBookings(p = 1, append = false) {
+    const limit = getBookingsLimit();
+    
+    fetch(`/api/bookings/?page=${p}&limit=${limit}`)
         .then(r => r.json())
         .then(d => {
-            if (a) {
+            if (append) {
                 const t = document.querySelector('#upcoming-bookings-table tbody');
                 d.bookings.forEach(b => {
                     const r = createBookingRow(b);
@@ -1733,6 +1810,8 @@ function loadBookings(p = 1, a = false) {
             }
             bookingsHasMore = d.has_more;
             bookingsPage = p;
+            bookingsCurrentLimit = limit;
+            
             const btn = document.getElementById('load-more-bookings');
             btn.style.display = (bookingsHasMore && d.bookings.length > 0) ? 'inline-block' : 'none';
         })
@@ -1751,53 +1830,124 @@ function renderBookings(b) {
         c.innerHTML = '<p class="text-muted mb-0">Нет предстоящих записей</p>';
         return;
     }
-    let h = '<div class="table-responsive"><table class="table" id="upcoming-bookings-table"><thead>';
-    h += '<tr><th>Дата</th><th>Время</th><th>Клиент</th><th>Услуга</th><th>Телефон</th><th>Действия</th><th>Статус</th></tr>';
-    h += '</thead><tbody>';
-    b.forEach(bb => { h += createBookingRow(bb); });
-    h += '</tbody></table></div>';
+    
+    // Сортируем записи по дате и времени (на всякий случай)
+    const sortedBookings = [...b].sort((a, b) => {
+        // Сначала сравниваем даты
+        const dateA = parseDateFromDisplay(a.date);
+        const dateB = parseDateFromDisplay(b.date);
+        if (dateA !== dateB) {
+            return dateA.localeCompare(dateB);
+        }
+        // Если даты одинаковые, сравниваем время
+        return a.time.localeCompare(b.time);
+    });
+    
+    let h = '<div class="table-responsive">';
+    h += '<table class="table" id="upcoming-bookings-table">';
+    h += '<thead>';
+    h += '<tr>';
+    h += '<th>Дата</th>';
+    h += '<th>Время</th>';
+    h += '<th>Клиент</th>';
+    h += '<th>Услуга</th>';
+    h += '<th>Телефон</th>';
+    h += '<th>Действия</th>';
+    h += '<th>Статус</th>';
+    h += '</tr>';
+    h += '</thead>';
+    h += '<tbody>';
+    
+    sortedBookings.forEach(bb => { 
+        h += createBookingRow(bb); 
+    });
+    
+    h += '</tbody>';
+    h += '</table>';
+    h += '</div>';
+    
     c.innerHTML = h;
 }
 
 function createBookingRow(b) {
-    // Определяем, не прошла ли уже запись (если сегодня и время меньше текущего)
     const now = new Date();
     const today = now.toISOString().split('T')[0];
     const bookingDate = b.date.includes('сегодня') ? today : parseDateFromDisplay(b.date);
     
     let isPast = false;
+    let isSoon = false;
+    let isVerySoon = false;
+    
     if (bookingDate === today) {
         const [hours, minutes] = b.time.split(':');
         const bookingTime = new Date();
         bookingTime.setHours(parseInt(hours), parseInt(minutes), 0);
+        
+        const timeDiff = bookingTime - now;
+        const minutesDiff = Math.floor(timeDiff / (1000 * 60));
+        
         isPast = bookingTime < now;
+        
+        if (!isPast) {
+            if (minutesDiff <= 15) {
+                isVerySoon = true;
+                isSoon = true;
+            } else if (minutesDiff <= 30) {
+                isSoon = true;
+            }
+        }
     } else if (bookingDate < today) {
         isPast = true;
     }
     
-    const statusBadge = isPast ? '<span class="badge bg-secondary">Прошла</span>' : '<span class="badge bg-success">Подтверждена</span>';
+    let rowClass = '';
+    let statusBadge = '';
     
-    return `<tr>
-        <td>${escapeHtml(b.date)}</td>
-        <td>${escapeHtml(b.time)}</td>
-        <td>${escapeHtml(b.client_name)}</td>
-        <td>${escapeHtml(b.service_name)}</td>
-        <td>${escapeHtml(b.phone || '—')}</td>
-        <td>
-            <button class="btn btn-sm btn-outline-pink" onclick="editBookingInModal(${b.id})" title="Редактировать">
-                <i class="fas fa-edit"></i>
-            </button>
-            <button class="btn btn-sm btn-outline-danger" onclick="deleteBooking(${b.id}, '${escapeHtml(b.client_name)}', '${b.time}')" title="Удалить">
-                <i class="fas fa-trash"></i>
-            </button>
-        </td>
-        <td>${statusBadge}</td>
-    </tr>`;
+    if (isPast) {
+        statusBadge = '<span class="badge bg-secondary">Прошла</span>';
+        rowClass = 'booking-past';
+    } else if (isVerySoon) {
+        statusBadge = '<span class="badge bg-success">Подтверждена</span>';
+        rowClass = 'booking-very-soon';
+    } else if (isSoon) {
+        statusBadge = '<span class="badge bg-success">Подтверждена</span>';
+        rowClass = 'booking-soon';
+    } else {
+        statusBadge = '<span class="badge bg-success">Подтверждена</span>';
+        rowClass = 'booking-future';
+    }
+    
+    let serviceDisplay = '';
+    if (b.category_name) {
+        serviceDisplay = '<div class="service-category small text-muted">' + escapeHtml(b.category_name) + '</div>' +
+                         '<div class="service-name">' + escapeHtml(b.service_name) + '</div>';
+    } else {
+        serviceDisplay = '<div class="service-name">' + escapeHtml(b.service_name) + '</div>';
+    }
+    
+    return '<tr class="' + rowClass + '">' +
+        '<td>' + escapeHtml(b.date) + '</td>' +
+        '<td>' + escapeHtml(b.time) + '</td>' +
+        '<td>' + escapeHtml(b.client_name) + '</td>' +
+        '<td>' + serviceDisplay + '</td>' +
+        '<td>' +
+            '<button class="btn btn-sm btn-outline-info" onclick="showBookingDetails(' + b.id + ')">' +
+                '<i class="fas fa-info-circle"></i> Подробности' +
+            '</button>' +
+        '</td>' +
+        '<td>' +
+            '<button class="btn btn-sm btn-outline-pink" onclick="editBookingInModal(' + b.id + ')" title="Редактировать">' +
+                '<i class="fas fa-edit"></i>' +
+            '</button> ' +
+            '<button class="btn btn-sm btn-outline-danger" onclick="deleteBooking(' + b.id + ', \'' + escapeHtml(b.client_name) + '\', \'' + b.time + '\')" title="Удалить">' +
+                '<i class="fas fa-trash"></i>' +
+            '</button>' +
+        '</td>' +
+        '<td>' + statusBadge + '</td>' +
+        '</tr>';
 }
 
-// Вспомогательная функция для парсинга даты из отображения
 function parseDateFromDisplay(dateDisplay) {
-    // dateDisplay имеет формат "27 мая" или "27 мая (сегодня)"
     const cleanDate = dateDisplay.replace(' (сегодня)', '');
     const months = {
         'января': '01', 'февраля': '02', 'марта': '03', 'апреля': '04',
@@ -1820,16 +1970,20 @@ function loadMoreBookings() {
     if (bookingsHasMore) loadBookings(bookingsPage + 1, true); 
 }
 
-// Обновляем инициализацию, чтобы записи обновлялись каждую минуту (опционально)
+// Обновляем записи при изменении лимита
+document.getElementById('bookings-limit-select')?.addEventListener('change', function() {
+    bookingsPage = 1;
+    loadBookings(1, false);
+});
+
 let refreshInterval = null;
 
 function startAutoRefresh() {
     if (refreshInterval) clearInterval(refreshInterval);
     refreshInterval = setInterval(() => {
-        // Перезагружаем записи с первой страницы
         bookingsPage = 1;
         loadBookings(1, false);
-    }, 300000); // каждую минуту
+    }, 300000);
 }
 
 function stopAutoRefresh() {
@@ -1837,6 +1991,160 @@ function stopAutoRefresh() {
         clearInterval(refreshInterval);
         refreshInterval = null;
     }
+}
+
+function renderNotifications(notifications, append) {
+    const container = document.getElementById('notifications-list');
+    if (!append) container.innerHTML = '';
+    
+    notifications.forEach(n => {
+        // Разбиваем сообщение на строки и фильтруем пустые
+        const lines = n.message.split('\n').filter(line => line.trim() !== '');
+        let messageHtml = '';
+        
+        lines.forEach(line => {
+            let displayLine = line;
+            if (line.startsWith('📅')) {
+                displayLine = line.replace('📅', '<i class="far fa-calendar-alt me-2"></i>');
+            } else if (line.startsWith('⏰')) {
+                displayLine = line.replace('⏰', '<i class="far fa-clock me-2"></i>');
+            } else if (line.startsWith('🕐')) {
+                displayLine = line.replace('🕐', '<i class="fas fa-info-circle me-2"></i>');
+            }
+            messageHtml += `<div class="notification-line">${displayLine}</div>`;
+        });
+        
+        const div = document.createElement('div');
+        div.className = `notification-item p-3 border-bottom ${n.is_read ? 'read' : 'unread'}`;
+        div.setAttribute('data-id', n.id);
+        div.setAttribute('data-is-read', n.is_read);
+        div.innerHTML = `
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="flex-grow-1" style="cursor: pointer;" onclick="openNotification(this, ${n.id}, ${!n.is_read})">
+                    <div class="notification-title">
+                        <span class="badge ${getTypeBadgeClass(n.type)} me-2">${getTypeName(n.type)}</span>
+                        <strong>${escapeHtml(n.title)}</strong>
+                    </div>
+                    <div class="notification-message text-muted small mt-2" style="display: none;">
+                        ${messageHtml}
+                    </div>
+                </div>
+                <div class="notification-actions">
+                    <button class="btn btn-sm ${n.is_read ? 'btn-outline-secondary' : 'btn-outline-primary'}" 
+                            onclick="event.stopPropagation(); toggleReadStatus(${n.id}, ${!n.is_read})" 
+                            title="${n.is_read ? 'Отметить непрочитанным' : 'Отметить прочитанным'}">
+                        <i class="fas ${n.is_read ? 'fa-envelope-open' : 'fa-envelope'}"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+
+
+// ============================================================
+// БЛИЖАЙШИЕ ЗАПИСИ - ДЕТАЛИ
+// ============================================================
+
+function showBookingDetails(bookingId) {
+    const modal = new bootstrap.Modal(document.getElementById('bookingDetailsModal'));
+    const content = document.getElementById('bookingDetailsContent');
+    
+    content.innerHTML = '<div class="text-center py-3"><div class="spinner-border" style="color: #ff85b3;"></div></div>';
+    modal.show();
+    
+    fetch(`/api/booking/${bookingId}/details/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let servicesHtml = '';
+                data.services.forEach((service, idx) => {
+                    servicesHtml += `
+                        <div class="d-flex justify-content-between align-items-center mb-1 p-1 bg-light rounded">
+                            <span>${escapeHtml(service.name)}</span>
+                            <span class="text-muted small">${service.time}</span>
+                        </div>
+                    `;
+                });
+                
+                let visitsHtml = '';
+                data.client_stats.visits.forEach(visit => {
+                    visitsHtml += `
+                        <div class="d-flex justify-content-between align-items-center mb-1 p-1 bg-light rounded">
+                            <span>${visit.date}</span>
+                            <span class="text-muted small">${visit.time}</span>
+                            <span class="text-muted small">${escapeHtml(visit.service)}</span>
+                        </div>
+                    `;
+                });
+                
+                if (visitsHtml === '') {
+                    visitsHtml = '<p class="text-muted text-center">Нет других записей</p>';
+                }
+                
+                content.innerHTML = `
+                    <div class="mb-3">
+                        <strong><i class="fas fa-user me-2"></i>Клиент:</strong>
+                        <p class="mt-1">${escapeHtml(data.client_name)}</p>
+                    </div>
+                    <div class="mb-3">
+                        <strong><i class="fas fa-phone me-2"></i>Телефон:</strong>
+                        <p class="mt-1">${escapeHtml(data.client_phone_formatted || data.client_phone)}</p>
+                    </div>
+                    <div class="mb-3">
+                        <strong><i class="fas fa-calendar-day me-2"></i>Дата и время:</strong>
+                        <p class="mt-1">${data.date} в ${data.time}</p>
+                    </div>
+                    <div class="mb-3">
+                        <strong><i class="fas fa-cut me-2"></i>Услуги (${data.total_services}):</strong>
+                        <div class="mt-1">${servicesHtml}</div>
+                        <div class="small text-muted mt-1">Общая длительность: ${data.total_duration} мин</div>
+                    </div>
+                    <div class="mb-3">
+                        <strong><i class="fas fa-comment me-2"></i>Комментарий:</strong>
+                        <p class="mt-1">${escapeHtml(data.comment) || '—'}</p>
+                    </div>
+                    <hr>
+                    <div class="mb-3">
+                        <strong><i class="fas fa-chart-line me-2"></i>Статистика клиента:</strong>
+                        <div class="mt-2 p-2 bg-light rounded">
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="fs-4 fw-bold" style="color: #ff85b3;">${data.client_stats.total_visits}</div>
+                                    <div class="small text-muted">Всего визитов</div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="small text-muted">Первый визит</div>
+                                    <div><strong>${data.client_stats.first_visit}</strong></div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="small text-muted">Последний визит</div>
+                                    <div><strong>${data.client_stats.last_visit}</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <strong><i class="fas fa-history me-2"></i>История визитов:</strong>
+                        <div class="mt-1" style="max-height: 200px; overflow-y: auto;">
+                            ${visitsHtml}
+                        </div>
+                    </div>
+                    <div class="text-muted small mt-2">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Запись создана: ${data.created_by}
+                    </div>
+                `;
+            } else {
+                content.innerHTML = '<div class="text-center text-danger">Ошибка загрузки данных</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            content.innerHTML = '<div class="text-center text-danger">Ошибка загрузки данных</div>';
+        });
 }
 
 // ============================================================
@@ -1961,6 +2269,17 @@ window.addEventListener('beforeunload', () => {
 .service-card:hover, .date-card:hover, .slot-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
 .border-pink { border: 2px solid #ff85b3 !important; background-color: #fff9fb !important; }
 
+.service-category {
+    font-size: 18px;
+    color: #000000;
+    font-weight: bold;
+}
+
+.service-name {
+    font-size: 15px;
+    font-weight: normal;
+}
+
 #workingDayActions { display: none !important; }
 #workingDayActions[style*="display: block"] { display: block !important; }
 #dayOffActions { display: none !important; }
@@ -2031,6 +2350,37 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 #alertModal .btn-secondary {
     background-color: #6c757d !important;
     color: white !important;
+}
+
+/* Подсветка записей */
+.booking-very-soon {
+    background-color: #fff0f0 !important;
+    border-left: 4px solid #dc3545;
+}
+
+.booking-soon {
+    background-color: #fff8e7 !important;
+    border-left: 4px solid #ffc107;
+}
+
+.booking-future {
+    background-color: #ffffff !important;
+}
+
+.booking-past {
+    background-color: #f8f9fa !important;
+    opacity: 0.7;
+}
+
+/* Анимация для очень скорых записей (мягкое мигание) */
+@keyframes softPulse {
+    0% { background-color: #fff0f0; }
+    50% { background-color: #ffe0e0; }
+    100% { background-color: #fff0f0; }
+}
+
+.booking-very-soon {
+    animation: softPulse 2s ease-in-out infinite;
 }
 
 </style>
