@@ -151,6 +151,43 @@
     </div>
 </div>
 
+
+<!-- МОДАЛЬНОЕ ОКНО ЧАТА ПОДДЕРЖКИ -->
+<div class="modal fade" id="supportChatModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-headset me-2" style="color: #ff85b3;"></i>
+                    Поддержка
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div id="chat-messages" class="p-3" style="height: 400px; overflow-y: auto; background-color: #f8f9fa;">
+                    <div class="text-center text-muted py-5">
+                        <div class="spinner-border" style="color: #ff85b3;"></div>
+                    </div>
+                </div>
+                <div class="p-3 border-top bg-white">
+                    <div class="input-group">
+                        <textarea id="chat-input" class="form-control" rows="2" placeholder="Напишите свой вопрос..."></textarea>
+                        <button id="chat-send-btn" class="btn btn-pink" type="button">
+                            <i class="fas fa-paper-plane"></i> Отправить
+                        </button>
+                    </div>
+                    <div class="small text-muted mt-2">
+                        <i class="fas fa-clock me-1"></i>Ответ 15
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
 <script>
 let notificationsOffset = 0;
 let notificationsHasMore = true;
@@ -382,17 +419,204 @@ document.addEventListener('DOMContentLoaded', function() {
         </main>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const appContainer = document.querySelector('.app-container');
+
+
+<script>
+// ============================================================
+// ЧАТ ПОДДЕРЖКИ
+// ============================================================
+let chatRefreshInterval = null;
+let lastMessageCount = 0;
+
+function openSupportChat() {
+    const modal = new bootstrap.Modal(document.getElementById('supportChatModal'));
+    modal.show();
+    loadSupportMessages();
+    startChatAutoRefresh();
+}
+
+function loadSupportMessages() {
+    fetch('/api/support/messages/')
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                renderChatMessages(data.messages);
+                lastMessageCount = data.messages.length;
+                
+                // Обновляем красную точку на кнопке
+                updateSupportDot(data.unread_count);
+            }
+        })
+        .catch(error => console.error('Ошибка загрузки чата:', error));
+}
+
+function renderChatMessages(messages) {
+    const container = document.getElementById('chat-messages');
+    
+    if (messages.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted py-5">
+                <i class="fas fa-comment-dots fa-3x mb-3" style="color: #ff85b3;"></i>
+                <p>Напишите свой вопрос, и мы обязательно поможем!</p>
+                <p class="small">Ответ 15</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    messages.forEach(msg => {
+        const isUser = msg.direction === 'user';
+        const bubbleClass = isUser ? 'bg-primary text-white' : 'bg-light border';
+        const alignClass = isUser ? 'justify-content-end' : 'justify-content-start';
         
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', function() {
-                appContainer.classList.toggle('sidebar-collapsed');
-            });
+        html += `
+            <div class="d-flex ${alignClass} mb-3">
+                <div class="${bubbleClass} rounded-3 p-2 px-3" style="max-width: 75%;">
+                    <div class="small mb-1 ${isUser ? 'text-white-50' : 'text-muted'}">
+                        ${isUser ? 'Я' : 'Поддержка'} • ${msg.created_at}
+                    </div>
+                    <div class="message-text" style="white-space: pre-wrap; word-break: break-word;">
+                        ${escapeHtml(msg.message)}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    // Прокручиваем вниз
+    container.scrollTop = container.scrollHeight;
+}
+
+function sendSupportMessage() {
+    const input = document.getElementById('chat-input');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    const sendBtn = document.getElementById('chat-send-btn');
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Отправка...';
+    
+    fetch('/api/support/send/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ message: message })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            input.value = '';
+            loadSupportMessages();
+        } else {
+            alert('Ошибка: ' + data.error);
         }
-    </script>
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+        alert('Не удалось отправить сообщение');
+    })
+    .finally(() => {
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Отправить';
+    });
+}
+
+function startChatAutoRefresh() {
+    if (chatRefreshInterval) clearInterval(chatRefreshInterval);
+    chatRefreshInterval = setInterval(() => {
+        loadSupportMessages();
+    }, 5000); // каждые 5 секунд
+}
+
+function stopChatAutoRefresh() {
+    if (chatRefreshInterval) {
+        clearInterval(chatRefreshInterval);
+        chatRefreshInterval = null;
+    }
+}
+
+function updateSupportDot(unreadCount) {
+    const supportLink = document.querySelector('.support-link');
+    if (!supportLink) return;
+    
+    // Удаляем существующую точку
+    const existingDot = supportLink.querySelector('.support-dot');
+    if (existingDot) existingDot.remove();
+    
+    if (unreadCount > 0) {
+        const dot = document.createElement('span');
+        dot.className = 'support-dot';
+        dot.style.cssText = `
+            position: absolute;
+            top: -5px;
+            right: -8px;
+            width: 12px;
+            height: 12px;
+            background-color: #ff4444;
+            border-radius: 50%;
+            border: 1px solid white;
+        `;
+        supportLink.style.position = 'relative';
+        supportLink.appendChild(dot);
+    }
+}
+
+function checkUnreadSupport() {
+    fetch('/api/support/unread/')
+        .then(r => r.json())
+        .then(data => {
+            updateSupportDot(data.unread_count);
+        })
+        .catch(error => console.error('Ошибка:', error));
+}
+
+// Вешаем обработчик на кнопку поддержки
+document.addEventListener('DOMContentLoaded', function() {
+    const supportBtn = document.querySelector('.support-link');
+    if (supportBtn) {
+        supportBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            openSupportChat();
+        });
+    }
+    
+    // Проверяем непрочитанные каждые 30 секунд
+    checkUnreadSupport();
+    setInterval(checkUnreadSupport, 30000);
+});
+
+// Останавливаем автообновление при закрытии модалки
+document.getElementById('supportChatModal')?.addEventListener('hidden.bs.modal', function() {
+    stopChatAutoRefresh();
+});
+
+// Отправка по Enter (но Shift+Enter для новой строки)
+document.getElementById('chat-input')?.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendSupportMessage();
+    }
+});
+
+// Вешаем обработчик на кнопку отправки
+document.getElementById('chat-send-btn')?.addEventListener('click', sendSupportMessage);
+</script>
+    
+<script>
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const appContainer = document.querySelector('.app-container');
+    
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function() {
+            appContainer.classList.toggle('sidebar-collapsed');
+        });
+    }
+</script>
 
     <style>
     
@@ -469,7 +693,46 @@ document.addEventListener('DOMContentLoaded', function() {
     color: #ff85b3;
 }
 
-    </style>
-    {% block extra_js %}{% endblock %}
+
+.support-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 30px;
+    color: white;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.support-link:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+}
+
+.support-dot {
+    position: absolute;
+    top: -5px;
+    right: -8px;
+    width: 12px;
+    height: 12px;
+    background-color: #ff4444;
+    border-radius: 50%;
+    border: 2px solid white;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+</style>
+{% block extra_js %}{% endblock %}
+
 </body>
 </html>

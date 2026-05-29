@@ -1,8 +1,12 @@
 from django.contrib import admin
 from django import forms
 from django.utils.text import slugify
-from .models import Master, Service, Schedule, DayOff, Booking, PhoneVerification, CustomUser
+from .models import Master, Service, Schedule, DayOff, Booking, PhoneVerification, CustomUser, SupportMessage
+
 from django.contrib.auth.admin import UserAdmin
+
+from django.urls import reverse
+from django.utils.html import format_html
 
 # Кастомная админка для CustomUser
 class CustomUserAdmin(UserAdmin):
@@ -147,3 +151,65 @@ class NotificationAdmin(admin.ModelAdmin):
                 count += 1
         self.message_user(request, f'✅ Уведомления отправлены выбранным мастерам ({count})')
     send_to_selected_masters.short_description = '📢 Отправить ВЫБРАННЫМ мастерам'
+
+
+from django.contrib import admin
+from django.urls import path
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.template.response import TemplateResponse
+from .models import SupportMessage, Master
+
+# Кастомное представление для чата поддержки
+def support_chat_view(request):
+    masters = Master.objects.all().order_by('-created_at')
+    
+    for master in masters:
+        master.unread_count = SupportMessage.objects.filter(
+            master=master, direction='user', is_read=False
+        ).count()
+        master.last_message = SupportMessage.objects.filter(master=master).order_by('-created_at').first()
+    
+    selected_master_id = request.GET.get('master_id')
+    selected_master = None
+    messages_list = []
+    
+    if selected_master_id:
+        selected_master = get_object_or_404(Master, id=selected_master_id)
+        messages_list = SupportMessage.objects.filter(master=selected_master).order_by('created_at')
+        # Отмечаем сообщения от пользователя как прочитанные
+        SupportMessage.objects.filter(master=selected_master, direction='user', is_read=False).update(is_read=True)
+    
+    if request.method == 'POST' and selected_master:
+        reply_text = request.POST.get('reply_text', '').strip()
+        if reply_text:
+            SupportMessage.objects.create(
+                master=selected_master,
+                direction='admin',
+                message=reply_text,
+                is_read=False
+            )
+            messages.success(request, f'Ответ отправлен мастеру {selected_master.first_name}')
+            return redirect(f'/admin/support-chat/?master_id={selected_master.id}')
+    
+    context = {
+        'masters': masters,
+        'selected_master': selected_master,
+        'messages': messages_list,
+        'title': 'Чат поддержки',
+    }
+    return TemplateResponse(request, 'admin/support_chat.html', context)
+
+
+# Добавляем URL в админку
+admin_urls = admin.site.get_urls()
+
+def get_admin_urls():
+    return [
+        path('support-chat/', admin.site.admin_view(support_chat_view), name='support-chat'),
+    ] + admin_urls
+
+admin.site.get_urls = get_admin_urls
+
+
+

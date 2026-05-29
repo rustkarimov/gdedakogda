@@ -1,11 +1,9 @@
-print("🔔 SIGNALS.PY ЗАГРУЖАЕТСЯ...")
 
 from django.db.models.signals import post_save
 from django.contrib.auth.models import User
 from django.dispatch import receiver
 from .models import Master, Booking, Notification
 
-print("🔔 SIGNALS.PY ЗАГРУЗИЛСЯ УСПЕШНО")
 
 @receiver(post_save, sender=User)
 def create_master_profile(sender, instance, created, **kwargs):
@@ -35,11 +33,11 @@ def create_booking_notification(sender, instance, created, **kwargs):
     
     # Уведомления только если запись создана клиентом
     if instance.created_by == 'master' or instance.created_by == 'admin':
-        print(f"❌ Запись создана мастером/admin, уведомление не нужно")
+        # print(f"❌ Запись создана мастером/admin, уведомление не нужно")
         return
     
     # Если дошли до сюда - значит запись от клиента
-    print("✅ СОЗДАЁМ УВЕДОМЛЕНИЕ")
+    # print("✅ СОЗДАЁМ УВЕДОМЛЕНИЕ")
     Notification.objects.create(
         master=instance.master,
         type='new_booking',

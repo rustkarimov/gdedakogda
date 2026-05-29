@@ -8,7 +8,7 @@ from django.contrib.auth import logout as auth_logout
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from .models import BlacklistedClient, Master, Service, Booking, Schedule, DayOff, PhoneVerification, CustomUser, Break, ExtraWorkingDay, ExtraWorkingDayBreak, ServiceCategory, Notification
+from .models import BlacklistedClient, Master, Service, Booking, Schedule, DayOff, PhoneVerification, CustomUser, Break, ExtraWorkingDay, ExtraWorkingDayBreak, ServiceCategory, Notification, SupportMessage
 from .forms import PhoneRegistrationForm, PhoneVerificationForm
 
 from django.views.decorators.http import require_http_methods
@@ -2355,3 +2355,65 @@ def mark_notification_unread(request, notification_id):
     notification.is_read = False
     notification.save()
     return JsonResponse({'success': True})
+
+
+@login_required
+def get_support_messages(request):
+    """Получить все сообщения чата для мастера"""
+    master = request.user.master
+    messages_qs = SupportMessage.objects.filter(master=master)
+    
+    # Считаем непрочитанные (от админа)
+    unread_count = messages_qs.filter(direction='admin', is_read=False).count()
+    
+    # Отмечаем все сообщения от админа как прочитанные
+    messages_qs.filter(direction='admin', is_read=False).update(is_read=True)
+    
+    data = []
+    for msg in messages_qs:
+        data.append({
+            'id': msg.id,
+            'direction': msg.direction,
+            'message': msg.message,
+            'created_at': msg.created_at.strftime('%H:%M %d.%m.%Y'),
+        })
+    
+    return JsonResponse({
+        'success': True,
+        'messages': data,
+        'unread_count': unread_count,
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def send_support_message(request):
+    """Отправить сообщение в поддержку"""
+    master = request.user.master
+    data = json.loads(request.body)
+    message = data.get('message', '').strip()
+    
+    if not message:
+        return JsonResponse({'error': 'Сообщение не может быть пустым'}, status=400)
+    
+    SupportMessage.objects.create(
+        master=master,
+        direction='user',
+        message=message,
+        is_read=True  # для себя сразу прочитано
+    )
+    
+    return JsonResponse({'success': True, 'message': 'Сообщение отправлено'})
+
+
+@login_required
+def get_unread_support_count(request):
+    """Получить количество непрочитанных ответов от поддержки"""
+    master = request.user.master
+    unread_count = SupportMessage.objects.filter(
+        master=master, 
+        direction='admin', 
+        is_read=False
+    ).count()
+    
+    return JsonResponse({'unread_count': unread_count})

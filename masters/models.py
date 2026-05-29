@@ -335,6 +335,27 @@ class Notification(models.Model):
     def __str__(self):
         return f"{self.get_type_display()}: {self.title[:50]}"
 
+class SupportMessage(models.Model):
+    """Сообщение в чате поддержки"""
+    DIRECTION_CHOICES = [
+        ('user', 'Пользователь → Админ'),
+        ('admin', 'Админ → Пользователь'),
+    ]
+    
+    master = models.ForeignKey(Master, on_delete=models.CASCADE, related_name='support_messages')
+    direction = models.CharField(max_length=10, choices=DIRECTION_CHOICES)
+    message = models.TextField(verbose_name="Сообщение")
+    is_read = models.BooleanField(default=False, verbose_name="Прочитано мастером")
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['created_at']
+        verbose_name = "Сообщение поддержки"
+        verbose_name_plural = "Сообщения поддержки"
+    
+    def __str__(self):
+        return f"{self.get_direction_display()}: {self.message[:50]}"
+
 # from django.db import models
 # from django.contrib.auth.models import User, AbstractUser
 # from django.utils.text import slugify  # <--- ДОБАВЬ ЭТУ СТРОКУ

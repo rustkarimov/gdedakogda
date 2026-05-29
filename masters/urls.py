@@ -103,5 +103,9 @@ urlpatterns = [
     path('api/notifications/mark-all-read/', views.mark_all_read, name='api_mark_all_read'),
 
     path('api/<str:login>/book-multiple/', views.create_multiple_bookings, name='api_book_multiple'),
+
+    path('api/support/messages/', views.get_support_messages, name='api_support_messages'),
+    path('api/support/send/', views.send_support_message, name='api_support_send'),
+    path('api/support/unread/', views.get_unread_support_count, name='api_support_unread'),
     
 ]
