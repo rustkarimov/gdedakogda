@@ -73,7 +73,7 @@
                     <!-- Колокольчик в шапке -->
                 <div class="notification-bell" onclick="toggleNotifications()" style="position: relative; cursor: pointer">
                     <i class="fas fa-bell" style="color: white; font-size: 1.3rem;"></i>
-                    <span class="notification-dot" id="notification-dot" style="display: none; position: absolute; top: -3px; right: -5px; width: 10px; height: 10px; background-color: red; border-radius: 50%; border: 1px solid white;"></span>
+                    <span class="notification-dot" id="notification-dot"></span>
                 </div>
 
                 <div class="wallet">
@@ -433,6 +433,12 @@ function openSupportChat() {
     modal.show();
     loadSupportMessages();
     startChatAutoRefresh();
+    
+    // Прокрутка после открытия модалки
+    setTimeout(() => {
+        const container = document.getElementById('chat-messages');
+        if (container) container.scrollTop = container.scrollHeight;
+    }, 200);
 }
 
 function loadSupportMessages() {
@@ -442,9 +448,13 @@ function loadSupportMessages() {
             if (data.success) {
                 renderChatMessages(data.messages);
                 lastMessageCount = data.messages.length;
-                
-                // Обновляем красную точку на кнопке
                 updateSupportDot(data.unread_count);
+                
+                // Прокрутка после загрузки
+                setTimeout(() => {
+                    const container = document.getElementById('chat-messages');
+                    if (container) container.scrollTop = container.scrollHeight;
+                }, 100);
             }
         })
         .catch(error => console.error('Ошибка загрузки чата:', error));
@@ -512,6 +522,12 @@ function sendSupportMessage() {
         if (data.success) {
             input.value = '';
             loadSupportMessages();
+            
+            // Прокрутка после отправки
+            setTimeout(() => {
+                const container = document.getElementById('chat-messages');
+                if (container) container.scrollTop = container.scrollHeight;
+            }, 100);
         } else {
             alert('Ошибка: ' + data.error);
         }
@@ -551,16 +567,16 @@ function updateSupportDot(unreadCount) {
     if (unreadCount > 0) {
         const dot = document.createElement('span');
         dot.className = 'support-dot';
-        dot.style.cssText = `
-            position: absolute;
-            top: -5px;
-            right: -8px;
-            width: 12px;
-            height: 12px;
-            background-color: #ff4444;
-            border-radius: 50%;
-            border: 1px solid white;
-        `;
+        // dot.style.cssText = `
+        //     position: absolute;
+        //     top: -5px;
+        //     right: -8px;
+        //     width: 12px;
+        //     height: 12px;
+        //     background-color: #ff4444;
+        //     border-radius: 50%;
+        //     border: 1px solid white;
+        // `;
         supportLink.style.position = 'relative';
         supportLink.appendChild(dot);
     }
@@ -585,9 +601,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Проверяем непрочитанные каждые 30 секунд
+    // Проверяем непрочитанные каждые 60 секунд
     checkUnreadSupport();
-    setInterval(checkUnreadSupport, 30000);
+    setInterval(checkUnreadSupport, 60000);
 });
 
 // Останавливаем автообновление при закрытии модалки
@@ -659,6 +675,7 @@ document.getElementById('chat-send-btn')?.addEventListener('click', sendSupportM
     border: 1px solid white;
     display: none;
 }
+
 /* Стили для уведомлений */
 .notification-item.unread {
     background-color: #f8f9fa;  /* светло-серый фон */
@@ -715,20 +732,13 @@ document.getElementById('chat-send-btn')?.addEventListener('click', sendSupportM
 
 .support-dot {
     position: absolute;
-    top: -5px;
-    right: -8px;
-    width: 12px;
-    height: 12px;
+    top: -3px;
+    right: -3px;
+    width: 10px;
+    height: 10px;
     background-color: #ff4444;
     border-radius: 50%;
-    border: 2px solid white;
-    animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.2); opacity: 0.7; }
-    100% { transform: scale(1); opacity: 1; }
+    border: 1px solid white;
 }
 
 </style>

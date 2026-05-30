@@ -158,17 +158,37 @@ from django.urls import path
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.template.response import TemplateResponse
+from django.http import JsonResponse  # ← ДОБАВИТЬ ЭТУ СТРОКУ
 from .models import SupportMessage, Master
 
 # Кастомное представление для чата поддержки
 def support_chat_view(request):
-    masters = Master.objects.all().order_by('-created_at')
+    # Очищаем все сообщения Django
+    if hasattr(request, '_messages'):
+        del request._messages
     
+    masters = Master.objects.all()
+    
+    # Собираем данные для каждого мастера
+    masters_data = []
     for master in masters:
-        master.unread_count = SupportMessage.objects.filter(
+        last_msg = SupportMessage.objects.filter(master=master).order_by('-created_at').first()
+        unread_count = SupportMessage.objects.filter(
             master=master, direction='user', is_read=False
         ).count()
-        master.last_message = SupportMessage.objects.filter(master=master).order_by('-created_at').first()
+        
+        masters_data.append({
+            'id': master.id,
+            'name': master.first_name or master.user.phone,
+            'last_name': master.last_name,
+            'phone': master.user.phone,
+            'last_message': last_msg.message[:50] if last_msg else None,
+            'last_message_time': last_msg.created_at if last_msg else None,
+            'unread_count': unread_count,
+        })
+    
+    # Сортируем
+    masters_data.sort(key=lambda x: (-x['unread_count'], -(x['last_message_time'].timestamp() if x['last_message_time'] else 0)))
     
     selected_master_id = request.GET.get('master_id')
     selected_master = None
@@ -177,8 +197,6 @@ def support_chat_view(request):
     if selected_master_id:
         selected_master = get_object_or_404(Master, id=selected_master_id)
         messages_list = SupportMessage.objects.filter(master=selected_master).order_by('created_at')
-        # Отмечаем сообщения от пользователя как прочитанные
-        SupportMessage.objects.filter(master=selected_master, direction='user', is_read=False).update(is_read=True)
     
     if request.method == 'POST' and selected_master:
         reply_text = request.POST.get('reply_text', '').strip()
@@ -189,16 +207,74 @@ def support_chat_view(request):
                 message=reply_text,
                 is_read=False
             )
-            messages.success(request, f'Ответ отправлен мастеру {selected_master.first_name}')
+            # messages.success удалена
             return redirect(f'/admin/support-chat/?master_id={selected_master.id}')
     
     context = {
-        'masters': masters,
+        'masters_data': masters_data,
         'selected_master': selected_master,
         'messages': messages_list,
         'title': 'Чат поддержки',
     }
     return TemplateResponse(request, 'admin/support_chat.html', context)
+
+
+def get_messages_api(request):
+    """API для получения сообщений чата (без перезагрузки страницы)"""
+    master_id = request.GET.get('master_id')
+    if not master_id:
+        return JsonResponse({'success': False, 'error': 'master_id required'})
+    
+    master = get_object_or_404(Master, id=master_id)
+    messages = SupportMessage.objects.filter(master=master).order_by('created_at')
+    
+    data = []
+    for msg in messages:
+        data.append({
+            'direction': msg.direction,
+            'message': msg.message,
+            'created_at': msg.created_at.strftime('%d.%m.%Y %H:%M'),
+            'is_read': msg.is_read,
+        })
+    
+    return JsonResponse({'success': True, 'messages': data})
+
+
+def get_masters_data_api(request):
+    """API для получения отсортированного списка мастеров с непрочитанными"""
+    masters = Master.objects.all()
+    
+    masters_data = []
+    for master in masters:
+        last_msg = SupportMessage.objects.filter(master=master).order_by('-created_at').first()
+        unread_count = SupportMessage.objects.filter(
+            master=master, direction='user', is_read=False
+        ).count()
+        
+        masters_data.append({
+            'id': master.id,
+            'name': master.first_name or master.user.phone,
+            'phone': master.user.phone,
+            'last_message': last_msg.message[:50] if last_msg else None,
+            'last_message_time': last_msg.created_at if last_msg else None,
+            'unread_count': unread_count,
+        })
+    
+    # Сортировка: сначала по наличию непрочитанных (unread_count > 0), затем по времени последнего сообщения (сначала новые)
+    masters_data.sort(key=lambda x: (
+        -x['unread_count'],  # сначала с непрочитанными
+        -(x['last_message_time'].timestamp() if x['last_message_time'] else 0)  # затем по свежести
+    ))
+    
+    return JsonResponse({'success': True, 'masters': masters_data})
+
+def mark_messages_read(request):
+    """Отметить сообщения как прочитанные (когда админ открывает чат)"""
+    master_id = request.GET.get('master_id')
+    if master_id:
+        SupportMessage.objects.filter(master_id=master_id, direction='user', is_read=False).update(is_read=True)
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False})
 
 
 # Добавляем URL в админку
@@ -207,6 +283,9 @@ admin_urls = admin.site.get_urls()
 def get_admin_urls():
     return [
         path('support-chat/', admin.site.admin_view(support_chat_view), name='support-chat'),
+        path('support-chat/messages/', admin.site.admin_view(get_messages_api), name='support-chat-messages'),
+        path('support-chat/masters-data/', admin.site.admin_view(get_masters_data_api), name='support-chat-masters'),
+        path('support-chat/mark-read/', admin.site.admin_view(mark_messages_read), name='support-chat-mark-read'),
     ] + admin_urls
 
 admin.site.get_urls = get_admin_urls

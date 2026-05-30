@@ -1,8 +1,274 @@
 {% extends "admin/base_site.html" %}
 {% load static %}
 
-{% block extrastyle %}
+
+
+{% block content %}
+
+<!-- УБИРАЕМ уведомления -->
+{% block messages %}{% endblock %}
+
+<div class="container-fluid mt-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>💬 Чат поддержки</h1>
+        <button class="refresh-btn" onclick="location.reload()">
+            🔄 Обновить
+        </button>
+    </div>
+    
+    <div class="chat-container">
+        <!-- Список мастеров -->
+        <!-- Список мастеров -->
+        <div class="masters-list">
+            <div style="padding: 10px; background: #f8f9fa; border-bottom: 1px solid #ddd; font-weight: 600;">
+                <i class="fas fa-users"></i> Мастера
+            </div>
+            {% for master in masters_data %}
+            <div class="master-item {% if selected_master and selected_master.id == master.id %}selected{% endif %}"
+                onclick="window.location.href='?master_id={{ master.id }}'">
+                <div class="master-info">
+                    <div class="master-name">
+                        {{ master.name }}
+                        {% if master.last_name %}
+                            {{ master.last_name }}
+                        {% endif %}
+                    </div>
+                    <div class="master-phone">{{ master.phone }}</div>
+                    {% if master.last_message %}
+                        <div class="master-last-message">
+                            {{ master.last_message|truncatechars:30 }}
+                        </div>
+                    {% endif %}
+                </div>
+                {% if master.unread_count > 0 %}
+                    <span class="unread-badge">{{ master.unread_count }}</span>
+                {% endif %}
+            </div>
+            {% empty %}
+            <div class="master-item">
+                <div class="master-info">
+                    Нет мастеров
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Область чата -->
+        <div class="chat-area">
+            {% if selected_master %}
+                <div class="chat-header">
+                    🧑 {{ selected_master.first_name|default:selected_master.user.phone }}
+                    {% if selected_master.last_name %}
+                        {{ selected_master.last_name }}
+                    {% endif %}
+                    <span style="font-size: 12px; color: #666; margin-left: 10px;">
+                        {{ selected_master.user.phone }}
+                    </span>
+                </div>
+                
+                <div class="chat-messages" id="chat-messages">
+                    {% for msg in messages %}
+                        <div class="message {{ msg.direction }}">
+                            <div class="message-bubble">
+                                {{ msg.message|linebreaksbr }}
+                                <div class="message-meta">
+                                    {{ msg.created_at|date:"d.m.Y H:i" }}
+                                    {% if msg.direction == 'user' and not msg.is_read %}
+                                        <span style="color: #f44336;"> ●</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="empty-state">
+                            💬 Нет сообщений. Напишите что-нибудь мастеру.
+                        </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="chat-input-area">
+                    <form method="post" class="chat-input">
+                        {% csrf_token %}
+                        <textarea name="reply_text" rows="2" placeholder="Введите сообщение... (Enter для отправки, Shift+Enter для новой строки)"></textarea>
+                        <button type="submit">📨 Отправить</button>
+                    </form>
+                </div>
+                
+
+
+<script>
+    let lastMessageCount = {{ messages|length }};
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    function updateChatMessages(messages) {
+        const container = document.getElementById('chat-messages');
+        if (!container) return;
+        
+        let html = '';
+        messages.forEach(msg => {
+            const direction = msg.direction;
+            const messageText = escapeHtml(msg.message).replace(/\n/g, '<br>');
+            const isUnread = (direction === 'user' && !msg.is_read);
+            
+            html += `
+                <div class="message ${direction}">
+                    <div class="message-bubble">
+                        ${messageText}
+                        <div class="message-meta">
+                            ${msg.created_at}
+                            ${isUnread ? '<span style="color: #f44336;"> ●</span>' : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        if (html === '') {
+            html = '<div class="empty-state">💬 Нет сообщений. Напишите что-нибудь мастеру.</div>';
+        }
+        
+        container.innerHTML = html;
+        
+        // Прокручиваем вниз ПОСЛЕ обновления DOM
+        setTimeout(() => {
+            container.scrollTop = container.scrollHeight;
+        }, 50);
+    }
+    
+    function updateMastersList() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const currentMasterId = urlParams.get('master_id');
+        
+        fetch('/admin/support-chat/masters-data/')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const mastersList = document.querySelector('.masters-list');
+                    if (!mastersList) return;
+                    
+                    let html = '<div style="padding: 10px; background: #f8f9fa; border-bottom: 1px solid #ddd; font-weight: 600;">';
+                    html += '<i class="fas fa-users"></i> Мастера</div>';
+                    
+                    data.masters.forEach(master => {
+                        const isSelected = (currentMasterId && master.id == currentMasterId);
+                        html += `
+                            <div class="master-item ${isSelected ? 'selected' : ''}" onclick="window.location.href='?master_id=${master.id}'">
+                                <div class="master-info">
+                                    <div class="master-name">
+                                        ${escapeHtml(master.name)}
+                                    </div>
+                                    <div class="master-phone">${escapeHtml(master.phone)}</div>
+                                    ${master.last_message ? `<div class="master-last-message">${escapeHtml(master.last_message)}</div>` : ''}
+                                </div>
+                                ${master.unread_count > 0 ? `<span class="unread-badge">${master.unread_count}</span>` : ''}
+                            </div>
+                        `;
+                    });
+                    
+                    if (data.masters.length === 0) {
+                        html += '<div class="master-item"><div class="master-info">Нет мастеров</div></div>';
+                    }
+                    
+                    mastersList.innerHTML = html;
+                }
+            })
+            .catch(err => console.error('Ошибка обновления списка мастеров:', err));
+    }
+
+    function refreshChat() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const masterId = urlParams.get('master_id');
+        
+        if (!masterId) {
+            updateMastersList();
+            return;
+        }
+        
+        fetch(`/admin/support-chat/messages/?master_id=${masterId}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    lastMessageCount = data.messages.length;
+                    updateChatMessages(data.messages);
+                    updateMastersList();
+                    
+                    // Прокрутка после обновления
+                    setTimeout(() => {
+                        const container = document.getElementById('chat-messages');
+                        if (container) container.scrollTop = container.scrollHeight;
+                    }, 50);
+                }
+            })
+            .catch(err => console.error('Ошибка обновления чата:', err));
+    }
+    
+    // ========== ИНИЦИАЛИЗАЦИЯ ==========
+    
+    // ========== ИНИЦИАЛИЗАЦИЯ ==========
+
+    // Скролл вниз при загрузке
+    setTimeout(() => {
+        const container = document.getElementById('chat-messages');
+        if (container) {
+            container.scrollTop = container.scrollHeight;
+        }
+    }, 200);
+
+    // Отправка по Enter
+    const textarea = document.querySelector('textarea[name="reply_text"]');
+    if (textarea) {
+        textarea.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.form.submit();
+            }
+        });
+    }
+
+    // Обновляем список мастеров при загрузке
+    updateMastersList();
+
+    // Отмечаем сообщения как прочитанные, когда открыли чат с мастером
+    const urlParams = new URLSearchParams(window.location.search);
+    const masterId = urlParams.get('master_id');
+    if (masterId) {
+        fetch(`/admin/support-chat/mark-read/?master_id=${masterId}`)
+            .catch(err => console.error('Ошибка отметки прочитанных:', err));
+    }
+</script>
+
+
+            {% else %}
+                <div class="no-master-selected">
+                    <div style="text-align: center;">
+                        <div style="font-size: 48px; margin-bottom: 15px;">💬</div>
+                        <div>Выберите мастера из списка слева, чтобы начать диалог</div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
 <style>
+    .container-fluid {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    .message-text {
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
     .chat-container {
         display: flex;
         height: calc(100vh - 150px);
@@ -203,137 +469,5 @@
         background: #e0e0e0;
     }
 </style>
-{% endblock %}
 
-{% block content %}
-<div class="container-fluid mt-3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>💬 Чат поддержки</h1>
-        <button class="refresh-btn" onclick="location.reload()">
-            🔄 Обновить
-        </button>
-    </div>
-    
-    <div class="chat-container">
-        <!-- Список мастеров -->
-        <div class="masters-list">
-            <div style="padding: 10px; background: #f8f9fa; border-bottom: 1px solid #ddd; font-weight: 600;">
-                <i class="fas fa-users"></i> Мастера
-            </div>
-            {% for master in masters %}
-            <div class="master-item {% if selected_master and selected_master.id == master.id %}selected{% endif %}"
-                 onclick="window.location.href='?master_id={{ master.id }}'">
-                <div class="master-info">
-                    <div class="master-name">
-                        {{ master.first_name|default:master.user.phone }}
-                        {% if master.first_name and master.last_name %}
-                            {{ master.last_name }}
-                        {% endif %}
-                    </div>
-                    <div class="master-phone">{{ master.user.phone }}</div>
-                    {% if master.last_message %}
-                        <div class="master-last-message">
-                            {{ master.last_message.message|truncatechars:30 }}
-                        </div>
-                    {% endif %}
-                </div>
-                {% if master.unread_count > 0 %}
-                    <span class="unread-badge">{{ master.unread_count }}</span>
-                {% endif %}
-            </div>
-            {% empty %}
-            <div class="master-item">
-                <div class="master-info">
-                    Нет мастеров
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        
-        <!-- Область чата -->
-        <div class="chat-area">
-            {% if selected_master %}
-                <div class="chat-header">
-                    🧑 {{ selected_master.first_name|default:selected_master.user.phone }}
-                    {% if selected_master.last_name %}
-                        {{ selected_master.last_name }}
-                    {% endif %}
-                    <span style="font-size: 12px; color: #666; margin-left: 10px;">
-                        {{ selected_master.user.phone }}
-                    </span>
-                </div>
-                
-                <div class="chat-messages" id="chat-messages">
-                    {% for msg in messages %}
-                        <div class="message {{ msg.direction }}">
-                            <div class="message-bubble">
-                                {{ msg.message|linebreaksbr }}
-                                <div class="message-meta">
-                                    {{ msg.created_at|date:"d.m.Y H:i" }}
-                                    {% if msg.direction == 'user' and not msg.is_read %}
-                                        <span style="color: #f44336;"> ●</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    {% empty %}
-                        <div class="empty-state">
-                            💬 Нет сообщений. Напишите что-нибудь мастеру.
-                        </div>
-                    {% endfor %}
-                </div>
-                
-                <div class="chat-input-area">
-                    <form method="post" class="chat-input">
-                        {% csrf_token %}
-                        <textarea name="reply_text" rows="2" placeholder="Введите сообщение... (Enter для отправки, Shift+Enter для новой строки)"></textarea>
-                        <button type="submit">📨 Отправить</button>
-                    </form>
-                </div>
-                
-                <script>
-                    // Скролл вниз
-                    const messagesContainer = document.getElementById('chat-messages');
-                    if (messagesContainer) {
-                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                    }
-                    
-                    // Отправка по Enter
-                    const textarea = document.querySelector('textarea[name="reply_text"]');
-                    if (textarea) {
-                        textarea.addEventListener('keydown', function(e) {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                this.form.submit();
-                            }
-                        });
-                    }
-                    
-                    // Автообновление каждые 5 секунд
-                    setTimeout(function() {
-                        location.reload();
-                    }, 5000);
-                </script>
-            {% else %}
-                <div class="no-master-selected">
-                    <div style="text-align: center;">
-                        <div style="font-size: 48px; margin-bottom: 15px;">💬</div>
-                        <div>Выберите мастера из списка слева, чтобы начать диалог</div>
-                    </div>
-                </div>
-            {% endif %}
-        </div>
-    </div>
-</div>
-
-<style>
-    .container-fluid {
-        max-width: 1400px;
-        margin: 0 auto;
-    }
-    .message-text {
-        white-space: pre-wrap;
-        word-break: break-word;
-    }
-</style>
 {% endblock %}

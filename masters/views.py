@@ -2400,7 +2400,8 @@ def send_support_message(request):
         master=master,
         direction='user',
         message=message,
-        is_read=True  # для себя сразу прочитано
+        is_read=False  # ← Теперь сообщение будет непрочитанным
+
     )
     
     return JsonResponse({'success': True, 'message': 'Сообщение отправлено'})
