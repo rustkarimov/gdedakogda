@@ -66,6 +66,39 @@ class Master(models.Model):
     encryption_key = models.BinaryField(verbose_name="Ключ шифрования", null=True, blank=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    PROFILE_CHOICES = [
+        ('home', '🏠 Домашний (клиенты приходят)'),
+        ('travel', '🚗 Выездной (езжу к клиентам)'),
+        ('hybrid', '🔄 Гибрид (оба варианта)'),
+    ]
+    
+    profile_type = models.CharField(
+        max_length=10, 
+        choices=PROFILE_CHOICES, 
+        default='home',
+        verbose_name="Тип работы"
+    )
+    
+    # Настройки для выездного мастера
+    travel_time_default = models.IntegerField(
+        default=30, 
+        verbose_name="Время на дорогу по умолчанию (минут)",
+        help_text="Будет добавляться между выездными записями"
+    )
+    travel_price_default = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2, 
+        default=0, 
+        verbose_name="Стоимость выезда (₽)",
+        help_text="0 - бесплатно"
+    )
+    travel_address_from = models.CharField(
+        max_length=255, 
+        blank=True, 
+        verbose_name="Мой обычный адрес старта",
+        help_text="Откуда выезжаю (город, улица)"
+    )
     
     class Meta:
         verbose_name = "Самозанятый мастер"
@@ -268,11 +301,32 @@ class Booking(models.Model):
     
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='confirmed', verbose_name="Статус")
     
-    # 👇 ДОБАВЬТЕ ЭТУ СТРОКУ
+    # ДОБАВЬТЕ ЭТУ СТРОКУ
     created_by = models.CharField(max_length=10, choices=CREATED_BY_CHOICES, default='client', verbose_name="Кто создал")
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+        # Для выездных записей
+    client_address = models.CharField(
+        max_length=255, 
+        blank=True, 
+        verbose_name="Адрес клиента"
+    )
+    travel_time = models.IntegerField(
+        default=0, 
+        verbose_name="Время на дорогу (минут)"
+    )
+    travel_price = models.DecimalField(
+        max_digits=8, 
+        decimal_places=2, 
+        default=0, 
+        verbose_name="Стоимость выезда"
+    )
+    is_travel = models.BooleanField(
+        default=False, 
+        verbose_name="Выезд к клиенту"
+    )
     
     class Meta:
         verbose_name = "Запись"

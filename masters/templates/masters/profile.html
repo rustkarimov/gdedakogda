@@ -59,6 +59,66 @@
                             Ваша ссылка: {{ request.scheme }}://{{ request.get_host }}/<span id="login-preview">{{ master.public_slug }}</span>/
                         </small>
                     </div>
+
+                    <!-- Блок выбора профиля -->
+<div class="mb-4">
+    <label class="form-label fw-bold">Тип работы</label>
+    <select name="profile_type" class="form-select" id="profile_type">
+        <option value="home" {% if master.profile_type == 'home' %}selected{% endif %}>🏠 Домашний (клиенты приходят)</option>
+        <option value="travel" {% if master.profile_type == 'travel' %}selected{% endif %}>🚗 Выездной (езжу к клиентам)</option>
+        <option value="hybrid" {% if master.profile_type == 'hybrid' %}selected{% endif %}>🔄 Гибрид (оба варианта)</option>
+    </select>
+</div>
+
+<!-- Блок для выездных/гибридных мастеров (показывается JS) -->
+<div id="travel-settings" style="display: none;">
+    <div class="card mb-3">
+        <div class="card-header bg-light">
+            <strong><i class="fas fa-car me-2"></i>Настройки выезда</strong>
+        </div>
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label">Откуда выезжаю</label>
+                <input type="text" class="form-control" name="travel_address_from" value="{{ master.travel_address_from|default:'' }}" placeholder="Например: Москва, ул. Тверская">
+                <small class="text-muted">Адрес, от которого рассчитывается время до клиента</small>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Время на дорогу по умолчанию</label>
+                <select name="travel_time_default" class="form-select">
+                    <option value="15" {% if master.travel_time_default == 15 %}selected{% endif %}>15 минут</option>
+                    <option value="30" {% if master.travel_time_default == 30 %}selected{% endif %}>30 минут</option>
+                    <option value="45" {% if master.travel_time_default == 45 %}selected{% endif %}>45 минут</option>
+                    <option value="60" {% if master.travel_time_default == 60 %}selected{% endif %}>60 минут</option>
+                </select>
+                <small class="text-muted">Будет автоматически добавляться между выездными записями</small>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label">Стоимость выезда</label>
+                <input type="number" class="form-control" name="travel_price_default" value="{{ master.travel_price_default|default:0 }}" step="100" min="0">
+                <small class="text-muted">0 - бесплатно</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const profileSelect = document.getElementById('profile_type');
+    const travelSettings = document.getElementById('travel-settings');
+    
+    function toggleTravelSettings() {
+        const value = profileSelect.value;
+        if (value === 'travel' || value === 'hybrid') {
+            travelSettings.style.display = 'block';
+        } else {
+            travelSettings.style.display = 'none';
+        }
+    }
+    
+    profileSelect.addEventListener('change', toggleTravelSettings);
+    toggleTravelSettings();
+</script>
                     
                     <div class="mb-3">
                         <label for="bio" class="form-label">О себе</label>

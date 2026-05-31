@@ -55,7 +55,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [],
-        'DIRS': [BASE_DIR / 'templates'],  # ← ДОБАВЬТЕ ЭТУ СТРОКУ
+        'DIRS': [BASE_DIR / 'masters' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -80,6 +80,15 @@ DATABASES = {
     }
 }
 
+# Это settings.json для обработки django - js 
+{
+    "files.associations": {
+        "*.html": "django-html"
+    },
+    "emmet.includeLanguages": {
+        "django-html": "html"
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

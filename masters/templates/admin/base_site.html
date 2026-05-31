@@ -1,0 +1,56 @@
+{% extends "admin/base_site.html" %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <style>
+        .support-chat-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: 20px;
+            padding: 5px 12px;
+            background: #417690;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        .support-chat-btn:hover {
+            background: #2b5a6e;
+            color: white;
+        }
+        .support-chat-dot {
+            position: absolute;
+            top: -5px;
+            right: -8px;
+            width: 10px;
+            height: 10px;
+            background-color: #ff4444;
+            border-radius: 50%;
+            border: 2px solid #417690;
+            display: none;
+        }
+    </style>
+{% endblock %}
+
+{% block userlinks %}
+    {{ block.super }}
+    <a href="/admin/support-chat/" class="support-chat-btn" id="support-chat-btn">
+        💬 Чат поддержки
+        <span class="support-chat-dot" id="support-chat-dot"></span>
+    </a>
+    <script>
+        function checkUnread() {
+            fetch('/admin/support-chat/unread-count/')
+                .then(r => r.json())
+                .then(data => {
+                    const dot = document.getElementById('support-chat-dot');
+                    if (dot) dot.style.display = data.unread_count > 0 ? 'block' : 'none';
+                })
+                .catch(err => console.error('Ошибка:', err));
+        }
+        checkUnread();
+        setInterval(checkUnread, 30000);
+    </script>
+{% endblock %}

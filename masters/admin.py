@@ -276,6 +276,11 @@ def mark_messages_read(request):
         return JsonResponse({'success': True})
     return JsonResponse({'success': False})
 
+def get_unread_count_api(request):
+    """API для получения количества непрочитанных сообщений от пользователей"""
+    unread_count = SupportMessage.objects.filter(direction='user', is_read=False).count()
+    return JsonResponse({'unread_count': unread_count})
+
 
 # Добавляем URL в админку
 admin_urls = admin.site.get_urls()
@@ -286,6 +291,7 @@ def get_admin_urls():
         path('support-chat/messages/', admin.site.admin_view(get_messages_api), name='support-chat-messages'),
         path('support-chat/masters-data/', admin.site.admin_view(get_masters_data_api), name='support-chat-masters'),
         path('support-chat/mark-read/', admin.site.admin_view(mark_messages_read), name='support-chat-mark-read'),
+        path('support-chat/unread-count/', admin.site.admin_view(get_unread_count_api), name='support-chat-unread-count'),
     ] + admin_urls
 
 admin.site.get_urls = get_admin_urls
