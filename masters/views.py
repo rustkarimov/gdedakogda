@@ -53,13 +53,16 @@ def dashboard(request):
     except Master.DoesNotExist:
         master = Master.objects.create(user=request.user)
     
-    total_bookings = Booking.objects.filter(master=master).count()
+    # Фильтруем по профилю мастера
+    total_bookings = Booking.objects.filter(master=master, profile_type=master.profile_type).count()
+    
     upcoming_bookings = Booking.objects.filter(
-        master=master, 
+        master=master,
+        profile_type=master.profile_type,  # ← добавить фильтр по профилю
         status='confirmed'
     ).order_by('date', 'time')[:5]
     
-    total_services = Service.objects.filter(master=master).count()
+    total_services = Service.objects.filter(master=master, profile_type=master.profile_type).count()
     
     context = {
         'master': master,
@@ -74,8 +77,8 @@ def get_calendar_schedule(request):
     """API для получения расписания мастера для календаря (с учетом доп. дней)"""
     master = request.user.master
     
-    # Получаем регулярное расписание
-    schedules = Schedule.objects.filter(master=master)
+    # Получаем регулярное расписание ТОЛЬКО для текущего профиля
+    schedules = Schedule.objects.filter(master=master, profile_type=master.profile_type)
     schedules_data = {}
     for schedule in schedules:
         schedules_data[schedule.day_of_week] = {
@@ -87,12 +90,12 @@ def get_calendar_schedule(request):
             } for b in schedule.breaks.all()]
         }
     
-    # УБИРАЕМ ОГРАНИЧЕНИЕ date__gte — показываем ВСЕ выходные
-    days_off = DayOff.objects.filter(master=master).values_list('date', flat=True)
+    # Выходные дни ТОЛЬКО для текущего профиля
+    days_off = DayOff.objects.filter(master=master, profile_type=master.profile_type).values_list('date', flat=True)
     days_off_list = [d.strftime('%Y-%m-%d') for d in days_off]
     
-    # УБИРАЕМ ОГРАНИЧЕНИЕ date__gte — показываем ВСЕ дополнительные дни
-    extra_days = ExtraWorkingDay.objects.filter(master=master)
+    # Дополнительные рабочие дни ТОЛЬКО для текущего профиля
+    extra_days = ExtraWorkingDay.objects.filter(master=master, profile_type=master.profile_type)
     extra_days_data = {}
     for day in extra_days:
         extra_days_data[day.date.strftime('%Y-%m-%d')] = {
@@ -110,6 +113,47 @@ def get_calendar_schedule(request):
         'extra_days': extra_days_data
     })
 
+# @login_required
+# def get_calendar_schedule(request):
+#     """API для получения расписания мастера для календаря (с учетом доп. дней)"""
+#     master = request.user.master
+    
+#     # Получаем регулярное расписание
+#     schedules = Schedule.objects.filter(master=master)
+#     schedules_data = {}
+#     for schedule in schedules:
+#         schedules_data[schedule.day_of_week] = {
+#             'start': schedule.start_time.strftime('%H:%M'),
+#             'end': schedule.end_time.strftime('%H:%M'),
+#             'breaks': [{
+#                 'start': b.start_time.strftime('%H:%M'),
+#                 'end': b.end_time.strftime('%H:%M')
+#             } for b in schedule.breaks.all()]
+#         }
+    
+#     # УБИРАЕМ ОГРАНИЧЕНИЕ date__gte — показываем ВСЕ выходные
+#     days_off = DayOff.objects.filter(master=master).values_list('date', flat=True)
+#     days_off_list = [d.strftime('%Y-%m-%d') for d in days_off]
+    
+#     # УБИРАЕМ ОГРАНИЧЕНИЕ date__gte — показываем ВСЕ дополнительные дни
+#     extra_days = ExtraWorkingDay.objects.filter(master=master)
+#     extra_days_data = {}
+#     for day in extra_days:
+#         extra_days_data[day.date.strftime('%Y-%m-%d')] = {
+#             'start': day.start_time.strftime('%H:%M'),
+#             'end': day.end_time.strftime('%H:%M'),
+#             'breaks': [{
+#                 'start': b.start_time.strftime('%H:%M'),
+#                 'end': b.end_time.strftime('%H:%M')
+#             } for b in day.breaks.all()]
+#         }
+    
+#     return JsonResponse({
+#         'schedules': schedules_data,
+#         'days_off': days_off_list,
+#         'extra_days': extra_days_data
+#     })
+
 
 @login_required
 def get_bookings_api(request):
@@ -126,6 +170,7 @@ def get_bookings_api(request):
     # Получаем все подтверждённые записи от сегодняшней даты и позже
     bookings = Booking.objects.filter(
         master=master,
+        profile_type=master.profile_type,
         status='confirmed',
         date__gte=today
     ).order_by('date', 'time')
@@ -347,10 +392,15 @@ def profile(request):
         master.last_name = request.POST.get('last_name', '')
         master.bio = request.POST.get('bio', '')
         
+        # ========== ДОБАВИТЬ СОХРАНЕНИЕ ПРОФИЛЯ ==========
+        profile_type = request.POST.get('profile_type')
+        if profile_type in ['home', 'travel']:
+            master.profile_type = profile_type
+        # ================================================
+        
         # Обновляем логин
         new_login = request.POST.get('login', '').strip()
         if new_login != (master.login or ''):
-            # Валидация логина
             import re
             if new_login:
                 if len(new_login) < 3:
@@ -366,6 +416,14 @@ def profile(request):
             else:
                 master.login = None
             messages.success(request, 'Логин сохранен! Ваша ссылка обновлена.')
+        
+        # ========== СОХРАНЯЕМ НАСТРОЙКИ ВЫЕЗДА ==========
+        # Если профиль выездной, сохраняем настройки
+        if master.profile_type == 'travel':
+            master.travel_time = int(request.POST.get('travel_time', 30))
+            master.travel_price = float(request.POST.get('travel_price', 0))
+            master.travel_address_from = request.POST.get('travel_address_from', '')
+        # ================================================
         
         master.save()
         
@@ -385,7 +443,7 @@ def profile(request):
 def schedule(request):
     """Настройка регулярного расписания (AJAX версия)"""
     master = request.user.master
-    schedules = Schedule.objects.filter(master=master).order_by('day_of_week')
+    schedules = Schedule.objects.filter(master=master, profile_type=master.profile_type).order_by('day_of_week')
     
     return render(request, 'masters/schedule.html', {
         'schedules': schedules,
@@ -414,6 +472,7 @@ def api_add_service(request):
     
     service = Service.objects.create(
         master=master,
+        profile_type=master.profile_type,
         category=category,
         name=data.get('name'),
         description=data.get('description', ''),
@@ -456,16 +515,30 @@ def api_delete_service(request, service_id):
 
 @login_required
 def get_categories(request):
-    """API для получения категорий с услугами"""
+    """API для получения категорий с услугами (с учётом профиля мастера)"""
     master = request.user.master
+    
+    # Получаем все категории мастера
     categories = ServiceCategory.objects.filter(master=master, is_active=True)
     
-    # Получаем услуги без категории
-    uncategorized = Service.objects.filter(master=master, category__isnull=True, is_active=True)
+    # Получаем услуги без категории, отфильтрованные по профилю
+    uncategorized = Service.objects.filter(
+        master=master,
+        profile_type=master.profile_type,
+        category__isnull=True,
+        is_active=True
+    )
     
     data = []
     for cat in categories:
-        services = Service.objects.filter(master=master, category=cat, is_active=True)
+        # Услуги в каждой категории, отфильтрованные по профилю
+        services = Service.objects.filter(
+            master=master,
+            profile_type=master.profile_type,
+            category=cat,
+            is_active=True
+        )
+        # Убираем условие if services.exists() — показываем категорию всегда
         data.append({
             'id': cat.id,
             'name': cat.name,
@@ -597,12 +670,13 @@ def api_add_schedule(request):
     breaks = data.get('breaks', [])
     
     # Проверяем, не существует ли уже
-    if Schedule.objects.filter(master=master, day_of_week=day_of_week).exists():
+    if Schedule.objects.filter(master=master, day_of_week=day_of_week, profile_type=master.profile_type).exists():
         return JsonResponse({'error': 'Расписание для этого дня уже существует'}, status=400)
     
     # Создаем расписание
     schedule = Schedule.objects.create(
         master=master,
+        profile_type=master.profile_type,  # ← ДОБАВИТЬ ЭТУ СТРОКУ
         day_of_week=day_of_week,
         start_time=datetime.strptime(start_time, '%H:%M').time(),
         end_time=datetime.strptime(end_time, '%H:%M').time()
@@ -764,6 +838,7 @@ def api_add_extra_day(request):
     
     extra_day = ExtraWorkingDay.objects.create(
         master=master,
+        profile_type=master.profile_type,
         date=target_date,
         start_time=datetime.strptime(start_time, '%H:%M').time(),
         end_time=datetime.strptime(end_time, '%H:%M').time()
@@ -820,6 +895,7 @@ def get_days_off_list(request):
     today = date.today()
     days_off = DayOff.objects.filter(
         master=master,
+        profile_type=master.profile_type,
         date__gte=today
     ).order_by('date')
     
@@ -852,6 +928,7 @@ def get_extra_days_upcoming(request):
     
     extra_days = ExtraWorkingDay.objects.filter(
         master=master,
+        profile_type=master.profile_type,
         date__gte=today
     ).order_by('date')
     
@@ -893,6 +970,7 @@ def get_extra_days_past(request):
     
     extra_days_all = ExtraWorkingDay.objects.filter(
         master=master,
+        profile_type=master.profile_type,
         date__lt=today
     ).order_by('-date')
     
@@ -937,7 +1015,7 @@ def get_extra_days_past(request):
 def get_bookings_counts(request):
     """API для получения количества записей по датам"""
     master = request.user.master
-    bookings = Booking.objects.filter(master=master, status='confirmed')
+    bookings = Booking.objects.filter(master=master, status='confirmed', profile_type=master.profile_type)
     
     counts = {}
     for booking in bookings:
@@ -1018,7 +1096,7 @@ def api_delete_day_off_by_date(request):
         return JsonResponse({'error': 'Дата не указана'}, status=400)
     
     target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-    DayOff.objects.filter(master=master, date=target_date).delete()
+    DayOff.objects.filter(master=master, date=target_date, profile_type=master.profile_type).delete()
     
     return JsonResponse({'success': True})
 
@@ -1264,43 +1342,6 @@ def api_delete_booking(request, booking_id):
     return JsonResponse({'success': True, 'message': 'Запись удалена'})
     
 
-# @login_required
-# @require_http_methods(["POST"])
-# def api_add_day_off(request):
-#     """API добавления выходного дня"""
-#     master = request.user.master
-#     data = json.loads(request.body)
-    
-#     date_str = data.get('date')
-#     reason = data.get('reason', '')
-    
-#     if not date_str:
-#         return JsonResponse({'error': 'Выберите дату'}, status=400)
-    
-#     target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-    
-#     # Проверяем на дубликат
-#     if DayOff.objects.filter(master=master, date=target_date).exists():
-#         return JsonResponse({'error': 'Этот день уже отмечен как выходной'}, status=400)
-    
-#     day_off = DayOff.objects.create(
-#         master=master,
-#         date=target_date,
-#         reason=reason
-#     )
-    
-#     return JsonResponse({
-#         'success': True,
-#         'message': 'Выходной день добавлен',
-#         'day_off': {
-#             'id': day_off.id,
-#             'date': day_off.date.strftime('%d.%m.%Y'),
-#             'date_iso': day_off.date.isoformat(),
-#             'weekday': day_off.date.strftime('%A'),
-#             'reason': day_off.reason
-#         }
-#     })
-
 @login_required
 @require_http_methods(["POST"])
 def api_add_day_off(request):
@@ -1317,9 +1358,17 @@ def api_add_day_off(request):
     target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
     day_of_week = target_date.weekday()
     
-    # Проверяем, является ли день рабочим
-    has_schedule = Schedule.objects.filter(master=master, day_of_week=day_of_week).exists()
-    has_extra_day = ExtraWorkingDay.objects.filter(master=master, date=target_date).exists()
+    # Проверяем, является ли день рабочим (только для текущего профиля)
+    has_schedule = Schedule.objects.filter(
+        master=master, 
+        day_of_week=day_of_week,
+        profile_type=master.profile_type  # ← ДОБАВИТЬ
+    ).exists()
+    has_extra_day = ExtraWorkingDay.objects.filter(
+        master=master, 
+        date=target_date,
+        profile_type=master.profile_type  # ← ДОБАВИТЬ
+    ).exists()
     
     # Если день нерабочий (нет расписания и нет доп. дня)
     if not has_schedule and not has_extra_day:
@@ -1328,12 +1377,13 @@ def api_add_day_off(request):
             'message': '🎉 В этот день ты и так не работаешь! Хорошего отдыха!'
         }, status=400)
     
-    # Удаляем существующий выходной, если есть
-    DayOff.objects.filter(master=master, date=target_date).delete()
+    # Удаляем существующий выходной, если есть (только для текущего профиля)
+    DayOff.objects.filter(master=master, date=target_date, profile_type=master.profile_type).delete()
     
     # Создаём выходной
     DayOff.objects.create(
         master=master,
+        profile_type=master.profile_type,  # ← ДОБАВИТЬ
         date=target_date,
         reason=reason
     )
@@ -1614,7 +1664,6 @@ def mobile_register(request):
     data = json.loads(request.body)
     phone = data.get('phone')
     first_name = data.get('first_name', '')
-    last_name = data.get('last_name', '')
     password = data.get('password')
     
     if CustomUser.objects.filter(phone=phone).exists():
@@ -1625,7 +1674,6 @@ def mobile_register(request):
     
     request.session['reg_phone'] = phone
     request.session['reg_first_name'] = first_name
-    request.session['reg_last_name'] = last_name
     request.session['reg_password'] = password
     request.session['test_code'] = verification_code
     
@@ -1650,18 +1698,16 @@ def mobile_verify(request):
             phone=phone,
             password=request.session.get('reg_password'),
             first_name=request.session.get('reg_first_name', ''),
-            last_name=request.session.get('reg_last_name', '')
         )
         Master.objects.create(
             user=user,
             phone=phone,
             first_name=request.session.get('reg_first_name', ''),
-            last_name=request.session.get('reg_last_name', '')
         )
         login(request, user)
         
         # Очищаем сессию
-        for key in ['reg_phone', 'reg_first_name', 'reg_last_name', 'reg_password', 'test_code']:
+        for key in ['reg_phone', 'reg_first_name', 'reg_password', 'test_code']:
             request.session.pop(key, None)
         
         return JsonResponse({'success': True})
@@ -1711,26 +1757,27 @@ def get_available_dates(request, login):
         service_id = request.GET.get('service_id')
         total_duration = request.GET.get('total_duration')
         
-        # Определяем длительность для поиска слотов
-        duration = None
+        # Определяем базовую длительность для поиска слотов
+        base_duration = None
         
         if total_duration:
-            # Новый режим: множественный выбор услуг
-            duration = int(total_duration)
+            base_duration = int(total_duration)
         elif service_id:
-            # Старый режим: одна услуга
             try:
                 service = Service.objects.get(id=service_id, master=master)
-                duration = service.duration
+                base_duration = service.duration
             except Service.DoesNotExist:
                 return JsonResponse({'error': 'Услуга не найдена'}, status=404)
         else:
             return JsonResponse({'error': 'Выберите услугу или укажите общую длительность'}, status=400)
         
+        # Учитываем профиль мастера (для выездного добавляем время на дорогу)
         calculator = ScheduleCalculator(master)
+        actual_duration = calculator.get_actual_slot_duration(base_duration)
+        
         available_dates = calculator.get_available_dates(
             days_ahead=60,
-            min_service_duration=duration
+            min_service_duration=actual_duration
         )
         
         dates_list = [{
@@ -1760,17 +1807,15 @@ def get_available_slots(request, login):
     if not date_str:
         return JsonResponse({'error': 'Не указана дата'}, status=400)
     
-    # Определяем длительность
-    duration = None
+    # Определяем базовую длительность
+    base_duration = None
     
     if total_duration:
-        # Множественный выбор: используем суммарную длительность
-        duration = int(total_duration)
+        base_duration = int(total_duration)
     elif service_id:
-        # Одна услуга
         try:
             service = Service.objects.get(id=service_id, master=master)
-            duration = service.duration
+            base_duration = service.duration
         except Service.DoesNotExist:
             return JsonResponse({'error': 'Услуга не найдена'}, status=404)
     else:
@@ -1783,6 +1828,9 @@ def get_available_slots(request, login):
     
     calculator = ScheduleCalculator(master)
     
+    # Учитываем профиль мастера (для выездного добавляем время на дорогу)
+    actual_duration = calculator.get_actual_slot_duration(base_duration)
+    
     # Определяем, нужно ли передавать текущее время
     current_time = None
     if target_date == date.today():
@@ -1791,13 +1839,28 @@ def get_available_slots(request, login):
     
     slots = calculator.generate_time_slots(
         target_date, 
-        duration,
+        actual_duration,
         exclude_booking_id=int(exclude_booking_id) if exclude_booking_id else None,
         current_time=current_time,
         original_booking_id=int(original_booking_id) if original_booking_id else None
     )
     
     return JsonResponse({'slots': slots})
+
+
+@login_required
+def switch_profile(request):
+    master = request.user.master
+    data = json.loads(request.body)
+    new_profile = data.get('profile_type')
+    
+    if new_profile not in ['home', 'travel']:
+        return JsonResponse({'error': 'Неверный профиль'}, status=400)
+    
+    master.profile_type = new_profile
+    master.save()
+    
+    return JsonResponse({'success': True})
 
 def create_booking(request, login):
     """Создание новой записи (без перезагрузки)"""
@@ -1858,6 +1921,7 @@ def create_booking(request, login):
         # Создаем запись
         booking = Booking.objects.create(
             master=master,
+            profile_type=master.profile_type,
             service=service,
             client_name=client_name,
             encrypted_phone=encrypted_phone,
@@ -1967,6 +2031,7 @@ def create_multiple_bookings(request, login):
             
             booking = Booking.objects.create(
                 master=master,
+                profile_type=master.profile_type,
                 service=service,
                 client_name=client_name,
                 encrypted_phone=encrypted_phone,
@@ -2174,7 +2239,11 @@ def api_delete_extra_day_by_date(request):
         return JsonResponse({'error': 'Дата не указана'}, status=400)
     
     target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-    ExtraWorkingDay.objects.filter(master=master, date=target_date).delete()
+    ExtraWorkingDay.objects.filter(
+        master=master, 
+        date=target_date, 
+        profile_type=master.profile_type
+    ).delete()
     
     return JsonResponse({'success': True})
 

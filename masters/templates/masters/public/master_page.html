@@ -105,20 +105,21 @@
             </div>
 
             <!-- В master_page.html, внутри формы записи -->
-<div class="mb-3" id="travel-fields" style="display: none;">
-    <label class="form-label">Ваш адрес</label>
-    <input type="text" class="form-control" id="client-address" placeholder="Город, улица, дом">
-    <small class="text-muted">До вас мастер будет планировать маршрут</small>
+<div class="mb-3" id="address-field" style="display: none;">
+    <label for="client-address" class="form-label">Ваш адрес</label>
+    <input type="text" class="form-control" id="client-address" 
+           placeholder="Город, улица, дом" required>
+    <small class="text-muted">Куда приехать мастеру</small>
 </div>
 
-<div class="mb-3" id="travel-price-display" style="display: none;">
-    <div class="alert alert-light">
-        <i class="fas fa-car me-2"></i>
-        Выезд мастера: <span id="travel-price-value">0</span> ₽
-        <br>
-        <small>Время на дорогу: <span id="travel-time-value">0</span> мин</small>
-    </div>
-</div>
+<script>
+    // Показываем поле адреса только для выездного мастера
+    const isTravel = "{{ master.profile_type }}" === 'travel';
+    if (isTravel) {
+        document.getElementById('address-field').style.display = 'block';
+        document.getElementById('client-address').required = true;
+    }
+</script>
             
             <!-- Блок подтверждения -->
             <div class="card mb-4" id="confirmation-card" style="display: none;">

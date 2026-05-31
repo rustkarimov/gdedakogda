@@ -70,7 +70,6 @@ class Master(models.Model):
     PROFILE_CHOICES = [
         ('home', '🏠 Домашний (клиенты приходят)'),
         ('travel', '🚗 Выездной (езжу к клиентам)'),
-        ('hybrid', '🔄 Гибрид (оба варианта)'),
     ]
     
     profile_type = models.CharField(
@@ -81,12 +80,12 @@ class Master(models.Model):
     )
     
     # Настройки для выездного мастера
-    travel_time_default = models.IntegerField(
+    travel_time = models.IntegerField(
         default=30, 
-        verbose_name="Время на дорогу по умолчанию (минут)",
-        help_text="Будет добавляться между выездными записями"
+        verbose_name="Время на дорогу (минут)",
+        help_text="Будет добавляться после каждой выездной записи"
     )
-    travel_price_default = models.DecimalField(
+    travel_price = models.DecimalField(
         max_digits=8, 
         decimal_places=2, 
         default=0, 
@@ -96,8 +95,8 @@ class Master(models.Model):
     travel_address_from = models.CharField(
         max_length=255, 
         blank=True, 
-        verbose_name="Мой обычный адрес старта",
-        help_text="Откуда выезжаю (город, улица)"
+        verbose_name="Мой адрес (откуда выезжаю)",
+        help_text="Например: Москва, ул. Тверская"
     )
     
     class Meta:
@@ -173,6 +172,9 @@ class Service(models.Model):
     duration = models.IntegerField(verbose_name="Длительность (минут)")
     price = models.DecimalField(max_digits=8, decimal_places=2, verbose_name="Цена")
     is_active = models.BooleanField(default=True, verbose_name="Активна")
+    # В модели Service добавьте:
+    profile_type = models.CharField(max_length=10, default='home', choices=Master.PROFILE_CHOICES)
+
     
     class Meta:
         verbose_name = "Услуга"
@@ -203,6 +205,7 @@ class Schedule(models.Model):
     start_time = models.TimeField(verbose_name="Начало работы")
     end_time = models.TimeField(verbose_name="Конец работы")
     is_working = models.BooleanField(default=True, verbose_name="Рабочий день")
+    profile_type = models.CharField(max_length=10, default='home', verbose_name="Тип профиля")
     
     class Meta:
         verbose_name = "Расписание"
@@ -232,6 +235,7 @@ class DayOff(models.Model):
     master = models.ForeignKey(Master, on_delete=models.CASCADE, related_name='days_off')
     date = models.DateField(verbose_name="Дата")
     reason = models.CharField(max_length=200, verbose_name="Причина", blank=True)
+    profile_type = models.CharField(max_length=10, default='home', verbose_name="Тип профиля")
     
     class Meta:
         verbose_name = "Выходной день"
@@ -248,6 +252,7 @@ class ExtraWorkingDay(models.Model):
     date = models.DateField(verbose_name="Дата")
     start_time = models.TimeField(verbose_name="Начало работы")
     end_time = models.TimeField(verbose_name="Конец работы")
+    profile_type = models.CharField(max_length=10, default='home', verbose_name="Тип профиля")
     
     class Meta:
         verbose_name = "Дополнительный рабочий день"
@@ -327,6 +332,8 @@ class Booking(models.Model):
         default=False, 
         verbose_name="Выезд к клиенту"
     )
+
+    profile_type = models.CharField(max_length=10, default='home', choices=Master.PROFILE_CHOICES)
     
     class Meta:
         verbose_name = "Запись"

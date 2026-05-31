@@ -335,22 +335,39 @@
         e.preventDefault();
         const phone = document.getElementById('reg-phone').value.replace(/\D/g, '');
         const first_name = document.getElementById('reg-first-name').value;
-        const last_name = document.getElementById('reg-last-name').value;
         const password = document.getElementById('reg-password').value;
         const confirm_password = document.getElementById('reg-confirm-password').value;
         
+        // Проверка паролей
         if (password !== confirm_password) {
             alert('Пароли не совпадают');
             return;
         }
         
+        // Проверка телефона
+        if (!phone || phone.length !== 11) {
+            alert('Введите корректный номер телефона (11 цифр)');
+            return;
+        }
+        
+        // Отправка запроса
         const response = await fetch('/api/mobile/register/', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
-            body: JSON.stringify({ phone, first_name, last_name, password })
+            headers: { 
+                'Content-Type': 'application/json', 
+                'X-CSRFToken': '{{ csrf_token }}' 
+            },
+            body: JSON.stringify({ 
+                phone: phone, 
+                first_name: first_name, 
+                password: password 
+            })
         });
+        
         const data = await response.json();
+        
         if (data.success) {
+            // Показываем окно с кодом подтверждения
             document.getElementById('verify-phone-display').innerText = `На номер ${phone} отправлен код подтверждения`;
             document.getElementById('test-code-display').innerHTML = `<strong>🧪 ТЕСТОВЫЙ РЕЖИМ:</strong><br>Ваш код: <strong class="h4">${data.test_code}</strong>`;
             bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();

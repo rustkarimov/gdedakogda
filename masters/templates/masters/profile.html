@@ -60,65 +60,140 @@
                         </small>
                     </div>
 
-                    <!-- Блок выбора профиля -->
+                   <!-- Тип работы -->
+<!-- Тип работы -->
+<!-- Тип работы -->
 <div class="mb-4">
     <label class="form-label fw-bold">Тип работы</label>
-    <select name="profile_type" class="form-select" id="profile_type">
-        <option value="home" {% if master.profile_type == 'home' %}selected{% endif %}>🏠 Домашний (клиенты приходят)</option>
-        <option value="travel" {% if master.profile_type == 'travel' %}selected{% endif %}>🚗 Выездной (езжу к клиентам)</option>
-        <option value="hybrid" {% if master.profile_type == 'hybrid' %}selected{% endif %}>🔄 Гибрид (оба варианта)</option>
-    </select>
+    <div class="row">
+        <div class="col-md-6 mb-2">
+            <div class="card profile-card" data-profile="home" onclick="selectProfileUI('home')">
+                <div class="card-body text-center">
+                    <i class="fas fa-home fa-2x mb-2" style="color: #ff85b3;"></i>
+                    <h6>🏠 Домашний</h6>
+                    <p class="small text-muted mb-0">Клиенты приходят ко мне</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-2">
+            <div class="card profile-card" data-profile="travel" onclick="selectProfileUI('travel')">
+                <div class="card-body text-center">
+                    <i class="fas fa-car fa-2x mb-2" style="color: #ff85b3;"></i>
+                    <h6>🚗 Выездной</h6>
+                    <p class="small text-muted mb-0">Я выезжаю к клиентам</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" name="profile_type" id="profile_type" value="{{ master.profile_type }}">
+    <small class="text-muted d-block mt-2">Выберите тип работы. Изменения сохранятся после нажатия кнопки "Сохранить изменения".</small>
 </div>
 
-<!-- Блок для выездных/гибридных мастеров (показывается JS) -->
-<div id="travel-settings" style="display: none;">
+<!-- Настройки выезда (показываются только для выездного мастера) -->
+<div id="travel-settings" style="display: {% if master.profile_type == 'travel' %}block{% else %}none{% endif %};">
     <div class="card mb-3">
         <div class="card-header bg-light">
             <strong><i class="fas fa-car me-2"></i>Настройки выезда</strong>
         </div>
         <div class="card-body">
             <div class="mb-3">
-                <label class="form-label">Откуда выезжаю</label>
-                <input type="text" class="form-control" name="travel_address_from" value="{{ master.travel_address_from|default:'' }}" placeholder="Например: Москва, ул. Тверская">
-                <small class="text-muted">Адрес, от которого рассчитывается время до клиента</small>
+                <label class="form-label">Мой адрес (откуда выезжаю)</label>
+                <input type="text" class="form-control" name="travel_address_from" 
+                       value="{{ master.travel_address_from|default:'' }}" 
+                       placeholder="Например: Москва, ул. Тверская">
+                <small class="text-muted">Необязательно, для информации клиентам</small>
             </div>
             
             <div class="mb-3">
-                <label class="form-label">Время на дорогу по умолчанию</label>
-                <select name="travel_time_default" class="form-select">
-                    <option value="15" {% if master.travel_time_default == 15 %}selected{% endif %}>15 минут</option>
-                    <option value="30" {% if master.travel_time_default == 30 %}selected{% endif %}>30 минут</option>
-                    <option value="45" {% if master.travel_time_default == 45 %}selected{% endif %}>45 минут</option>
-                    <option value="60" {% if master.travel_time_default == 60 %}selected{% endif %}>60 минут</option>
+                <label class="form-label">Время на дорогу между клиентами</label>
+                <select name="travel_time" class="form-select">
+                    <option value="15" {% if master.travel_time == 15 %}selected{% endif %}>15 минут</option>
+                    <option value="30" {% if master.travel_time == 30 %}selected{% endif %}>30 минут</option>
+                    <option value="45" {% if master.travel_time == 45 %}selected{% endif %}>45 минут</option>
+                    <option value="60" {% if master.travel_time == 60 %}selected{% endif %}>60 минут</option>
+                    <option value="90" {% if master.travel_time == 90 %}selected{% endif %}>90 минут</option>
                 </select>
-                <small class="text-muted">Будет автоматически добавляться между выездными записями</small>
+                <small class="text-muted">Добавляется к длительности каждой услуги для расчёта слотов</small>
             </div>
             
             <div class="mb-3">
                 <label class="form-label">Стоимость выезда</label>
-                <input type="number" class="form-control" name="travel_price_default" value="{{ master.travel_price_default|default:0 }}" step="100" min="0">
-                <small class="text-muted">0 - бесплатно</small>
+                <input type="number" class="form-control" name="travel_price" 
+                       value="{{ master.travel_price|default:0 }}" step="100" min="0">
+                <small class="text-muted">0 - бесплатно. Сумма добавится к стоимости услуги</small>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    const profileSelect = document.getElementById('profile_type');
-    const travelSettings = document.getElementById('travel-settings');
-    
-    function toggleTravelSettings() {
-        const value = profileSelect.value;
-        if (value === 'travel' || value === 'hybrid') {
-            travelSettings.style.display = 'block';
-        } else {
-            travelSettings.style.display = 'none';
+    function selectProfileUI(profile) {
+        // Обновляем скрытое поле
+        document.getElementById('profile_type').value = profile;
+        
+        // Снимаем выделение со всех карточек
+        document.querySelectorAll('.profile-card').forEach(card => {
+            card.classList.remove('border-pink');
+        });
+        
+        // Выделяем выбранную карточку
+        const selectedCard = document.querySelector(`.profile-card[data-profile="${profile}"]`);
+        if (selectedCard) {
+            selectedCard.classList.add('border-pink');
+        }
+        
+        // Показываем/скрываем настройки выезда
+        const travelSettings = document.getElementById('travel-settings');
+        if (travelSettings) {
+            travelSettings.style.display = profile === 'travel' ? 'block' : 'none';
         }
     }
-    
-    profileSelect.addEventListener('change', toggleTravelSettings);
-    toggleTravelSettings();
 </script>
+
+<script>
+    // При загрузке страницы выделяем текущий профиль
+document.addEventListener('DOMContentLoaded', function() {
+    // Получаем текущий профиль из скрытого поля
+    const currentProfile = document.getElementById('profile_type').value;
+    
+    if (currentProfile) {
+        // Снимаем выделение со всех карточек
+        document.querySelectorAll('.profile-card').forEach(card => {
+            card.classList.remove('border-pink');
+        });
+        
+        // Выделяем карточку с текущим профилем
+        const currentCard = document.querySelector(`.profile-card[data-profile="${currentProfile}"]`);
+        if (currentCard) {
+            currentCard.classList.add('border-pink');
+        }
+        
+        // Показываем/скрываем настройки выезда
+        const travelSettings = document.getElementById('travel-settings');
+        if (travelSettings) {
+            travelSettings.style.display = currentProfile === 'travel' ? 'block' : 'none';
+        }
+    }
+});
+</script>
+
+<style>
+    .profile-card {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 2px solid transparent;
+    }
+    .profile-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(255, 133, 179, 0.15);
+    }
+    .border-pink {
+        border-color: #ff85b3 !important;
+        background-color: #fff9fb !important;
+    }
+</style>
+
+
                     
                     <div class="mb-3">
                         <label for="bio" class="form-label">О себе</label>
