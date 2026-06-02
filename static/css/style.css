@@ -350,6 +350,20 @@ body {
 }
 
 
+/* РЕШЕНИЕ ПРОБЕЛЕМЫ С ФОНАМИ ПРИ НАЛОЖЕНИИ ОКОН */
+/* Фикс для вложенных модальных окон */
+.modal-backdrop {
+    visibility: hidden !important;
+}
+
+.modal.show {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Убираем лишние backdrop при закрытии */
+.modal-backdrop.show {
+    opacity: 0;
+}
 
 
 /* ========== НОВАЯ ГЛАВНАЯ СТРАНИЦА (стиль как у Figma) ========== */

@@ -1158,6 +1158,11 @@ def add_manual_booking(request):
         else:
             encrypted_phone = client_phone_cleaned.encode()
         
+        # Определяем параметры для выездного мастера
+        is_travel = (master.profile_type == 'travel')
+        travel_time = master.travel_time if is_travel else 0
+        travel_price = master.travel_price if is_travel else 0
+        
         booking = Booking.objects.create(
             master=master,
             service=service,
@@ -1167,7 +1172,10 @@ def add_manual_booking(request):
             date=booking_date,
             time=booking_time,
             status='confirmed',
-            created_by='master'
+            created_by='master',
+            is_travel=is_travel,
+            travel_time=travel_time,
+            travel_price=travel_price
         )
 
         print(f"🔍 Создана запись #{booking.id}, created_by={booking.created_by}")
@@ -1901,9 +1909,15 @@ def create_booking(request, login):
         booking_date = datetime.strptime(date_str, '%Y-%m-%d').date()
         booking_time = datetime.strptime(time_str, '%H:%M').time()
         
-        # Проверяем, свободно ли это время
+        # Определяем параметры для выездного мастера
+        is_travel = (master.profile_type == 'travel')
+        travel_time = master.travel_time if is_travel else 0
+        travel_price = master.travel_price if is_travel else 0
+        
+        # Проверяем, свободно ли это время (с учётом времени на дорогу)
         calculator = ScheduleCalculator(master)
-        slots = calculator.generate_time_slots(booking_date, service.duration)
+        actual_duration = calculator.get_actual_slot_duration(service.duration)
+        slots = calculator.generate_time_slots(booking_date, actual_duration)
         
         is_available = any(slot['start'] == time_str for slot in slots)
         if not is_available and not force:
@@ -1929,7 +1943,10 @@ def create_booking(request, login):
             date=booking_date,
             time=booking_time,
             status='confirmed',
-            created_by=created_by
+            created_by=created_by,
+            is_travel=is_travel,
+            travel_time=travel_time,
+            travel_price=travel_price
         )
         
         return JsonResponse({
@@ -1981,7 +1998,6 @@ def create_multiple_bookings(request, login):
             return JsonResponse({'error': 'Номер должен начинаться с 7'}, status=400)
         
         # Проверка чёрного списка
-        from .models import BlacklistedClient
         if BlacklistedClient.objects.filter(master=master, phone=client_phone_cleaned).exists():
             return JsonResponse({'error': 'Этот клиент находится в чёрном списке'}, status=403)
         
@@ -1993,12 +2009,18 @@ def create_multiple_bookings(request, login):
             services.append(service)
             total_duration += service.duration
         
+        # Определяем параметры для выездного мастера
+        is_travel = (master.profile_type == 'travel')
+        travel_time = master.travel_time if is_travel else 0
+        travel_price = master.travel_price if is_travel else 0
+        
         booking_date = datetime.strptime(date_str, '%Y-%m-%d').date()
         start_time = datetime.strptime(start_time_str, '%H:%M').time()
         
-        # Проверяем, свободно ли время для всех услуг
+        # Проверяем, свободно ли время для всех услуг (с учётом времени на дорогу)
         calculator = ScheduleCalculator(master)
-        slots = calculator.generate_time_slots(booking_date, total_duration)
+        actual_duration = calculator.get_actual_slot_duration(total_duration)
+        slots = calculator.generate_time_slots(booking_date, actual_duration)
         is_available = any(slot['start'] == start_time_str for slot in slots)
         
         if not is_available and not force:
@@ -2039,17 +2061,22 @@ def create_multiple_bookings(request, login):
                 date=booking_date,
                 time=booking_time,
                 status='confirmed',
-                created_by=created_by
+                created_by=created_by,
+                is_travel=is_travel,
+                travel_time=travel_time,
+                travel_price=travel_price
             )
             created_bookings.append(booking)
             services_list.append(service.name)
             time_offset += service.duration
+            
+            # Для выездного мастера добавляем время на дорогу после каждой услуги
+            if is_travel:
+                time_offset += travel_time
         
         # Получаем время окончания
-        end_time = (datetime.combine(date.today(), start_time) + timedelta(minutes=total_duration)).strftime('%H:%M')
+        end_time = (datetime.combine(date.today(), start_time) + timedelta(minutes=time_offset)).strftime('%H:%M')
         
-        # ========== СОЗДАЁМ УВЕДОМЛЕНИЕ ТОЛЬКО ДЛЯ КЛИЕНТОВ ==========
-        # ========== СОЗДАЁМ УВЕДОМЛЕНИЕ ТОЛЬКО ДЛЯ КЛИЕНТОВ ==========
         # ========== СОЗДАЁМ УВЕДОМЛЕНИЕ ТОЛЬКО ДЛЯ КЛИЕНТОВ ==========
         if created_by == 'client':
             # Формируем заголовок (только имя и количество услуг)
@@ -2065,11 +2092,13 @@ def create_multiple_bookings(request, login):
             notification_lines.append(f"📅 {booking_date.strftime('%d.%m.%Y')}")
             
             # Услуги с временем
-            time_offset = 0
+            time_offset_for_display = 0
             for i, service in enumerate(services):
-                booking_time = (datetime.combine(date.today(), start_time) + timedelta(minutes=time_offset)).strftime('%H:%M')
-                notification_lines.append(f"⏰ {booking_time} - {service.name}")
-                time_offset += service.duration
+                booking_time_display = (datetime.combine(date.today(), start_time) + timedelta(minutes=time_offset_for_display)).strftime('%H:%M')
+                notification_lines.append(f"⏰ {booking_time_display} - {service.name}")
+                time_offset_for_display += service.duration
+                if is_travel:
+                    time_offset_for_display += travel_time
             
             # Время создания
             notification_lines.append(f"🕐 Создано: {datetime.now().strftime('%d.%m.%Y %H:%M')}")

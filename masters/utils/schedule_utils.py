@@ -35,7 +35,7 @@ class ScheduleCalculator:
         return service_duration
     
     def get_booked_slots_for_date(self, target_date: date):
-        """Получает все занятые слоты на конкретную дату с ID записи"""
+        """Получает все занятые слоты на конкретную дату с ID записи (с учётом времени на дорогу для выездных)"""
         bookings = Booking.objects.filter(
             master=self.master,
             date=target_date,
@@ -45,10 +45,12 @@ class ScheduleCalculator:
         booked_slots = []
         for booking in bookings:
             start = booking.time
+            # Длительность услуги + время на дорогу (если выездной)
             duration_minutes = booking.service.duration
-            end = (datetime.combine(date.today(), start) + 
-                timedelta(minutes=duration_minutes)).time()
-            booked_slots.append((start, end, booking.id))  # добавляем ID
+            if booking.is_travel:
+                duration_minutes += booking.travel_time
+            end = (datetime.combine(date.today(), start) + timedelta(minutes=duration_minutes)).time()
+            booked_slots.append((start, end, booking.id))
         return booked_slots
     
     def generate_time_slots(self, target_date: date, service_duration: int, slot_step: int = 15, exclude_booking_id: int = None, current_time: time = None, original_booking_id: int = None):

@@ -6,7 +6,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="fas fa-cut me-2" style="color: #ff85b3;"></i>Мои услуги</h2>
     <div>
-        <button class="btn btn-outline-pink me-2" data-bs-toggle="modal" data-bs-target="#categoryModal" onclick="openAddCategoryModal()">
+        <button class="btn btn-outline-pink me-2" data-bs-target="#categoryModal" onclick="openCategoryModal()">
             <i class="fas fa-folder-plus me-1"></i>Добавить категорию
         </button>
         <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#serviceModal" onclick="openAddServiceModal()">
@@ -21,31 +21,60 @@
     </div>
 </div>
 
-<!-- Модальное окно для категории -->
+
+<!-- Модальное окно для категорий -->
 <div class="modal fade" id="categoryModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="categoryModalTitle">Добавить категорию</h5>
+                <h5 class="modal-title" id="categoryModalTitle">
+                    <i class="fas fa-folder-plus me-2" style="color: #ff85b3;"></i>
+                    Управление категориями
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="categoryForm">
-                    {% csrf_token %}
-                    <input type="hidden" id="categoryId">
-                    <div class="mb-3">
-                        <label class="form-label">Название категории</label>
-                        <input type="text" class="form-control" id="categoryName" required>
+                <!-- Форма добавления/редактирования категории -->
+                <div class="card mb-3">
+                    <div class="card-header bg-light">
+                        <strong>Добавить / редактировать категорию</strong>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Порядок сортировки</label>
-                        <input type="number" class="form-control" id="categoryOrder" value="0">
+                    <div class="card-body">
+                        <form id="categoryForm">
+                            <input type="hidden" id="categoryId">
+                            <div class="mb-3">
+                                <label class="form-label">Название категории</label>
+                                <input type="text" class="form-control" id="categoryName" required placeholder="Например: Маникюр, Педикюр, Уход">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Порядок сортировки</label>
+                                <input type="number" class="form-control" id="categoryOrder" value="0" min="0">
+                                <small class="text-muted">Чем меньше число, тем выше категория в списке</small>
+                            </div>
+                            <button type="button" class="btn btn-pink" onclick="saveCategory()">
+                                <i class="fas fa-save me-1"></i>Сохранить категорию
+                            </button>
+                        </form>
                     </div>
-                </form>
+                </div>
+                
+                <!-- Список существующих категорий -->
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <strong>Мои категории</strong>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="categories-list-modal" class="list-group list-group-flush">
+                            <div class="text-center py-3">
+                                <div class="spinner-border spinner-border-sm" style="color: #ff85b3;"></div>
+                                <span class="ms-2">Загрузка...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <button type="button" class="btn btn-pink" onclick="saveCategory()">Сохранить</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
             </div>
         </div>
     </div>
@@ -131,7 +160,6 @@ function renderServices(data) {
     
     let html = '';
     
-    // Категории с услугами (аккордеон)
     for (const cat of data.categories) {
         if (cat.services.length === 0) continue;
         
@@ -145,14 +173,6 @@ function renderServices(data) {
                             <strong>${escapeHtml(cat.name)}</strong>
                             <span class="badge bg-secondary ms-2">${cat.services.length}</span>
                         </div>
-                        <div>
-                            <button class="btn btn-sm btn-outline-pink" onclick="event.stopPropagation(); editCategory(${cat.id}, '${escapeHtml(cat.name)}', ${cat.order})">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteCategory(${cat.id})">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
                     </div>
                 </div>
                 <div class="card-body p-2" id="cat-body-${cat.id}" style="display: none;">
@@ -164,7 +184,6 @@ function renderServices(data) {
         html += `</div></div></div>`;
     }
     
-    // Услуги без категории
     if (data.uncategorized.length > 0) {
         html += `
             <div class="card mb-2">
@@ -236,19 +255,111 @@ function updateCategorySelect(categories) {
     });
 }
 
-function openAddCategoryModal() {
-    document.getElementById('categoryModalTitle').innerText = 'Добавить категорию';
+// ========== НОВЫЕ ФУНКЦИИ ДЛЯ МОДАЛЬНОГО ОКНА КАТЕГОРИЙ ==========
+
+function openCategoryModal() {
     document.getElementById('categoryId').value = '';
-    document.getElementById('categoryForm').reset();
-    document.getElementById('categoryOrder').value = categoriesList.length;
+    document.getElementById('categoryName').value = '';
+    document.getElementById('categoryOrder').value = '0';
+    document.getElementById('categoryModalTitle').innerHTML = '<i class="fas fa-folder-plus me-2"></i>Управление категориями';
+    
+    loadCategoriesList();
+    
+    const modal = new bootstrap.Modal(document.getElementById('categoryModal'));
+    modal.show();
+    
+    // Убираем тёмный фон после закрытия
+    document.getElementById('categoryModal').addEventListener('hidden.bs.modal', function() {
+        document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+    });
 }
 
-function editCategory(id, name, order) {
-    document.getElementById('categoryModalTitle').innerText = 'Редактировать категорию';
+function loadCategoriesList() {
+    const container = document.getElementById('categories-list-modal');
+    if (!container) return;
+    
+    fetch('/api/categories/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.categories.length === 0) {
+                container.innerHTML = '<div class="text-center text-muted py-3">У вас пока нет категорий</div>';
+                return;
+            }
+            
+            let html = '';
+            data.categories.forEach(cat => {
+                html += `
+                    <div class="list-group-item" data-category-id="${cat.id}" id="category-item-${cat.id}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="category-view-mode">
+                                <strong>${escapeHtml(cat.name)}</strong>
+                                <span class="badge bg-secondary ms-2">${cat.services.length} услуг</span>
+                                <span class="text-muted ms-2">(порядок: ${cat.order})</span>
+                            </div>
+                            <div class="category-edit-mode" style="display: none;">
+                                <input type="text" class="form-control form-control-sm d-inline-block w-auto" value="${escapeHtml(cat.name)}" id="edit-name-${cat.id}" style="width: 200px;">
+                                <input type="number" class="form-control form-control-sm d-inline-block w-auto ms-2" value="${cat.order}" id="edit-order-${cat.id}" style="width: 80px;" min="0">
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-outline-pink me-1" onclick="editCategoryInline(${cat.id})" id="edit-btn-${cat.id}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-success me-1" onclick="saveCategoryInline(${cat.id})" id="save-btn-${cat.id}" style="display: none;">
+                                    <i class="fas fa-save"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-secondary me-1" onclick="cancelCategoryInline(${cat.id})" id="cancel-btn-${cat.id}" style="display: none;">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteCategoryInModal(${cat.id}, '${escapeHtml(cat.name)}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            container.innerHTML = '<div class="text-center text-danger py-3">Ошибка загрузки категорий</div>';
+        });
+}
+
+function editCategoryInModal(id, name, order) {
     document.getElementById('categoryId').value = id;
     document.getElementById('categoryName').value = name;
     document.getElementById('categoryOrder').value = order;
-    new bootstrap.Modal(document.getElementById('categoryModal')).show();
+    document.getElementById('categoryModalTitle').innerHTML = '<i class="fas fa-edit me-2"></i>Редактировать категорию';
+    
+    document.getElementById('categoryForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function deleteCategoryInModal(id, name) {
+    showConfirm(`Удалить категорию "${name}"?\nУслуги из этой категории будут перемещены в "Без категории".`, (confirmed) => {
+        if (confirmed) {
+            fetch(`/api/categories/${id}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    loadCategoriesList();  // обновляем список в модалке
+                    loadServices();        // обновляем основной список услуг
+                    showToast('Категория удалена', 'success');
+                } else {
+                    showAlert(data.error || 'Ошибка при удалении', 'Ошибка');
+                }
+            })
+            .catch(error => {
+                showAlert('Произошла ошибка при удалении', 'Ошибка');
+            });
+        }
+    });
 }
 
 function saveCategory() {
@@ -257,7 +368,7 @@ function saveCategory() {
     const order = document.getElementById('categoryOrder').value;
     
     if (!name) {
-        alert('Введите название категории');
+        showAlert('Введите название категории', 'Ошибка');
         return;
     }
     
@@ -273,30 +384,91 @@ function saveCategory() {
     .then(r => r.json())
     .then(data => {
         if (data.success) {
-            bootstrap.Modal.getInstance(document.getElementById('categoryModal')).hide();
+            // Очищаем форму
+            document.getElementById('categoryId').value = '';
+            document.getElementById('categoryName').value = '';
+            document.getElementById('categoryOrder').value = '0';
+            
+            // Обновляем список категорий в модальном окне
+            loadCategoriesList();
+            // Обновляем основной список услуг
             loadServices();
+            
+            // Показываем уведомление
+            showToast(id ? 'Категория обновлена' : 'Категория добавлена', 'success');
         } else {
-            alert(data.error || 'Ошибка');
+            showAlert(data.error || 'Ошибка', 'Ошибка');
         }
     });
 }
 
-function deleteCategory(id) {
-    if (confirm('Удалить категорию? Услуги останутся без категории.')) {
-        fetch(`/api/categories/${id}/delete/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            }
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) loadServices();
-            else alert(data.error);
-        });
-    }
+function editCategoryInline(catId) {
+    // Скрываем режим просмотра
+    const viewDiv = document.querySelector(`#category-item-${catId} .category-view-mode`);
+    const editDiv = document.querySelector(`#category-item-${catId} .category-edit-mode`);
+    const editBtn = document.getElementById(`edit-btn-${catId}`);
+    const saveBtn = document.getElementById(`save-btn-${catId}`);
+    const cancelBtn = document.getElementById(`cancel-btn-${catId}`);
+    
+    viewDiv.style.display = 'none';
+    editDiv.style.display = 'block';
+    editBtn.style.display = 'none';
+    saveBtn.style.display = 'inline-block';
+    cancelBtn.style.display = 'inline-block';
 }
+
+function cancelCategoryInline(catId) {
+    // Возвращаем режим просмотра без сохранения
+    const viewDiv = document.querySelector(`#category-item-${catId} .category-view-mode`);
+    const editDiv = document.querySelector(`#category-item-${catId} .category-edit-mode`);
+    const editBtn = document.getElementById(`edit-btn-${catId}`);
+    const saveBtn = document.getElementById(`save-btn-${catId}`);
+    const cancelBtn = document.getElementById(`cancel-btn-${catId}`);
+    
+    // Восстанавливаем исходные значения из view-режима
+    const originalName = viewDiv.querySelector('strong').innerText;
+    const originalOrder = viewDiv.querySelector('.text-muted').innerText.match(/порядок: (\d+)/)[1];
+    
+    document.getElementById(`edit-name-${catId}`).value = originalName;
+    document.getElementById(`edit-order-${catId}`).value = originalOrder;
+    
+    viewDiv.style.display = 'block';
+    editDiv.style.display = 'none';
+    editBtn.style.display = 'inline-block';
+    saveBtn.style.display = 'none';
+    cancelBtn.style.display = 'none';
+}
+
+function saveCategoryInline(catId) {
+    const newName = document.getElementById(`edit-name-${catId}`).value.trim();
+    const newOrder = parseInt(document.getElementById(`edit-order-${catId}`).value);
+    
+    if (!newName) {
+        showAlert('Название категории не может быть пустым', 'Ошибка');
+        return;
+    }
+    
+    fetch(`/api/categories/${catId}/edit/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ name: newName, order: newOrder })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            // Обновляем список категорий
+            loadCategoriesList();
+            loadServices(); // обновляем основной список услуг
+        } else {
+            showAlert(data.error || 'Ошибка', 'Ошибка');
+        }
+    });
+}
+
+// ========== УСЛУГИ ==========
 
 function openAddServiceModal() {
     document.getElementById('serviceModalTitle').innerText = 'Добавить услугу';
@@ -375,6 +547,10 @@ function deleteService(id) {
     }
 }
 
+function showToast(message, type) {
+    alert(message);  // или можно использовать styled toast
+}
+
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/[&<>]/g, function(m) {
@@ -386,5 +562,186 @@ function escapeHtml(str) {
 }
 
 document.addEventListener('DOMContentLoaded', loadServices);
+
+
+function showAlert(message, title = 'Уведомление') {
+    let alertModal = document.getElementById('alertModal');
+    if (!alertModal) {
+        alertModal = document.createElement('div');
+        alertModal.className = 'modal fade';
+        alertModal.id = 'alertModal';
+        alertModal.tabIndex = '-1';
+        alertModal.innerHTML = `
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="alertModalTitle">Уведомление</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="alertModalMessage"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-pink" data-bs-dismiss="modal">OK</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(alertModal);
+    }
+    
+    document.getElementById('alertModalTitle').innerText = title;
+    document.getElementById('alertModalMessage').innerHTML = message;
+    const modal = new bootstrap.Modal(alertModal);
+    modal.show();
+}
+
+function showConfirm(message, onConfirm) {
+    // Проверяем, не открыто ли уже окно
+    if (document.getElementById('custom-confirm-overlay')) {
+        return;
+    }
+    
+    // Сохраняем только позицию скролла основного окна
+    const scrollY = window.scrollY;
+    
+    // Создаём оверлей
+    let overlay = document.createElement('div');
+    overlay.id = 'custom-confirm-overlay';
+    overlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+    `;
+    
+    overlay.innerHTML = `
+        <div style="background: white; border-radius: 16px; padding: 24px; max-width: 400px; width: 90%; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <div style="margin-bottom: 20px; font-size: 16px; line-height: 1.5;">${escapeHtml(message)}</div>
+            <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                <button class="btn btn-secondary" id="custom-confirm-cancel">Отмена</button>
+                <button class="btn btn-pink" id="custom-confirm-ok">Да</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    const okBtn = document.getElementById('custom-confirm-ok');
+    const cancelBtn = document.getElementById('custom-confirm-cancel');
+    
+    const close = (result) => {
+        overlay.remove();
+        // Восстанавливаем только скролл основного окна
+        window.scrollTo(0, scrollY);
+        onConfirm(result);
+    };
+    
+    okBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        close(true);
+    });
+    
+    cancelBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        close(false);
+    });
+    
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            e.preventDefault();
+            e.stopPropagation();
+            close(false);
+        }
+    });
+}
+
+function showToast(message, type = 'success') {
+    let toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.style.position = 'fixed';
+        toastContainer.style.bottom = '20px';
+        toastContainer.style.right = '20px';
+        toastContainer.style.zIndex = '9999';
+        document.body.appendChild(toastContainer);
+    }
+    
+    const toastId = 'toast-' + Date.now();
+    const bgColor = type === 'success' ? '#28a745' : '#dc3545';
+    
+    const toastHtml = `
+        <div id="${toastId}" class="toast show" role="alert" style="background: ${bgColor}; color: white; border-radius: 12px; margin-top: 10px; min-width: 200px;">
+            <div class="toast-body d-flex align-items-center justify-content-between">
+                <span>${message}</span>
+                <button type="button" class="btn-close btn-close-white ms-3" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    `;
+    
+    toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+    
+    const toastElement = document.getElementById(toastId);
+    setTimeout(() => {
+        if (toastElement) {
+            toastElement.classList.remove('show');
+            setTimeout(() => toastElement.remove(), 300);
+        }
+    }, 2000);
+}
+
+// Блокируем автофокус Bootstrap модального окна
+document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('shown.bs.modal', function() {
+        // Отключаем принудительный фокус Bootstrap
+        this.removeAttribute('tabindex');
+    });
+});
 </script>
+
+<style>
+    /* Блокируем автофокус и прокрутку Bootstrap модальных окон */
+.modal {
+    overflow-y: auto !important;
+}
+
+.modal-open {
+    overflow: auto !important;
+    padding-right: 0 !important;
+}
+
+/* Запрещаем Bootstrap возвращать фокус после закрытия оверлея */
+.modal:focus {
+    outline: none !important;
+}
+
+/* Убираем прыжки при открытии/закрытии */
+.modal.fade .modal-dialog {
+    transition: transform 0.2s ease-out;
+}
+
+/* Запрещаем автофокус на первом элементе модального окна */
+.modal.show .modal-content {
+    pointer-events: auto;
+}
+
+.modal.show {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Отключаем поведение Bootstrap по установке фокуса */
+.modal-backdrop {
+    display: none !important;
+}
+</style>
+
 {% endblock %}

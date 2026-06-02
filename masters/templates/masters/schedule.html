@@ -5,17 +5,22 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="far fa-calendar-alt me-2" style="color: #ff85b3;"></i>Расписание работы</h2>
-    <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#scheduleModal" onclick="openAddModal()">
-        <i class="fas fa-plus me-1"></i>Добавить рабочий день
-    </button>
+    
 </div>
 
 <div class="row">
     <div class="col-lg-8">
         <!-- Ваше регулярное расписание -->
+        <!-- Ваше регулярное расписание -->
         <div class="card">
-            <div class="card-header bg-white">
-                <h5 class="mb-0">Ваше регулярное расписание</h5>
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="far fa-calendar-alt me-2" style="color: #ff85b3;"></i>
+                    Ваше регулярное расписание
+                </h5>
+                <button class="btn btn-sm btn-pink" data-bs-toggle="modal" data-bs-target="#scheduleModal" onclick="openAddModal()">
+                    <i class="fas fa-plus me-1"></i>Добавить рабочий день
+                </button>
             </div>
             <div class="card-body">
                 <div id="schedules-container">
@@ -630,13 +635,12 @@ function saveExtraDay() {
     .then(data => {
         if (data.success) {
             bootstrap.Modal.getInstance(document.getElementById('extraDayModal')).hide();
-            // Перезагружаем всё
             pastDaysPage = 1;
             pastDaysHasMore = true;
             allPastDays = [];
             loadExtraDays();
             if (typeof loadCalendar === 'function') loadCalendar();
-            alert('✅ Дополнительный рабочий день добавлен!');
+            // Убрали alert - теперь ничего не показываем
         } else {
             alert(data.error || 'Ошибка при сохранении');
         }
@@ -733,7 +737,10 @@ function saveDayOff() {
         return;
     }
     
-    const saveBtn = event.target;
+    // Получаем кнопку, которая вызвала сохранение
+    const saveBtn = document.querySelector('#dayOffModal .btn-pink');
+    if (!saveBtn) return;
+    
     const originalText = saveBtn.innerHTML;
     saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
     saveBtn.disabled = true;
@@ -752,7 +759,6 @@ function saveDayOff() {
             bootstrap.Modal.getInstance(document.getElementById('dayOffModal')).hide();
             loadDaysOff();
             if (typeof loadCalendar === 'function') loadCalendar();
-            alert('✅ Выходной день добавлен!');
         } else {
             alert(data.message || data.error || 'Ошибка');
         }
