@@ -5,17 +5,56 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="far fa-calendar-alt me-2" style="color: #ff85b3;"></i>Расписание работы</h2>
-    <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#scheduleModal" onclick="openAddModal()">
-        <i class="fas fa-plus me-1"></i>Добавить рабочий день
-    </button>
+</div>
+
+<!-- Модальные окна для уведомлений и подтверждений -->
+<div class="modal fade" id="alertModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="alertModalTitle">Уведомление</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="alertModalMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-pink" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Подтверждение</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="confirmModalCancelBtn">Отмена</button>
+                <button type="button" class="btn btn-pink" id="confirmModalOkBtn">Да</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="row">
     <div class="col-lg-8">
         <!-- Ваше регулярное расписание -->
         <div class="card">
-            <div class="card-header bg-white">
-                <h5 class="mb-0">Ваше регулярное расписание</h5>
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="far fa-calendar-alt me-2" style="color: #ff85b3;"></i>
+                    Ваше регулярное расписание
+                </h5>
+                <button class="btn btn-sm btn-pink" data-bs-toggle="modal" data-bs-target="#scheduleModal" onclick="openAddModal()">
+                    <i class="fas fa-plus me-1"></i>Добавить рабочий день
+                </button>
             </div>
             <div class="card-body">
                 <div id="schedules-container">
@@ -84,7 +123,7 @@
 
 <!-- Модальное окно для добавления/редактирования регулярного расписания -->
 <div class="modal fade" id="scheduleModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="modalTitle">Добавить рабочий день</h5>
@@ -153,7 +192,7 @@
 
 <!-- Модальное окно для дополнительных рабочих дней -->
 <div class="modal fade" id="extraDayModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Добавить дополнительный рабочий день</h5>
@@ -212,7 +251,7 @@
 
 <!-- Модальное окно для добавления выходного дня -->
 <div class="modal fade" id="dayOffModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Добавить выходной день</h5>
@@ -242,90 +281,75 @@
 </div>
 
 <script>
-// ============================================================
-// РЕГУЛЯРНОЕ РАСПИСАНИЕ
-// ============================================================
-let editingId = null;
+function showAlert(message, title = 'Уведомление') {
+    const modalElement = document.getElementById('alertModal');
+    if (!modalElement) return;
+    document.getElementById('alertModalTitle').innerText = title;
+    document.getElementById('alertModalMessage').innerHTML = message;
+    new bootstrap.Modal(modalElement).show();
+}
+
+function showConfirm(message, onConfirm) {
+    const modalElement = document.getElementById('confirmModal');
+    if (!modalElement) return;
+    document.getElementById('confirmModalMessage').innerHTML = message;
+    
+    const okBtn = document.getElementById('confirmModalOkBtn');
+    const cancelBtn = document.getElementById('confirmModalCancelBtn');
+    const newOkBtn = okBtn.cloneNode(true);
+    const newCancelBtn = cancelBtn.cloneNode(true);
+    okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+    
+    const modal = new bootstrap.Modal(modalElement);
+    const handleOk = () => { modal.hide(); onConfirm(true); };
+    const handleCancel = () => { modal.hide(); onConfirm(false); };
+    newOkBtn.addEventListener('click', handleOk);
+    newCancelBtn.addEventListener('click', handleCancel);
+    modal.show();
+}
 
 function openAddModal() {
-    editingId = null;
     document.getElementById('modalTitle').innerText = 'Добавить рабочий день';
     document.getElementById('scheduleForm').reset();
     document.getElementById('dayOfWeek').disabled = false;
     document.getElementById('scheduleId').value = '';
-    
-    const container = document.getElementById('breaksContainer');
-    container.innerHTML = `
+    document.getElementById('breaksContainer').innerHTML = `
         <div class="break-item row mb-2">
-            <div class="col-md-5">
-                <input type="time" class="form-control break-start" placeholder="Начало">
-            </div>
-            <div class="col-md-5">
-                <input type="time" class="form-control break-end" placeholder="Конец">
-            </div>
-            <div class="col-md-2">
-                <button type="button" class="btn btn-danger btn-sm remove-break" style="display: none;">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
+            <div class="col-md-5"><input type="time" class="form-control break-start" placeholder="Начало"></div>
+            <div class="col-md-5"><input type="time" class="form-control break-end" placeholder="Конец"></div>
+            <div class="col-md-2"><button type="button" class="btn btn-danger btn-sm remove-break" style="display: none;"><i class="fas fa-trash"></i></button></div>
         </div>
     `;
 }
 
 function editSchedule(button) {
-    const id = button.dataset.id;
-    const dayOfWeek = button.dataset.day;
-    const dayName = button.dataset.dayName;
-    const startTime = button.dataset.start;
-    const endTime = button.dataset.end;
-    let breaks = [];
-    
-    try {
-        breaks = JSON.parse(button.dataset.breaks);
-    } catch(e) {
-        breaks = [];
-    }
-    
-    editingId = id;
-    document.getElementById('modalTitle').innerText = `Редактировать расписание - ${dayName}`;
-    document.getElementById('scheduleId').value = id;
-    document.getElementById('dayOfWeek').value = dayOfWeek;
+    document.getElementById('modalTitle').innerText = `Редактировать расписание - ${button.dataset.dayName}`;
+    document.getElementById('scheduleId').value = button.dataset.id;
+    document.getElementById('dayOfWeek').value = button.dataset.day;
     document.getElementById('dayOfWeek').disabled = true;
-    document.getElementById('startTime').value = startTime;
-    document.getElementById('endTime').value = endTime;
+    document.getElementById('startTime').value = button.dataset.start;
+    document.getElementById('endTime').value = button.dataset.end;
+    
+    let breaks = [];
+    try { breaks = JSON.parse(button.dataset.breaks); } catch(e) {}
     
     const container = document.getElementById('breaksContainer');
     container.innerHTML = '';
-    
-    if (breaks.length === 0) {
-        addBreakField();
-    } else {
-        breaks.forEach(breakItem => {
-            addBreakField(breakItem.start, breakItem.end);
-        });
-    }
-    
+    if (breaks.length === 0) addBreakField();
+    else breaks.forEach(b => addBreakField(b.start, b.end));
     new bootstrap.Modal(document.getElementById('scheduleModal')).show();
 }
 
 function addBreakField(start = '', end = '') {
-    const container = document.getElementById('breaksContainer');
-    const breakDiv = document.createElement('div');
-    breakDiv.className = 'break-item row mb-2';
-    breakDiv.innerHTML = `
-        <div class="col-md-5">
-            <input type="time" class="form-control break-start" value="${start}" placeholder="Начало">
-        </div>
-        <div class="col-md-5">
-            <input type="time" class="form-control break-end" value="${end}" placeholder="Конец">
-        </div>
-        <div class="col-md-2">
-            <button type="button" class="btn btn-danger btn-sm remove-break" onclick="this.closest('.break-item').remove()">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
+    const div = document.createElement('div');
+    div.className = 'break-item row mb-2';
+    div.innerHTML = `
+        <div class="col-md-5"><input type="time" class="form-control break-start" value="${start}"></div>
+        <div class="col-md-5"><input type="time" class="form-control break-end" value="${end}"></div>
+        <div class="col-md-2"><button type="button" class="btn btn-danger btn-sm remove-break" onclick="this.closest('.break-item').remove()"><i class="fas fa-trash"></i></button></div>
     `;
-    container.appendChild(breakDiv);
+    document.getElementById('breaksContainer').appendChild(div);
 }
 
 function saveSchedule() {
@@ -333,390 +357,153 @@ function saveSchedule() {
     const dayOfWeek = document.getElementById('dayOfWeek').value;
     const startTime = document.getElementById('startTime').value;
     const endTime = document.getElementById('endTime').value;
-    
-    if (!dayOfWeek || !startTime || !endTime) {
-        alert('Заполните все обязательные поля');
-        return;
-    }
+    if (!dayOfWeek || !startTime || !endTime) return showAlert('Заполните все обязательные поля', 'Ошибка');
     
     const breaks = [];
     document.querySelectorAll('.break-item').forEach(item => {
-        const start = item.querySelector('.break-start').value;
-        const end = item.querySelector('.break-end').value;
-        if (start && end) {
-            breaks.push({ start, end });
-        }
+        const s = item.querySelector('.break-start').value, e = item.querySelector('.break-end').value;
+        if (s && e) breaks.push({ start: s, end: e });
     });
     
-    const url = id ? `/api/schedule/${id}/edit/` : '/api/schedule/add/';
-    const data = { day_of_week: dayOfWeek, start_time: startTime, end_time: endTime, breaks: breaks };
-    
-    fetch(url, {
+    fetch(id ? `/api/schedule/${id}/edit/` : '/api/schedule/add/', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(data => {
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+        body: JSON.stringify({ day_of_week: dayOfWeek, start_time: startTime, end_time: endTime, breaks: breaks })
+    }).then(r => r.json()).then(data => {
         if (data.success) {
             bootstrap.Modal.getInstance(document.getElementById('scheduleModal')).hide();
             loadSchedules();
-        } else {
-            alert(data.error || 'Ошибка при сохранении');
-        }
-    })
-    .catch(error => {
-        alert('Произошла ошибка');
-    });
+        } else showAlert(data.error || 'Ошибка при сохранении', 'Ошибка');
+    }).catch(() => showAlert('Произошла ошибка', 'Ошибка'));
 }
 
 function deleteSchedule(id, dayName) {
-    if (confirm(`Удалить расписание для ${dayName}?`)) {
-        fetch(`/api/schedule/${id}/delete/`, {
+    showConfirm(`Удалить расписание для ${dayName}?`, confirmed => {
+        if (confirmed) fetch(`/api/schedule/${id}/delete/`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                loadSchedules();
-            } else {
-                alert(data.error || 'Ошибка при удалении');
-            }
-        });
-    }
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+        }).then(r => r.json()).then(data => { if (data.success) loadSchedules(); else showAlert(data.error || 'Ошибка', 'Ошибка'); });
+    });
 }
 
 function loadSchedules() {
-    fetch('/schedule/')
-        .then(response => response.text())
-        .then(html => {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-            const newList = doc.getElementById('schedules-container').innerHTML;
-            document.getElementById('schedules-container').innerHTML = newList;
-        });
+    fetch('/schedule/').then(r => r.text()).then(html => {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        document.getElementById('schedules-container').innerHTML = doc.getElementById('schedules-container').innerHTML;
+    });
 }
-</script>
 
-<script>
-
-// ============================================================
-// ДОПОЛНИТЕЛЬНЫЕ РАБОЧИЕ ДНИ (с пагинацией для прошедших)
-// ============================================================
-// ============================================================
-// ДОПОЛНИТЕЛЬНЫЕ РАБОЧИЕ ДНИ (с пагинацией для прошедших)
-// ============================================================
-let pastDaysPage = 1;
-let pastDaysHasMore = true;
-let pastDaysTotal = 0;
-let allPastDays = [];
+let pastDaysPage = 1, pastDaysHasMore = true, allPastDays = [];
 
 function loadExtraDays() {
-    // Загружаем ВСЕ предстоящие дни сразу
-    fetch('/api/extra-days/upcoming/')
-        .then(response => response.json())
-        .then(data => {
-            renderFutureDays(data.future_days);
-            // После загрузки предстоящих, загружаем первую страницу прошедших
-            loadPastDays(1);
-        })
-        .catch(error => {
-            console.error('Ошибка загрузки:', error);
-        });
+    fetch('/api/extra-days/upcoming/').then(r => r.json()).then(data => {
+        renderFutureDays(data.future_days);
+        loadPastDays(1);
+    });
 }
 
 function loadPastDays(page = 1, append = false) {
-    fetch(`/api/extra-days/past/?page=${page}&limit=30`)
-        .then(response => response.json())
-        .then(data => {
-            if (append) {
-                allPastDays = [...allPastDays, ...data.past_days];
-            } else {
-                allPastDays = data.past_days;
-                pastDaysTotal = data.total;
-            }
-            
-            pastDaysHasMore = data.has_more;
-            pastDaysPage = page;
-            
-            // Если аккордеон уже открыт, обновляем содержимое
-            const details = document.getElementById('past-days-details');
-            if (details && details.open) {
-                renderPastDaysContent();
-            }
-        })
-        .catch(error => {
-            console.error('Ошибка загрузки прошедших дней:', error);
-        });
+    fetch(`/api/extra-days/past/?page=${page}&limit=30`).then(r => r.json()).then(data => {
+        if (append) allPastDays.push(...data.past_days);
+        else allPastDays = data.past_days;
+        pastDaysHasMore = data.has_more;
+        pastDaysPage = page;
+        const details = document.getElementById('past-days-details');
+        if (details && details.open) renderPastDaysContent();
+    });
 }
 
 function renderFutureDays(futureDays) {
-    const container = document.getElementById('extra-days-container');
     let html = '';
-    
     if (futureDays.length > 0) {
-        html += '<h6 class="mb-3">Предстоящие:</h6>';
-        html += '<div class="table-responsive mb-4">';
-        html += '<table class="table table-sm">';
-        html += '<thead><tr><th>Дата</th><th>Время</th><th>Перерывы</th><th>Действия</th></tr></thead><tbody>';
+        html += '<h6 class="mb-3">Предстоящие:</h6><div class="table-responsive mb-4"><table class="table table-sm"><thead><tr><th>Дата</th><th>Время</th><th>Перерывы</th><th>Действия</th></tr></thead><tbody>';
         futureDays.forEach(day => {
-            html += `
-                <tr>
-                    <td>${day.date_display}</td>
-                    <td>${day.start_time} - ${day.end_time}</td>
-                    <td>${day.breaks.map(b => `${b.start}-${b.end}`).join(', ') || '—'}</td>
-                    <td><button class="btn btn-sm btn-outline-danger" onclick="deleteExtraDay(${day.id})"><i class="fas fa-trash"></i></button></td>
-                </tr>
-            `;
+            html += `<tr><td>${day.date_display}</td><td>${day.start_time} - ${day.end_time}</td><td>${day.breaks.map(b => `${b.start}-${b.end}`).join(', ') || '—'}</td><td><button class="btn btn-sm btn-outline-danger" onclick="deleteExtraDay(${day.id})"><i class="fas fa-trash"></i></button></td></tr>`;
         });
         html += '</tbody></table></div>';
     }
-    
-    // Создаём аккордеон для прошедших дней
-    html += `
-        <details id="past-days-details" class="mt-3">
-            <summary class="text-muted" style="cursor: pointer;">Прошедшие</summary>
-            <div id="past-days-container" class="mt-2"></div>
-        </details>
-    `;
-    
-    container.innerHTML = html;
-    
-    // Добавляем обработчик на открытие аккордеона
-    const details = document.getElementById('past-days-details');
-    if (details) {
-        details.addEventListener('toggle', function() {
-            if (details.open) {
-                renderPastDaysContent();
-            }
-        });
-    }
+    html += `<details id="past-days-details" class="mt-3"><summary class="text-muted" style="cursor: pointer;">Прошедшие</summary><div id="past-days-container" class="mt-2"></div></details>`;
+    document.getElementById('extra-days-container').innerHTML = html;
+    document.getElementById('past-days-details')?.addEventListener('toggle', function() { if (this.open) renderPastDaysContent(); });
 }
 
 function renderPastDaysContent() {
     const container = document.getElementById('past-days-container');
     if (!container) return;
-    
-    if (allPastDays.length === 0) {
-        container.innerHTML = '<p class="text-muted">Нет прошедших дополнительных дней</p>';
-        return;
-    }
-    
-    let html = '<div class="table-responsive">';
-    html += '<table class="table table-sm">';
-    html += '<thead><tr><th>Дата</th><th>Время</th></tr></thead><tbody>';
-    allPastDays.forEach(day => {
-        html += `<tr>
-            <td>${day.date_display}</td>
-            <td>${day.start_time} - ${day.end_time}</td>
-        </tr>`;
-    });
+    if (allPastDays.length === 0) { container.innerHTML = '<p class="text-muted">Нет прошедших дополнительных дней</p>'; return; }
+    let html = '<div class="table-responsive"><table class="table table-sm"><thead><tr><th>Дата</th><th>Время</th></tr></thead><tbody>';
+    allPastDays.forEach(day => { html += `<tr><td>${day.date_display}</td><td>${day.start_time} - ${day.end_time}</td></tr>`; });
     html += '</tbody></table></div>';
-    
-    // Показываем кнопку только если есть ещё записи
-    if (pastDaysHasMore) {
-        html += '<div class="text-center mt-3"><button id="load-more-past-days-btn" class="btn btn-outline-pink" onclick="loadMorePastDays()">Загрузить еще</button></div>';
-    }
-    
+    if (pastDaysHasMore) html += '<div class="text-center mt-3"><button class="btn btn-outline-pink" onclick="loadMorePastDays()">Загрузить еще</button></div>';
     container.innerHTML = html;
 }
 
-function loadMorePastDays() {
-    if (pastDaysHasMore) {
-        const loadMoreBtn = document.getElementById('load-more-past-days-btn');
-        if (loadMoreBtn) {
-            loadMoreBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Загрузка...';
-            loadMoreBtn.disabled = true;
-        }
-        loadPastDays(pastDaysPage + 1, true);
-    } else {
-        // Если больше нет записей, делаем кнопку серой
-        const loadMoreBtn = document.getElementById('load-more-past-days-btn');
-        if (loadMoreBtn) {
-            loadMoreBtn.innerHTML = 'Загрузить еще';
-            loadMoreBtn.disabled = true;
-            loadMoreBtn.classList.remove('btn-outline-pink');
-            loadMoreBtn.classList.add('btn-secondary');
-        }
-    }
-}
+function loadMorePastDays() { if (pastDaysHasMore) loadPastDays(pastDaysPage + 1, true); }
 
 function openAddExtraDayModal() {
     document.getElementById('extraDayForm').reset();
-    const container = document.getElementById('extraDayBreaksContainer');
-    container.innerHTML = `
-        <div class="break-item row mb-2">
-            <div class="col-md-5">
-                <input type="time" class="form-control break-start" placeholder="Начало">
-            </div>
-            <div class="col-md-5">
-                <input type="time" class="form-control break-end" placeholder="Конец">
-            </div>
-            <div class="col-md-2">
-                <button type="button" class="btn btn-danger btn-sm remove-break" style="display: none;">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        </div>
-    `;
+    document.getElementById('extraDayBreaksContainer').innerHTML = `<div class="break-item row mb-2"><div class="col-md-5"><input type="time" class="form-control break-start" placeholder="Начало"></div><div class="col-md-5"><input type="time" class="form-control break-end" placeholder="Конец"></div><div class="col-md-2"><button type="button" class="btn btn-danger btn-sm remove-break" style="display: none;"><i class="fas fa-trash"></i></button></div></div>`;
     document.getElementById('extraDayDate').min = new Date().toISOString().split('T')[0];
 }
 
 function addExtraDayBreakField(start = '', end = '') {
-    const container = document.getElementById('extraDayBreaksContainer');
-    const breakDiv = document.createElement('div');
-    breakDiv.className = 'break-item row mb-2';
-    breakDiv.innerHTML = `
-        <div class="col-md-5">
-            <input type="time" class="form-control break-start" value="${start}" placeholder="Начало">
-        </div>
-        <div class="col-md-5">
-            <input type="time" class="form-control break-end" value="${end}" placeholder="Конец">
-        </div>
-        <div class="col-md-2">
-            <button type="button" class="btn btn-danger btn-sm remove-break" onclick="this.closest('.break-item').remove()">
-                <i class="fas fa-trash"></i>
-            </button>
-        </div>
-    `;
-    container.appendChild(breakDiv);
+    const div = document.createElement('div');
+    div.className = 'break-item row mb-2';
+    div.innerHTML = `<div class="col-md-5"><input type="time" class="form-control break-start" value="${start}"></div><div class="col-md-5"><input type="time" class="form-control break-end" value="${end}"></div><div class="col-md-2"><button type="button" class="btn btn-danger btn-sm remove-break" onclick="this.closest('.break-item').remove()"><i class="fas fa-trash"></i></button></div>`;
+    document.getElementById('extraDayBreaksContainer').appendChild(div);
 }
 
 function saveExtraDay() {
-    const date = document.getElementById('extraDayDate').value;
-    const startTime = document.getElementById('extraDayStart').value;
-    const endTime = document.getElementById('extraDayEnd').value;
-    
-    if (!date || !startTime || !endTime) {
-        alert('Заполните все обязательные поля');
-        return;
-    }
-    
+    const date = document.getElementById('extraDayDate').value, start = document.getElementById('extraDayStart').value, end = document.getElementById('extraDayEnd').value;
+    if (!date || !start || !end) return showAlert('Заполните все обязательные поля', 'Ошибка');
     const breaks = [];
     document.querySelectorAll('#extraDayBreaksContainer .break-item').forEach(item => {
-        const start = item.querySelector('.break-start').value;
-        const end = item.querySelector('.break-end').value;
-        if (start && end) {
-            breaks.push({ start, end });
-        }
+        const s = item.querySelector('.break-start').value, e = item.querySelector('.break-end').value;
+        if (s && e) breaks.push({ start: s, end: e });
     });
-    
-    const saveBtn = event.target;
-    const originalText = saveBtn.innerHTML;
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
-    saveBtn.disabled = true;
-    
+    const btn = event.target, orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
+    btn.disabled = true;
     fetch('/api/extra-days/add/', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        },
-        body: JSON.stringify({
-            date: date,
-            start_time: startTime,
-            end_time: endTime,
-            breaks: breaks
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+        body: JSON.stringify({ date, start_time: start, end_time: end, breaks })
+    }).then(r => r.json()).then(data => {
         if (data.success) {
             bootstrap.Modal.getInstance(document.getElementById('extraDayModal')).hide();
-            // Перезагружаем всё
-            pastDaysPage = 1;
-            pastDaysHasMore = true;
-            allPastDays = [];
-            loadExtraDays();
+            pastDaysPage = 1; allPastDays = []; loadExtraDays();
             if (typeof loadCalendar === 'function') loadCalendar();
-            alert('✅ Дополнительный рабочий день добавлен!');
-        } else {
-            alert(data.error || 'Ошибка при сохранении');
-        }
-    })
-    .catch(error => {
-        alert('Произошла ошибка');
-    })
-    .finally(() => {
-        saveBtn.innerHTML = originalText;
-        saveBtn.disabled = false;
-    });
+        } else showAlert(data.error || 'Ошибка при сохранении', 'Ошибка');
+    }).catch(() => showAlert('Произошла ошибка', 'Ошибка')).finally(() => { btn.innerHTML = orig; btn.disabled = false; });
 }
 
 function deleteExtraDay(id) {
-    if (confirm('Удалить этот дополнительный рабочий день?')) {
-        fetch(`/api/extra-days/${id}/delete/`, {
+    showConfirm('Удалить этот дополнительный рабочий день?', confirmed => {
+        if (confirmed) fetch(`/api/extra-days/${id}/delete/`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                pastDaysPage = 1;
-                pastDaysHasMore = true;
-                allPastDays = [];
-                loadExtraDays();
-                if (typeof loadCalendar === 'function') loadCalendar();
-            } else {
-                alert(data.error || 'Ошибка при удалении');
-            }
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+        }).then(r => r.json()).then(data => {
+            if (data.success) { pastDaysPage = 1; allPastDays = []; loadExtraDays(); if (typeof loadCalendar === 'function') loadCalendar(); }
+            else showAlert(data.error || 'Ошибка при удалении', 'Ошибка');
         });
-    }
+    });
 }
-</script>
 
-<script>
-// ============================================================
-// ВЫХОДНЫЕ ДНИ
-// ============================================================
 function loadDaysOff() {
-    fetch('/api/days-off/list/')
-        .then(response => response.json())
-        .then(data => {
-            const container = document.getElementById('days-off-container');
-            if (!container) return;
-            
-            if (data.days_off && data.days_off.length > 0) {
-                const today = new Date().toISOString().split('T')[0];
-                const futureDays = data.days_off.filter(d => d.date >= today);
-                
-                if (futureDays.length > 0) {
-                    let html = '<div class="table-responsive">';
-                    html += '<table class="table table-sm">';
-                    html += '<thead><tr><th>Дата</th><th>Причина</th><th>Действия</th></tr></thead><tbody>';
-                    futureDays.forEach(day => {
-                        html += `
-                            <tr>
-                                <td>${day.date_display}</td>
-                                <td>${day.reason || '—'}</td>
-                                <td><button class="btn btn-sm btn-outline-danger" onclick="deleteDayOff(${day.id})"><i class="fas fa-trash"></i></button></td>
-                            </tr>
-                        `;
-                    });
-                    html += '</tbody></table></div>';
-                    container.innerHTML = html;
-                } else {
-                    container.innerHTML = '<p class="text-muted mb-0">Нет предстоящих выходных</p>';
-                }
-            } else {
-                container.innerHTML = '<p class="text-muted mb-0">Нет предстоящих выходных</p>';
-            }
-        })
-        .catch(error => {
-            console.error('Ошибка загрузки выходных:', error);
-            const container = document.getElementById('days-off-container');
-            if (container) container.innerHTML = '<p class="text-danger">Ошибка загрузки</p>';
-        });
+    fetch('/api/days-off/list/').then(r => r.json()).then(data => {
+        const container = document.getElementById('days-off-container');
+        if (!container) return;
+        if (data.days_off?.length) {
+            const today = new Date().toISOString().split('T')[0];
+            const futureDays = data.days_off.filter(d => d.date >= today);
+            if (futureDays.length) {
+                let html = '<div class="table-responsive"><table class="table table-sm"><thead><tr><th>Дата</th><th>Причина</th><th>Действия</th></tr></thead><tbody>';
+                futureDays.forEach(day => { html += `<tr><td>${day.date_display}</td><td>${day.reason || '—'}</td><td><button class="btn btn-sm btn-outline-danger" onclick="deleteDayOff(${day.id})"><i class="fas fa-trash"></i></button></td></tr>`; });
+                html += '</tbody></table></div>';
+                container.innerHTML = html;
+            } else container.innerHTML = '<p class="text-muted mb-0">Нет предстоящих выходных</p>';
+        } else container.innerHTML = '<p class="text-muted mb-0">Нет предстоящих выходных</p>';
+    }).catch(() => { document.getElementById('days-off-container').innerHTML = '<p class="text-danger">Ошибка загрузки</p>'; });
 }
 
 function openAddDayOffModal() {
@@ -725,125 +512,72 @@ function openAddDayOffModal() {
 }
 
 function saveDayOff() {
-    const date = document.getElementById('dayOffDate').value;
-    const reason = document.getElementById('dayOffReason').value;
-    
-    if (!date) {
-        alert('Выберите дату');
-        return;
-    }
-    
-    const saveBtn = event.target;
-    const originalText = saveBtn.innerHTML;
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
-    saveBtn.disabled = true;
-    
+    const date = document.getElementById('dayOffDate').value, reason = document.getElementById('dayOffReason').value;
+    if (!date) return showAlert('Выберите дату', 'Ошибка');
+    const btn = document.querySelector('#dayOffModal .btn-pink'), orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
+    btn.disabled = true;
     fetch('/api/days-off/add/', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        },
-        body: JSON.stringify({ date: date, reason: reason })
-    })
-    .then(response => response.json())
-    .then(data => {
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+        body: JSON.stringify({ date, reason })
+    }).then(r => r.json()).then(data => {
         if (data.success) {
             bootstrap.Modal.getInstance(document.getElementById('dayOffModal')).hide();
             loadDaysOff();
             if (typeof loadCalendar === 'function') loadCalendar();
-            alert('✅ Выходной день добавлен!');
-        } else {
-            alert(data.message || data.error || 'Ошибка');
-        }
-    })
-    .catch(error => {
-        alert('Произошла ошибка');
-    })
-    .finally(() => {
-        saveBtn.innerHTML = originalText;
-        saveBtn.disabled = false;
-    });
+        } else showAlert(data.message || data.error || 'Ошибка', 'Ошибка');
+    }).catch(() => showAlert('Произошла ошибка', 'Ошибка')).finally(() => { btn.innerHTML = orig; btn.disabled = false; });
 }
 
 function deleteDayOff(id) {
-    if (confirm('Удалить этот выходной день?')) {
-        fetch(`/api/days-off/${id}/delete/`, {
+    showConfirm('Удалить этот выходной день?', confirmed => {
+        if (confirmed) fetch(`/api/days-off/${id}/delete/`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                loadDaysOff();
-                if (typeof loadCalendar === 'function') loadCalendar();
-            } else {
-                alert(data.error || 'Ошибка при удалении');
-            }
-        });
-    }
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+        }).then(r => r.json()).then(data => { if (data.success) { loadDaysOff(); if (typeof loadCalendar === 'function') loadCalendar(); } else showAlert(data.error || 'Ошибка', 'Ошибка'); });
+    });
 }
-</script>
 
-<script>
-// ============================================================
-// ИНИЦИАЛИЗАЦИЯ
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    loadExtraDays();
-    loadDaysOff();
+document.addEventListener('DOMContentLoaded', function() { loadExtraDays(); loadDaysOff(); });
+
+// Обработка вложенных модальных окон (сохранение прокрутки)
+document.addEventListener('hidden.bs.modal', function() {
+    if (document.querySelectorAll('.modal.show').length) {
+        document.body.classList.add('modal-open');
+    }
 });
 </script>
 
 <style>
-.btn-outline-pink {
-    border: 1px solid #ff85b3;
-    color: #ff85b3;
-    background: transparent;
-}
-.btn-outline-pink:hover {
-    background-color: #ff85b3;
-    color: white;
-}
-.btn-pink {
-    background-color: #ff85b3;
-    color: white;
-}
-.btn-pink:hover {
-    background-color: #e06e9e;
-    color: white;
-}
-.sticky-top {
-    position: sticky;
-    top: 20px;
-    z-index: 1;
+.btn-outline-pink { border: 1px solid #ff85b3; color: #ff85b3; background: transparent; }
+.btn-outline-pink:hover { background-color: #ff85b3; color: white; }
+.btn-pink { background-color: #ff85b3; color: white; }
+.btn-pink:hover { background-color: #e06e9e; color: white; }
+.sticky-top { position: sticky; top: 20px; z-index: 1; }
+.btn-secondary { background-color: #6c757d; color: white; border: none; }
+.btn-outline-pink:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Решение для вложенных модальных окон */
+.modal-backdrop {
+    visibility: hidden !important;
 }
 
-.btn-secondary {
-    background-color: #6c757d;
-    color: white;
-    border: none;
-    cursor: not-allowed;
-    opacity: 0.65;
+.modal.show {
+    background-color: rgba(0, 0, 0, 0.5);
 }
 
-.btn-outline-pink {
-    border: 1px solid #ff85b3;
-    color: #ff85b3;
-    background: transparent;
+.modal-backdrop.show {
+    opacity: 0;
 }
 
-.btn-outline-pink:hover {
-    background-color: #ff85b3;
-    color: white;
+/* Приоритет для всплывающих окон поверх модальных */
+#alertModal, #confirmModal {
+    z-index: 1060 !important;
 }
 
-.btn-outline-pink:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+#alertModal .modal-content, #confirmModal .modal-content {
+    z-index: 1061 !important;
 }
 </style>
 {% endblock %}

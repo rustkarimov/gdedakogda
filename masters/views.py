@@ -1614,7 +1614,6 @@ def mobile_register(request):
     data = json.loads(request.body)
     phone = data.get('phone')
     first_name = data.get('first_name', '')
-    last_name = data.get('last_name', '')
     password = data.get('password')
     
     if CustomUser.objects.filter(phone=phone).exists():
@@ -1625,7 +1624,6 @@ def mobile_register(request):
     
     request.session['reg_phone'] = phone
     request.session['reg_first_name'] = first_name
-    request.session['reg_last_name'] = last_name
     request.session['reg_password'] = password
     request.session['test_code'] = verification_code
     
@@ -1650,18 +1648,16 @@ def mobile_verify(request):
             phone=phone,
             password=request.session.get('reg_password'),
             first_name=request.session.get('reg_first_name', ''),
-            last_name=request.session.get('reg_last_name', '')
         )
         Master.objects.create(
             user=user,
             phone=phone,
             first_name=request.session.get('reg_first_name', ''),
-            last_name=request.session.get('reg_last_name', '')
         )
         login(request, user)
         
         # Очищаем сессию
-        for key in ['reg_phone', 'reg_first_name', 'reg_last_name', 'reg_password', 'test_code']:
+        for key in ['reg_phone', 'reg_first_name', 'reg_password', 'test_code']:
             request.session.pop(key, None)
         
         return JsonResponse({'success': True})

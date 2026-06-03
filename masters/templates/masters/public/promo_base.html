@@ -335,7 +335,6 @@
         e.preventDefault();
         const phone = document.getElementById('reg-phone').value.replace(/\D/g, '');
         const first_name = document.getElementById('reg-first-name').value;
-        const last_name = document.getElementById('reg-last-name').value;
         const password = document.getElementById('reg-password').value;
         const confirm_password = document.getElementById('reg-confirm-password').value;
         
@@ -347,7 +346,7 @@
         const response = await fetch('/api/mobile/register/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
-            body: JSON.stringify({ phone, first_name, last_name, password })
+            body: JSON.stringify({ phone, first_name, password })
         });
         const data = await response.json();
         if (data.success) {
