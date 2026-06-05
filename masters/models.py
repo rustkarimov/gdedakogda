@@ -62,7 +62,12 @@ class Master(models.Model):
         verbose_name="Логин (для ссылки)",
         help_text="Оставьте пустым, чтобы ссылка была с ID"
     )
-    
+    address = models.CharField(
+        max_length=255, 
+        blank=True, 
+        verbose_name="Адрес мастера",
+        help_text="Где вы принимаете клиентов"
+    )
     encryption_key = models.BinaryField(verbose_name="Ключ шифрования", null=True, blank=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

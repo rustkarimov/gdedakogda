@@ -342,7 +342,7 @@ def profile(request):
     
     if request.method == 'POST':
         # Обновляем данные мастера
-        master.phone = request.POST.get('phone', '')
+        # master.phone = request.POST.get('phone', '')
         master.first_name = request.POST.get('first_name', '')
         master.last_name = request.POST.get('last_name', '')
         master.bio = request.POST.get('bio', '')
