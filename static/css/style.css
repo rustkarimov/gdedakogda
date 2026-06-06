@@ -475,6 +475,81 @@ body {
     border: 1px solid white;
 }
 
+
+/* ============================================================ */
+/* ========== МОБИЛЬНОЕ НИЖНЕЕ МЕНЮ ========== */
+/* ============================================================ */
+
+.mobile-bottom-nav {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobile-bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        justify-content: space-around;
+        padding: 10px 0;
+        padding-bottom: max(10px, env(safe-area-inset-bottom, 10px));
+        border-top: 1px solid var(--gray-200);
+        z-index: 1000;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .mobile-bottom-nav a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        color: var(--gray-500);
+        text-decoration: none;
+        flex: 1;
+        padding: 4px 0;
+        transition: color 0.2s;
+    }
+    
+    .mobile-bottom-nav a i {
+        font-size: 22px;
+    }
+    
+    .mobile-bottom-nav a.active {
+        color: var(--primary);
+    }
+    
+    .mobile-bottom-nav a span {
+        font-size: 10px;
+    }
+    
+    /* Отступ для контента, чтобы не перекрывался меню */
+    .content-wrapper {
+        padding-bottom: 80px;
+    }
+    
+    /* Скрываем кнопку поддержки и кошелёк в десктопной шапке на мобильных */
+    .support-link {
+        display: none !important;
+    }
+}
+
+@media (max-width: 380px) {
+    .mobile-bottom-nav a span {
+        font-size: 9px;
+    }
+    
+    .mobile-bottom-nav a i {
+        font-size: 18px;
+    }
+    
+    .mobile-bottom-nav {
+        padding: 6px 0;
+    }
+}
+
 /* ============================================================ */
 /* ========== ДАШБОРД (СТИЛИ ДЛЯ ДЕСКТОПА И МОБАЙЛА) ========== */
 /* ============================================================ */
@@ -704,6 +779,74 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 #alertModal .btn-secondary {
     background-color: #6c757d !important;
     color: white !important;
+}
+
+@media (max-width: 768px) {
+    .calendar-weekdays {
+        gap: 4px;
+    }
+    
+    .calendar-weekday {
+        font-size: 0.7rem;
+        padding: 6px 2px;
+    }
+    
+    .calendar-dates {
+        gap: 4px;
+    }
+    
+    .calendar-date {
+        padding: 6px 2px;
+        min-height: 55px;
+        font-size: 0.8rem;
+    }
+    
+    .calendar-time {
+        font-size: 0.55rem;
+        margin-top: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+    
+    .calendar-icons {
+        top: 2px;
+        right: 2px;
+        gap: 1px;
+    }
+    
+    .booking-badge {
+        font-size: 0.55rem;
+        min-width: 14px;
+        height: 14px;
+        padding: 0 3px;
+    }
+    
+    .break-badge {
+        font-size: 0.55rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .calendar-weekday {
+        font-size: 0.65rem;
+        padding: 4px 1px;
+    }
+    
+    .calendar-date {
+        min-height: 48px;
+        font-size: 0.75rem;
+    }
+    
+    .calendar-time {
+        font-size: 0.5rem;
+    }
+    
+    /* На очень маленьких экранах скрываем время */
+    .calendar-time {
+        display: none;
+    }
 }
 /* ============================================================ */
 /* ========== УСЛУГИ (СТИЛИ ДЛЯ ДЕСКТОПА И МОБАЙЛА) ========== */
@@ -1410,8 +1553,8 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         left: 0;
     }
     
-    .sidebar-toggle {
-        display: block;
+        .sidebar-toggle {
+        display: none !important;
     }
     
     .content-wrapper {

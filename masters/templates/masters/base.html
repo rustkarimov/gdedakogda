@@ -1,26 +1,24 @@
 {% load static %}
 
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{% block title %}ДАТЫ{% endblock %}</title>
     
-    <!-- Bootstrap 5 CSS (локально) -->
+    <!-- Bootstrap 5 CSS -->
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
-
-    <!-- Font Awesome (локально) -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="{% static 'css/all.min.css' %}">
-
     <!-- Наш CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-
+    
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <div class="app-container">
-        <!-- Боковое меню -->
+        <!-- Боковое меню (только для десктопа) -->
         <aside class="sidebar">
             <nav class="sidebar-nav">
                 <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
@@ -67,25 +65,14 @@
                     </div>
                 </div>
 
-             
                 <div class="top-bar-right">
+                    <!-- Кошелёк (только на мобильных виден) -->
+                    <div class="wallet">
+                        <i class="fas fa-wallet"></i>
+                        <span>0 ₽</span>
+                    </div>
 
-                    <!-- Колокольчик в шапке -->
-                <div class="notification-bell" onclick="toggleNotifications()" style="position: relative; cursor: pointer">
-                    <i class="fas fa-bell" style="color: white; font-size: 1.3rem;"></i>
-                    <span class="notification-dot" id="notification-dot"></span>
-                </div>
-
-                <div class="wallet">
-                    <i class="fas fa-wallet"></i>
-                    <span>0 ₽</span>
-                </div>
-
-                <a href="#" class="support-link">
-                    <i class="fas fa-headset"></i>
-                    <span>Поддержка</span>
-                </a>
-                    
+                    <!-- Аватарка с меню -->
                     <div class="user-menu dropdown">
                         <div class="user-avatar" data-bs-toggle="dropdown">
                             {% if request.user.master.avatar %}
@@ -120,521 +107,524 @@
                 
                 {% block content %}{% endblock %}
             </div>
-
-<!-- Модальное окно уведомлений -->
-<div id="notificationsModal" class="modal fade" tabindex="-1">
-    <div class="modal-dialog modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-bell me-2"></i>Уведомления
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-0">
-                <div class="notification-header d-flex justify-content-between p-3 border-bottom">
-                    <span id="unread-count"></span>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="markAllRead()">
-                        <i class="fas fa-check-double me-1"></i>Прочитать все
-                    </button>
-                </div>
-                <div id="notifications-list" class="notifications-list">
-                    <!-- Уведомления будут загружены сюда -->
-                </div>
-                <div class="text-center p-3" id="load-more-notifications" style="display: none;">
-                    <button class="btn btn-sm btn-outline-pink" onclick="loadMoreNotifications()">
-                        Загрузить ещё
-                    </button>
-                </div>
-            </div>
-        </div>
+        </main>
     </div>
-</div>
 
+    <!-- МОБИЛЬНОЕ НИЖНЕЕ МЕНЮ -->
+    <div class="mobile-bottom-nav">
+        <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Главная</span>
+        </a>
+        <a href="{% url 'services' %}" class="{% if request.resolver_match.url_name == 'services' %}active{% endif %}">
+            <i class="fas fa-cut"></i>
+            <span>Услуги</span>
+        </a>
+        <a href="{% url 'schedule' %}" class="{% if request.resolver_match.url_name == 'schedule' %}active{% endif %}">
+            <i class="far fa-calendar-alt"></i>
+            <span>Расписание</span>
+        </a>
+        <a href="{% url 'clients_statistics' %}" class="{% if request.resolver_match.url_name == 'clients_statistics' %}active{% endif %}">
+            <i class="fas fa-chart-line"></i>
+            <span>Статистика</span>
+        </a>
+        <a href="#" onclick="toggleNotifications(); return false;" class="{% if request.resolver_match.url_name == 'notifications' %}active{% endif %}">
+            <i class="fas fa-bell"></i>
+            <span>Уведомления</span>
+        </a>
+    </div>
 
-<!-- МОДАЛЬНОЕ ОКНО ЧАТА ПОДДЕРЖКИ -->
-<div class="modal fade" id="supportChatModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="fas fa-headset me-2" style="color: #ff85b3;"></i>
-                    Поддержка
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-0">
-                <div id="chat-messages" class="p-3" style="height: 400px; overflow-y: auto; background-color: #f8f9fa;">
-                    <div class="text-center text-muted py-5">
-                        <div class="spinner-border" style="color: #ff85b3;"></div>
-                    </div>
+    <!-- Модальное окно уведомлений -->
+    <div id="notificationsModal" class="modal fade" tabindex="-1">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-bell me-2"></i>Уведомления
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="p-3 border-top bg-white">
-                    <div class="input-group">
-                        <textarea id="chat-input" class="form-control" rows="2" placeholder="Напишите свой вопрос..."></textarea>
-                        <button id="chat-send-btn" class="btn btn-pink" type="button">
-                            <i class="fas fa-paper-plane"></i> Отправить
+                <div class="modal-body p-0">
+                    <div class="notification-header d-flex justify-content-between p-3 border-bottom">
+                        <span id="unread-count"></span>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="markAllRead()">
+                            <i class="fas fa-check-double me-1"></i>Прочитать все
                         </button>
                     </div>
-                    <div class="small text-muted mt-2">
-                        <i class="fas fa-clock me-1"></i>Ответ 15
+                    <div id="notifications-list" class="notifications-list"></div>
+                    <div class="text-center p-3" id="load-more-notifications" style="display: none;">
+                        <button class="btn btn-sm btn-outline-primary" onclick="loadMoreNotifications()">
+                            Загрузить ещё
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Bootstrap JS -->
-<script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
-
-<script>
-let notificationsOffset = 0;
-let notificationsHasMore = true;
-let notificationsTotal = 0;
-
-function loadNotifications(append = false) {
-    if (!append) notificationsOffset = 0;
-    
-    fetch(`/api/notifications/?offset=${notificationsOffset}&limit=20`)
-        .then(r => r.json())
-        .then(data => {
-            if (!append) {
-                notificationsTotal = data.total;
-                document.getElementById('unread-count').innerHTML = `${data.unread} непрочитанных`;
-                
-                // Управление красной точкой (а не цифрой)
-                const dot = document.getElementById('notification-dot');
-                if (data.unread > 0) {
-                    dot.style.display = 'block';
-                } else {
-                    dot.style.display = 'none';
-                }
-            }
-            
-            renderNotifications(data.notifications, append);
-            notificationsHasMore = data.has_more;
-            notificationsOffset += data.notifications.length;
-            document.getElementById('load-more-notifications').style.display = notificationsHasMore ? 'block' : 'none';
-        });
-}
-
-function renderNotifications(notifications, append) {
-    const container = document.getElementById('notifications-list');
-    if (!append) container.innerHTML = '';
-    
-    notifications.forEach(n => {
-        // Разбиваем сообщение на строки
-        const lines = n.message.split('\n');
-        let messageHtml = '';
-        
-        lines.forEach(line => {
-            let displayLine = line;
-            if (line.startsWith('📅')) {
-                displayLine = line.replace('📅', '<i class="far fa-calendar-alt me-2"></i>');
-            } else if (line.startsWith('⏰')) {
-                displayLine = line.replace('⏰', '<i class="far fa-clock me-2"></i>');
-            } else if (line.startsWith('🕐')) {
-                displayLine = line.replace('🕐', '<i class="fas fa-info-circle me-2"></i>');
-            }
-            messageHtml += `<div class="notification-line">${displayLine}</div>`;
-        });
-        
-        const div = document.createElement('div');
-        div.className = `notification-item p-3 border-bottom ${n.is_read ? 'read' : 'unread'}`;
-        div.setAttribute('data-id', n.id);
-        div.setAttribute('data-is-read', n.is_read);
-        div.innerHTML = `
-            <div class="d-flex justify-content-between align-items-start">
-                <div class="flex-grow-1" style="cursor: pointer;" onclick="openNotification(this, ${n.id}, ${!n.is_read})">
-                    <div class="notification-title">
-                        <span class="badge ${getTypeBadgeClass(n.type)} me-2">${getTypeName(n.type)}</span>
-                        <strong>${escapeHtml(n.title)}</strong>
-                    </div>
-                    <div class="notification-message text-muted small mt-1" style="display: none;">
-                        ${messageHtml}
-                    </div>
+    <!-- МОДАЛЬНОЕ ОКНО ЧАТА ПОДДЕРЖКИ -->
+    <div class="modal fade" id="supportChatModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-headset me-2" style="color: var(--primary);"></i>
+                        Поддержка
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="notification-actions">
-                    <button class="btn btn-sm ${n.is_read ? 'btn-outline-secondary' : 'btn-outline-primary'}" 
-                            onclick="event.stopPropagation(); toggleReadStatus(${n.id}, ${!n.is_read})" 
-                            title="${n.is_read ? 'Отметить непрочитанным' : 'Отметить прочитанным'}">
-                        <i class="fas ${n.is_read ? 'fa-envelope-open' : 'fa-envelope'}"></i>
-                    </button>
+                <div class="modal-body p-0">
+                    <div id="chat-messages" class="p-3" style="height: 400px; overflow-y: auto; background-color: #f8f9fa;">
+                        <div class="text-center text-muted py-5">
+                            <div class="spinner-border" style="color: var(--primary);"></div>
+                        </div>
+                    </div>
+                    <div class="p-3 border-top bg-white">
+                        <div class="input-group">
+                            <textarea id="chat-input" class="form-control" rows="2" placeholder="Напишите свой вопрос..."></textarea>
+                            <button id="chat-send-btn" class="btn btn-primary" type="button">
+                                <i class="fas fa-paper-plane"></i> Отправить
+                            </button>
+                        </div>
+                        <div class="small text-muted mt-2">
+                            <i class="fas fa-clock me-1"></i>Ответ 15 минут
+                        </div>
+                    </div>
                 </div>
             </div>
-        `;
-        container.appendChild(div);
-    });
-}
+        </div>
+    </div>
 
-// Новая функция для открытия уведомления
-function openNotification(element, notificationId, markAsRead) {
-    // Переключаем видимость сообщения
-    const msgDiv = element.querySelector('.notification-message');
-    const isVisible = msgDiv.style.display === 'block';
-    msgDiv.style.display = isVisible ? 'none' : 'block';
-    
-    // Если уведомление непрочитанное — отмечаем как прочитанное
-    if (markAsRead) {
-        fetch(`/api/notifications/${notificationId}/read/`, {
+    <!-- Bootstrap JS -->
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
+    <script>
+    // ============================================================
+    // УВЕДОМЛЕНИЯ
+    // ============================================================
+    let notificationsOffset = 0;
+    let notificationsHasMore = true;
+    let isLoadingNotifications = false;
+
+    function loadNotifications(append = false) {
+        if (isLoadingNotifications) return;
+        isLoadingNotifications = true;
+        
+        if (!append) notificationsOffset = 0;
+        
+        fetch(`/api/notifications/?offset=${notificationsOffset}&limit=20`)
+            .then(r => r.json())
+            .then(data => {
+                if (!append) {
+                    document.getElementById('unread-count').innerHTML = `${data.unread} непрочитанных`;
+                    const dot = document.getElementById('notification-dot');
+                    if (data.unread > 0) {
+                        dot.style.display = 'block';
+                    } else {
+                        dot.style.display = 'none';
+                    }
+                }
+                
+                renderNotifications(data.notifications, append);
+                notificationsHasMore = data.has_more;
+                notificationsOffset += data.notifications.length;
+                const loadMoreBtn = document.getElementById('load-more-notifications');
+                if (loadMoreBtn) {
+                    loadMoreBtn.style.display = notificationsHasMore ? 'block' : 'none';
+                }
+                isLoadingNotifications = false;
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки уведомлений:', error);
+                isLoadingNotifications = false;
+            });
+    }
+
+    function renderNotifications(notifications, append) {
+        const container = document.getElementById('notifications-list');
+        if (!container) return;
+        
+        if (!append) container.innerHTML = '';
+        
+        notifications.forEach(n => {
+            const existingItem = container.querySelector(`.notification-item[data-id="${n.id}"]`);
+            if (existingItem) return;
+            
+            const lines = n.message.split('\n');
+            let messageHtml = '';
+            
+            lines.forEach(line => {
+                let displayLine = line;
+                if (line.startsWith('📅')) {
+                    displayLine = line.replace('📅', '<i class="far fa-calendar-alt me-2"></i>');
+                } else if (line.startsWith('⏰')) {
+                    displayLine = line.replace('⏰', '<i class="far fa-clock me-2"></i>');
+                } else if (line.startsWith('🕐')) {
+                    displayLine = line.replace('🕐', '<i class="fas fa-info-circle me-2"></i>');
+                }
+                messageHtml += `<div class="notification-line">${displayLine}</div>`;
+            });
+            
+            const div = document.createElement('div');
+            div.className = `notification-item p-3 border-bottom ${n.is_read ? 'read' : 'unread'}`;
+            div.setAttribute('data-id', n.id);
+            div.setAttribute('data-is-read', n.is_read);
+            div.innerHTML = `
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1" style="cursor: pointer;" onclick="openNotification(this, ${n.id}, ${!n.is_read})">
+                        <div class="notification-title">
+                            <span class="badge ${getTypeBadgeClass(n.type)} me-2">${getTypeName(n.type)}</span>
+                            <strong>${escapeHtml(n.title)}</strong>
+                        </div>
+                        <div class="notification-message text-muted small mt-1" style="display: none;">
+                            ${messageHtml}
+                        </div>
+                    </div>
+                    <div class="notification-actions">
+                        <button class="btn btn-sm ${n.is_read ? 'btn-outline-secondary' : 'btn-outline-primary'}" 
+                                onclick="event.stopPropagation(); toggleReadStatus(${n.id}, ${!n.is_read})" 
+                                title="${n.is_read ? 'Отметить непрочитанным' : 'Отметить прочитанным'}">
+                            <i class="fas ${n.is_read ? 'fa-envelope-open' : 'fa-envelope'}"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function openNotification(element, notificationId, markAsRead) {
+        const msgDiv = element.querySelector('.notification-message');
+        const isVisible = msgDiv.style.display === 'block';
+        msgDiv.style.display = isVisible ? 'none' : 'block';
+        
+        if (markAsRead) {
+            fetch(`/api/notifications/${notificationId}/read/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    const parentDiv = element.closest('.notification-item');
+                    parentDiv.classList.remove('unread');
+                    parentDiv.classList.add('read');
+                    parentDiv.setAttribute('data-is-read', 'true');
+                    
+                    const btn = parentDiv.querySelector('.notification-actions button');
+                    btn.classList.remove('btn-outline-primary');
+                    btn.classList.add('btn-outline-secondary');
+                    btn.innerHTML = '<i class="fas fa-envelope-open"></i>';
+                    btn.setAttribute('onclick', `event.stopPropagation(); toggleReadStatus(${notificationId}, false)`);
+                    btn.title = 'Отметить непрочитанным';
+                    
+                    updateUnreadCount();
+                }
+            });
+        }
+    }
+
+    function updateUnreadCount() {
+        fetch('/api/notifications/?offset=0&limit=1')
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('unread-count').innerHTML = `${data.unread} непрочитанных`;
+                const dot = document.getElementById('notification-dot');
+                dot.style.display = data.unread > 0 ? 'block' : 'none';
+            });
+    }
+
+    function toggleReadStatus(notificationId, markAsRead) {
+        const url = markAsRead ? `/api/notifications/${notificationId}/read/` : `/api/notifications/${notificationId}/unread/`;
+        
+        fetch(url, {
             method: 'POST',
             headers: { 'X-CSRFToken': getCookie('csrftoken') }
         })
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                // Обновляем внешний вид
-                const parentDiv = element.closest('.notification-item');
-                parentDiv.classList.remove('unread');
-                parentDiv.classList.add('read');
-                parentDiv.setAttribute('data-is-read', 'true');
-                
-                // Меняем иконку конверта
-                const btn = parentDiv.querySelector('.notification-actions button');
-                btn.classList.remove('btn-outline-primary');
-                btn.classList.add('btn-outline-secondary');
-                btn.innerHTML = '<i class="fas fa-envelope-open"></i>';
-                btn.setAttribute('onclick', `event.stopPropagation(); toggleReadStatus(${notificationId}, false)`);
-                btn.title = 'Отметить непрочитанным';
-                
-                // Обновляем счётчик непрочитанных
-                updateUnreadCount();
+                loadNotifications(false);
             }
         });
     }
-}
 
-// Функция обновления количества непрочитанных
-function updateUnreadCount() {
-    fetch('/api/notifications/?offset=0&limit=1')
-        .then(r => r.json())
-        .then(data => {
-            document.getElementById('unread-count').innerHTML = `${data.unread} непрочитанных`;
-            const dot = document.getElementById('notification-dot');
-            dot.style.display = data.unread > 0 ? 'block' : 'none';
-        });
-}
-
-function toggleNotificationDetails(element) {
-    const msgDiv = element.querySelector('.notification-message');
-    const isVisible = msgDiv.style.display === 'block';
-    msgDiv.style.display = isVisible ? 'none' : 'block';
-}
-
-function toggleReadStatus(notificationId, markAsRead) {
-    const url = markAsRead ? `/api/notifications/${notificationId}/read/` : `/api/notifications/${notificationId}/unread/`;
-    
-    fetch(url, {
-        method: 'POST',
-        headers: { 'X-CSRFToken': getCookie('csrftoken') }
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            loadNotifications(false);  // перезагружаем список
-        }
-    });
-}
-
-function markAllRead() {
-    fetch('/api/notifications/mark-all-read/', {
-        method: 'POST',
-        headers: { 'X-CSRFToken': getCookie('csrftoken') }
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) loadNotifications(false);
-    });
-}
-
-function loadMoreNotifications() {
-    loadNotifications(true);
-}
-
-function toggleNotifications() {
-    const modal = new bootstrap.Modal(document.getElementById('notificationsModal'));
-    modal.show();
-    loadNotifications(false);
-}
-
-function getTypeBadgeClass(type) {
-    const classes = {
-        'new_booking': 'bg-success',
-        'cancelled_booking': 'bg-danger',
-        'changed_booking': 'bg-warning text-dark',
-        'system': 'bg-secondary',
-        'promo': 'bg-info',
-        'warning': 'bg-warning text-dark'
-    };
-    return classes[type] || 'bg-secondary';
-}
-
-function getTypeName(type) {
-    const names = {
-        'new_booking': '📅 Новая запись',
-        'cancelled_booking': '❌ Отмена',
-        'changed_booking': '✏️ Изменение',
-        'system': '🔧 Системное',
-        'promo': '🎉 Акция',
-        'warning': '⚠️ Важно'
-    };
-    return names[type] || type;
-}
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
-// ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
-document.addEventListener('DOMContentLoaded', function() {
-    // Загружаем количество непрочитанных уведомлений для отображения красной точки
-    fetch('/api/notifications/?offset=0&limit=1')
-        .then(r => r.json())
-        .then(data => {
-            const dot = document.getElementById('notification-dot');
-            if (data.unread > 0) {
-                dot.style.display = 'block';
-            } else {
-                dot.style.display = 'none';
-            }
+    function markAllRead() {
+        fetch('/api/notifications/mark-all-read/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCookie('csrftoken') }
         })
-        .catch(error => console.error('Ошибка загрузки уведомлений:', error));
-});
-</script>
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) loadNotifications(false);
+        });
+    }
 
+    function loadMoreNotifications() {
+        loadNotifications(true);
+    }
 
+    function toggleNotifications() {
+        const modal = new bootstrap.Modal(document.getElementById('notificationsModal'));
+        modal.show();
+        loadNotifications(false);
+    }
 
-        </main>
-    </div>
+    function getTypeBadgeClass(type) {
+        const classes = {
+            'new_booking': 'bg-success',
+            'cancelled_booking': 'bg-danger',
+            'changed_booking': 'bg-warning text-dark',
+            'system': 'bg-secondary',
+            'promo': 'bg-info',
+            'warning': 'bg-warning text-dark'
+        };
+        return classes[type] || 'bg-secondary';
+    }
 
+    function getTypeName(type) {
+        const names = {
+            'new_booking': '📅 Новая запись',
+            'cancelled_booking': '❌ Отмена',
+            'changed_booking': '✏️ Изменение',
+            'system': '🔧 Системное',
+            'promo': '🎉 Акция',
+            'warning': '⚠️ Важно'
+        };
+        return names[type] || type;
+    }
 
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
 
-<script>
-// ============================================================
-// ЧАТ ПОДДЕРЖКИ
-// ============================================================
-let chatRefreshInterval = null;
-let lastMessageCount = 0;
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
 
-function openSupportChat() {
-    const modal = new bootstrap.Modal(document.getElementById('supportChatModal'));
-    modal.show();
-    loadSupportMessages();
-    startChatAutoRefresh();
-    
-    // Прокрутка после открытия модалки
-    setTimeout(() => {
+    // ============================================================
+    // ЧАТ ПОДДЕРЖКИ
+    // ============================================================
+    let chatRefreshInterval = null;
+
+    function openSupportChat() {
+        const modal = new bootstrap.Modal(document.getElementById('supportChatModal'));
+        modal.show();
+        loadSupportMessages();
+        startChatAutoRefresh();
+        
+        setTimeout(() => {
+            const container = document.getElementById('chat-messages');
+            if (container) container.scrollTop = container.scrollHeight;
+        }, 200);
+    }
+
+    function loadSupportMessages() {
+        fetch('/api/support/messages/')
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    renderChatMessages(data.messages);
+                    updateSupportDot(data.unread_count);
+                    
+                    setTimeout(() => {
+                        const container = document.getElementById('chat-messages');
+                        if (container) container.scrollTop = container.scrollHeight;
+                    }, 100);
+                }
+            })
+            .catch(error => console.error('Ошибка загрузки чата:', error));
+    }
+
+    function renderChatMessages(messages) {
         const container = document.getElementById('chat-messages');
-        if (container) container.scrollTop = container.scrollHeight;
-    }, 200);
-}
+        
+        if (messages.length === 0) {
+            container.innerHTML = `
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-comment-dots fa-3x mb-3" style="color: var(--primary);"></i>
+                    <p>Напишите свой вопрос, и мы обязательно поможем!</p>
+                    <p class="small">Ответ 15 минут</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        messages.forEach(msg => {
+            const isUser = msg.direction === 'user';
+            const bubbleClass = isUser ? 'bg-primary text-white' : 'bg-light border';
+            const alignClass = isUser ? 'justify-content-end' : 'justify-content-start';
+            
+            html += `
+                <div class="d-flex ${alignClass} mb-3">
+                    <div class="${bubbleClass} rounded-3 p-2 px-3" style="max-width: 75%;">
+                        <div class="small mb-1 ${isUser ? 'text-white-50' : 'text-muted'}">
+                            ${isUser ? 'Я' : 'Поддержка'} • ${msg.created_at}
+                        </div>
+                        <div class="message-text" style="white-space: pre-wrap; word-break: break-word;">
+                            ${escapeHtml(msg.message)}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+        container.scrollTop = container.scrollHeight;
+    }
 
-function loadSupportMessages() {
-    fetch('/api/support/messages/')
+    function sendSupportMessage() {
+        const input = document.getElementById('chat-input');
+        const message = input.value.trim();
+        
+        if (!message) return;
+        
+        const sendBtn = document.getElementById('chat-send-btn');
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Отправка...';
+        
+        fetch('/api/support/send/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ message: message })
+        })
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                renderChatMessages(data.messages);
-                lastMessageCount = data.messages.length;
-                updateSupportDot(data.unread_count);
+                input.value = '';
+                loadSupportMessages();
                 
-                // Прокрутка после загрузки
                 setTimeout(() => {
                     const container = document.getElementById('chat-messages');
                     if (container) container.scrollTop = container.scrollHeight;
                 }, 100);
+            } else {
+                alert('Ошибка: ' + data.error);
             }
         })
-        .catch(error => console.error('Ошибка загрузки чата:', error));
-}
-
-function renderChatMessages(messages) {
-    const container = document.getElementById('chat-messages');
-    
-    if (messages.length === 0) {
-        container.innerHTML = `
-            <div class="text-center text-muted py-5">
-                <i class="fas fa-comment-dots fa-3x mb-3" style="color: #ff85b3;"></i>
-                <p>Напишите свой вопрос, и мы обязательно поможем!</p>
-                <p class="small">Ответ 15</p>
-            </div>
-        `;
-        return;
-    }
-    
-    let html = '';
-    messages.forEach(msg => {
-        const isUser = msg.direction === 'user';
-        const bubbleClass = isUser ? 'bg-primary text-white' : 'bg-light border';
-        const alignClass = isUser ? 'justify-content-end' : 'justify-content-start';
-        
-        html += `
-            <div class="d-flex ${alignClass} mb-3">
-                <div class="${bubbleClass} rounded-3 p-2 px-3" style="max-width: 75%;">
-                    <div class="small mb-1 ${isUser ? 'text-white-50' : 'text-muted'}">
-                        ${isUser ? 'Я' : 'Поддержка'} • ${msg.created_at}
-                    </div>
-                    <div class="message-text" style="white-space: pre-wrap; word-break: break-word;">
-                        ${escapeHtml(msg.message)}
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-    
-    container.innerHTML = html;
-    // Прокручиваем вниз
-    container.scrollTop = container.scrollHeight;
-}
-
-function sendSupportMessage() {
-    const input = document.getElementById('chat-input');
-    const message = input.value.trim();
-    
-    if (!message) return;
-    
-    const sendBtn = document.getElementById('chat-send-btn');
-    sendBtn.disabled = true;
-    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Отправка...';
-    
-    fetch('/api/support/send/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify({ message: message })
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            input.value = '';
-            loadSupportMessages();
-            
-            // Прокрутка после отправки
-            setTimeout(() => {
-                const container = document.getElementById('chat-messages');
-                if (container) container.scrollTop = container.scrollHeight;
-            }, 100);
-        } else {
-            alert('Ошибка: ' + data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Ошибка:', error);
-        alert('Не удалось отправить сообщение');
-    })
-    .finally(() => {
-        sendBtn.disabled = false;
-        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Отправить';
-    });
-}
-
-function startChatAutoRefresh() {
-    if (chatRefreshInterval) clearInterval(chatRefreshInterval);
-    chatRefreshInterval = setInterval(() => {
-        loadSupportMessages();
-    }, 5000); // каждые 5 секунд
-}
-
-function stopChatAutoRefresh() {
-    if (chatRefreshInterval) {
-        clearInterval(chatRefreshInterval);
-        chatRefreshInterval = null;
-    }
-}
-
-function updateSupportDot(unreadCount) {
-    const supportLink = document.querySelector('.support-link');
-    if (!supportLink) return;
-    
-    // Удаляем существующую точку
-    const existingDot = supportLink.querySelector('.support-dot');
-    if (existingDot) existingDot.remove();
-    
-    if (unreadCount > 0) {
-        const dot = document.createElement('span');
-        dot.className = 'support-dot';
-        // dot.style.cssText = `
-        //     position: absolute;
-        //     top: -5px;
-        //     right: -8px;
-        //     width: 12px;
-        //     height: 12px;
-        //     background-color: #ff4444;
-        //     border-radius: 50%;
-        //     border: 1px solid white;
-        // `;
-        supportLink.style.position = 'relative';
-        supportLink.appendChild(dot);
-    }
-}
-
-function checkUnreadSupport() {
-    fetch('/api/support/unread/')
-        .then(r => r.json())
-        .then(data => {
-            updateSupportDot(data.unread_count);
+        .catch(error => {
+            console.error('Ошибка:', error);
+            alert('Не удалось отправить сообщение');
         })
-        .catch(error => console.error('Ошибка:', error));
-}
+        .finally(() => {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Отправить';
+        });
+    }
 
-// Вешаем обработчик на кнопку поддержки
-document.addEventListener('DOMContentLoaded', function() {
-    const supportBtn = document.querySelector('.support-link');
-    if (supportBtn) {
-        supportBtn.addEventListener('click', function(e) {
+    function startChatAutoRefresh() {
+        if (chatRefreshInterval) clearInterval(chatRefreshInterval);
+        chatRefreshInterval = setInterval(() => {
+            loadSupportMessages();
+        }, 5000);
+    }
+
+    function stopChatAutoRefresh() {
+        if (chatRefreshInterval) {
+            clearInterval(chatRefreshInterval);
+            chatRefreshInterval = null;
+        }
+    }
+
+    function updateSupportDot(unreadCount) {
+        const supportLink = document.querySelector('.support-link');
+        if (!supportLink) return;
+        
+        const existingDot = supportLink.querySelector('.support-dot');
+        if (existingDot) existingDot.remove();
+        
+        if (unreadCount > 0) {
+            const dot = document.createElement('span');
+            dot.className = 'support-dot';
+            supportLink.style.position = 'relative';
+            supportLink.appendChild(dot);
+        }
+    }
+
+    function checkUnreadSupport() {
+        fetch('/api/support/unread/')
+            .then(r => r.json())
+            .then(data => {
+                updateSupportDot(data.unread_count);
+            })
+            .catch(error => console.error('Ошибка:', error));
+    }
+
+    // ============================================================
+    // ИНИЦИАЛИЗАЦИЯ
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/notifications/?offset=0&limit=1')
+            .then(r => r.json())
+            .then(data => {
+                const dot = document.getElementById('notification-dot');
+                if (data.unread > 0) {
+                    dot.style.display = 'block';
+                } else {
+                    dot.style.display = 'none';
+                }
+            })
+            .catch(error => console.error('Ошибка загрузки уведомлений:', error));
+        
+        const supportBtn = document.querySelector('.support-link');
+        if (supportBtn) {
+            supportBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                openSupportChat();
+            });
+        }
+        
+        checkUnreadSupport();
+        setInterval(checkUnreadSupport, 60000);
+    });
+
+    document.getElementById('supportChatModal')?.addEventListener('hidden.bs.modal', function() {
+        stopChatAutoRefresh();
+    });
+
+    document.getElementById('chat-input')?.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            openSupportChat();
-        });
-    }
+            sendSupportMessage();
+        }
+    });
+
+    document.getElementById('chat-send-btn')?.addEventListener('click', sendSupportMessage);
+    </script>
     
-    // Проверяем непрочитанные каждые 60 секунд
-    checkUnreadSupport();
-    setInterval(checkUnreadSupport, 60000);
-});
+    <script>
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const appContainer = document.querySelector('.app-container');
+        
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                appContainer.classList.toggle('sidebar-collapsed');
+            });
+        }
+    </script>
 
-// Останавливаем автообновление при закрытии модалки
-document.getElementById('supportChatModal')?.addEventListener('hidden.bs.modal', function() {
-    stopChatAutoRefresh();
-});
-
-// Отправка по Enter (но Shift+Enter для новой строки)
-document.getElementById('chat-input')?.addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendSupportMessage();
-    }
-});
-
-// Вешаем обработчик на кнопку отправки
-document.getElementById('chat-send-btn')?.addEventListener('click', sendSupportMessage);
-</script>
-    
-<script>
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    const appContainer = document.querySelector('.app-container');
-    
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', function() {
-            appContainer.classList.toggle('sidebar-collapsed');
-        });
-    }
-</script>
-
-
+   
 </body>
 </html>
 
