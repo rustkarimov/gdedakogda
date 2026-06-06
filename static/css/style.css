@@ -1,10 +1,14 @@
-/* ========== ОСНОВНЫЕ ПЕРЕМЕННЫЕ ========== */
+/* ============================================================ */
+/* ========== ОСНОВНЫЕ ПЕРЕМЕННЫЕ И ГЛОБАЛЬНЫЕ СТИЛИ ========== */
+/* ============================================================ */
+
 :root {
     --primary: #7c3aed;
     --primary-dark: #6d28d9;
     --primary-light: #f5f3ff;
     --primary-gradient: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%);
-    --secondary: #8b5cf6;
+    --accent: #f59e0b;
+    --accent-light: #fef3c7;
     --success: #10b981;
     --danger: #ef4444;
     --warning: #f59e0b;
@@ -21,7 +25,6 @@
     --gray-900: #111827;
 }
 
-/* ========== ГЛОБАЛЬНЫЕ СТИЛИ ========== */
 * {
     margin: 0;
     padding: 0;
@@ -34,13 +37,127 @@ body {
     color: var(--gray-800);
 }
 
-/* ========== КОНТЕЙНЕР ПРИЛОЖЕНИЯ ========== */
+/* ============================================================ */
+/* ========== ГЛОБАЛЬНЫЕ КОМПОНЕНТЫ ========== */
+/* ============================================================ */
+
+/* Карточки */
+.card {
+    background: white;
+    border-radius: 20px;
+    border: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    transition: all 0.2s;
+    margin-bottom: 24px;
+}
+
+.card-header {
+    background: white;
+    border-bottom: 1px solid var(--gray-200);
+    padding: 16px 20px;
+    border-radius: 20px 20px 0 0;
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+/* Кнопки */
+.btn-primary {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 30px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+    color: white;
+}
+
+.btn-outline-primary {
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    background: transparent;
+    padding: 10px 24px;
+    border-radius: 30px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary-gradient);
+    border-color: transparent;
+    color: white;
+}
+
+.btn-outline-danger {
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    background: transparent;
+    border-radius: 30px;
+    transition: all 0.2s;
+}
+
+.btn-outline-danger:hover {
+    background-color: var(--danger);
+    border-color: var(--danger);
+    color: white;
+}
+
+.btn-outline-secondary {
+    border: 1px solid var(--gray-400);
+    color: var(--gray-600);
+    background: transparent;
+    border-radius: 30px;
+    transition: all 0.2s;
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--gray-200);
+    color: var(--gray-800);
+}
+
+.btn-sm {
+    padding: 6px 16px;
+    font-size: 0.85rem;
+}
+
+.btn-secondary {
+    background-color: var(--gray-500);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background-color: var(--gray-600);
+    color: white;
+}
+
+/* Утилиты */
+.sticky-top {
+    position: sticky;
+    top: 20px;
+    z-index: 1;
+}
+
+
+/* ============================================================ */
+/* ========== КОНТЕЙНЕР ПРИЛОЖЕНИЯ И САЙДБАР ========== */
+/* ============================================================ */
+
 .app-container {
     display: flex;
     min-height: 100vh;
 }
 
-/* ========== БОКОВОЕ МЕНЮ ========== */
 .sidebar {
     width: 280px;
     background: white;
@@ -97,7 +214,10 @@ body {
     margin: 0 16px 24px 16px;
 }
 
-/* ========== ОСНОВНОЙ КОНТЕНТ ========== */
+/* ============================================================ */
+/* ========== ШАПКА С ГРАДИЕНТОМ ========== */
+/* ============================================================ */
+
 .main-content {
     flex: 1;
     display: flex;
@@ -105,7 +225,6 @@ body {
     overflow-x: hidden;
 }
 
-/* ========== ШАПКА С ГРАДИЕНТОМ ========== */
 .top-bar {
     background: var(--primary-gradient);
     margin: 16px 16px 0 16px;
@@ -256,103 +375,448 @@ body {
     background-color: var(--gray-100);
 }
 
-/* ========== КОНТЕЙНЕР КОНТЕНТА ========== */
 .content-wrapper {
     padding: 24px;
 }
 
-/* ========== КАРТОЧКИ ========== */
-.card {
-    background: white;
-    border-radius: 20px;
-    border: none;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+/* ============================================================ */
+/* ========== УВЕДОМЛЕНИЯ И ЧАТ (ОБЩИЕ СТИЛИ) ========== */
+/* ============================================================ */
+
+.notification-bell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 30px;
+    color: white;
+    text-decoration: none;
+    font-size: 0.9rem;
     transition: all 0.2s;
-    margin-bottom: 24px;
+    cursor: pointer;
 }
 
-.card-header {
+.notification-bell:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+}
+
+.notification-bell i {
+    font-size: 1.1rem;
+}
+
+.notification-dot {
+    position: absolute;
+    top: -3px;
+    right: -5px;
+    width: 10px;
+    height: 10px;
+    background-color: #ff4444;
+    border-radius: 50%;
+    border: 1px solid white;
+    display: none;
+}
+
+.notification-item.unread {
+    background-color: #f8f9fa;
+    border-left: 3px solid var(--primary);
+}
+
+.notification-item.read {
+    background-color: white;
+    border-left: 3px solid transparent;
+}
+
+.notification-item:hover {
+    background-color: #f1f3f5;
+    transition: background-color 0.2s ease;
+}
+
+.notification-line {
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+}
+
+.notification-line i {
+    width: 20px;
+    color: var(--primary);
+}
+
+.support-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 30px;
+    color: white;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.support-link:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+}
+
+.support-dot {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 10px;
+    height: 10px;
+    background-color: #ff4444;
+    border-radius: 50%;
+    border: 1px solid white;
+}
+
+/* ============================================================ */
+/* ========== ДАШБОРД (СТИЛИ ДЛЯ ДЕСКТОПА И МОБАЙЛА) ========== */
+/* ============================================================ */
+
+/* Статистика */
+.dashboard-stat {
+    text-align: center;
+    padding: 20px;
+    background: #fff;
+    border-radius: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.dashboard-stat i {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 10px;
+}
+
+.dashboard-stat h3 {
+    font-size: 2rem;
+    margin-bottom: 5px;
+}
+
+/* Календарь */
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.calendar-weekday {
+    font-weight: 600;
+    padding: 8px;
+    background-color: #f8f0ff;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.calendar-dates {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+
+.calendar-date {
+    background-color: #f8f9fa;
+    border-radius: 10px;
+    padding: 8px 4px;
+    text-align: center;
+    min-height: 65px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid #e5e7eb;
+    position: relative;
+}
+
+.calendar-date.empty {
+    background-color: transparent;
+    border: 0;
+    cursor: default;
+    box-shadow: none;
+}
+
+.calendar-date.working {
+    background-color: #d4edda;
+    border-color: #28a745;
+}
+
+.calendar-date.non-working {
+    background-color: #e9ecef;
+    border-color: #ced4da;
+    opacity: 0.7;
+}
+
+.calendar-date.past {
+    opacity: 0.5;
+}
+
+.calendar-date.today {
+    border: 2px solid var(--primary);
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.3);
+}
+
+.calendar-time {
+    font-size: 0.65rem;
+    margin-top: 5px;
+    color: #666;
+}
+
+.calendar-date.working .calendar-time {
+    color: #155724;
+}
+
+.calendar-icons {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+}
+
+.booking-badge {
+    background-color: var(--primary);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+}
+
+.break-badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: help;
+}
+
+/* Записи */
+.booking-very-soon {
+    background-color: #fff0f0 !important;
+    border-left: 4px solid var(--danger);
+}
+
+.booking-soon {
+    background-color: #fff8e7 !important;
+    border-left: 4px solid var(--warning);
+}
+
+.booking-future {
+    background-color: #ffffff !important;
+}
+
+.booking-past {
+    background-color: #f8f9fa !important;
+    opacity: 0.7;
+}
+
+.service-category {
+    font-size: 18px;
+    color: #000000;
+    font-weight: bold;
+}
+
+.service-name {
+    font-size: 15px;
+    font-weight: normal;
+}
+
+/* Модальные окна в дашборде */
+#workingDayActions, #dayOffActions {
+    display: none !important;
+}
+
+#workingDayActions[style*="display: block"],
+#dayOffActions[style*="display: block"] {
+    display: block !important;
+}
+
+/* Принудительное скрытие кнопки "Добавить запись" в режиме редактирования дня */
+#dayModal .modal-body:has(#editFormBlock[style*="display: block"]) #addBookingButtonContainer {
+    display: none !important;
+}
+
+
+/* Принудительное скрытие кнопки в выходных днях */
+#dayOffActions[style*="display: block"] ~ #addBookingButtonContainer,
+#dayOffActions[style*="display: block"] + hr + #addBookingButtonContainer,
+body:has(#dayOffActions[style*="display: block"]) #addBookingButtonContainer {
+    display: none !important;
+}
+
+/* Убеждаемся, что в рабочих днях кнопка видна */
+#workingDayActions[style*="display: block"] ~ #addBookingButtonContainer,
+#workingDayActions[style*="display: block"] + hr + #addBookingButtonContainer,
+body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer {
+    display: block !important;
+}
+
+/* Стили для всплывающих окон */
+#confirmModal .modal-backdrop,
+#alertModal .modal-backdrop {
+    display: none !important;
+}
+
+#confirmModal,
+#alertModal {
+    z-index: 1060 !important;
+}
+
+/* Стили для всплывающих окон (отличаются от основного) */
+#confirmModal .modal-content,
+#alertModal .modal-content {
+    background-color: #f8f9fa !important;
+    border: 1px solid #dee2e6 !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
+}
+
+#confirmModal .modal-header,
+#alertModal .modal-header {
+    background-color: #e9ecef !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    border-radius: 8px 8px 0 0 !important;
+}
+
+#confirmModal .modal-footer,
+#alertModal .modal-footer {
+    background-color: #f8f9fa !important;
+    border-top: 1px solid #dee2e6 !important;
+}
+
+#confirmModal .btn-pink,
+#alertModal .btn-pink {
+    background-color: #ff85b3 !important;
+    color: white !important;
+}
+
+#confirmModal .btn-secondary,
+#alertModal .btn-secondary {
+    background-color: #6c757d !important;
+    color: white !important;
+}
+/* ============================================================ */
+/* ========== УСЛУГИ (СТИЛИ ДЛЯ ДЕСКТОПА И МОБАЙЛА) ========== */
+/* ============================================================ */
+
+.service-card, .date-card, .slot-card {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.service-card:hover, .date-card:hover, .slot-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.border-primary {
+    border: 2px solid var(--primary) !important;
+    background-color: #fff9fb !important;
+}
+
+.list-group-item {
+    border-left: none;
+    border-right: none;
+}
+
+.list-group-item:first-child {
+    border-top: none;
+}
+
+/* ============================================================ */
+/* ========== МОДАЛЬНЫЕ ОКНА (ОБЩИЕ СТИЛИ) ========== */
+/* ============================================================ */
+
+.modal-backdrop {
+    visibility: hidden !important;
+}
+
+.modal.show {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-backdrop.show {
+    opacity: 0;
+}
+
+#alertModal, #confirmModal {
+    z-index: 1060 !important;
+}
+
+#alertModal .modal-content, #confirmModal .modal-content {
+    background-color: #f8f9fa !important;
+    border: 1px solid #dee2e6 !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
+}
+
+#alertModal .modal-header, #confirmModal .modal-header {
+    background-color: #e9ecef !important;
+    border-bottom: 1px solid #dee2e6 !important;
+    border-radius: 8px 8px 0 0 !important;
+}
+
+#alertModal .modal-footer, #confirmModal .modal-footer {
+    background-color: #f8f9fa !important;
+    border-top: 1px solid #dee2e6 !important;
+}
+
+#alertModal .btn-primary, #confirmModal .btn-primary {
+    background: var(--primary-gradient) !important;
+    color: white !important;
+}
+
+#confirmModal .btn-secondary, #alertModal .btn-secondary {
+    background-color: #6c757d !important;
+    color: white !important;
+}
+
+/* ============================================================ */
+/* ========== СТАТИСТИКА КЛИЕНТОВ ========== */
+/* ============================================================ */
+
+.dashboard-stat {
+    text-align: center;
+    padding: 20px;
     background: white;
-    border-bottom: 1px solid var(--gray-200);
-    padding: 16px 20px;
-    border-radius: 20px 20px 0 0;
+    border-radius: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.dashboard-stat i {
+    font-size: 2.5rem;
+    color: var(--primary);
+    margin-bottom: 10px;
+}
+
+.dashboard-stat h3 {
+    font-size: 2rem;
+    margin-bottom: 5px;
+}
+
+/* ============================================================ */
+/* ========== ПРОФИЛЬ ========== */
+/* ============================================================ */
+
+.avatar-placeholder-lg {
+    background: var(--primary-gradient);
+    color: white;
+    font-size: 3rem;
     font-weight: 600;
 }
 
-.card-body {
-    padding: 20px;
-}
-
-/* ========== КНОПКИ ========== */
-.btn-pink {
-    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-    color: white;
-    border: none;
-    padding: 10px 24px;
-    border-radius: 30px;
-    font-weight: 500;
-    transition: all 0.2s;
-}
-
-.btn-pink:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
-    color: white;
-}
-
-.btn-outline-pink {
-    border: 1px solid var(--primary);
-    color: var(--primary);
-    background: transparent;
-    padding: 10px 24px;
-    border-radius: 30px;
-    font-weight: 500;
-    transition: all 0.2s;
-}
-
-.btn-outline-pink:hover {
-    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-    border-color: transparent;
-    color: white;
-}
-
-/* ========== АДАПТИВНОСТЬ ========== */
-@media (max-width: 768px) {
-    .sidebar {
-        position: fixed;
-        left: -280px;
-        z-index: 1000;
-        transition: left 0.3s ease;
-        margin: 0;
-        height: 100vh;
-        border-radius: 0;
-    }
-    
-    .app-container.sidebar-collapsed .sidebar {
-        left: 0;
-    }
-    
-    .sidebar-toggle {
-        display: block;
-    }
-    
-    .content-wrapper {
-        padding: 16px;
-    }
-    
-    .user-name, .support-link span, .wallet span {
-        display: none;
-    }
-    
-    .top-bar {
-        margin: 12px;
-    }
-}
-
-
-
-
-/* ========== НОВАЯ ГЛАВНАЯ СТРАНИЦА (стиль как у Figma) ========== */
+/* ============================================================ */
+/* ========== ПУБЛИЧНАЯ ГЛАВНАЯ (ЛЕНДИНГ) ========== */
+/* ============================================================ */
 
 /* Hero секция */
 .hero-section {
@@ -370,8 +834,6 @@ body {
     line-height: 1.2;
     margin-bottom: 1.5rem;
     color: #1a1a2e;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
-
 }
 
 .hero-description {
@@ -389,7 +851,7 @@ body {
 }
 
 .btn-primary-gradient {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    background: var(--primary-gradient);
     border: none;
     color: white;
     padding: 14px 36px;
@@ -417,8 +879,8 @@ body {
 
 .btn-outline-dark:hover {
     background: rgba(99, 102, 241, 0.05);
-    border-color: #6366f1;
-    color: #6366f1;
+    border-color: var(--primary);
+    color: var(--primary);
 }
 
 .hero-stats {
@@ -437,7 +899,6 @@ body {
     color: #666;
 }
 
-/* Плавающие карточки */
 .floating-card {
     position: absolute;
     background: white;
@@ -495,7 +956,7 @@ body {
 
 .feature-icon.purple {
     background: #ede9fe;
-    color: #7c3aed;
+    color: var(--primary);
 }
 
 .feature-icon.pink {
@@ -678,7 +1139,7 @@ body {
     font-size: 0.8rem;
 }
 
-/* Тарифы светлые */
+/* Тарифы */
 .pricing-section {
     background: #faf9fe;
     padding: 5rem 0;
@@ -774,21 +1235,6 @@ body {
     color: #bbb;
 }
 
-.btn-outline-light-price {
-    border: 1.5px solid #e0dcec;
-    background: transparent;
-    padding: 12px;
-    border-radius: 100px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    width: 100%;
-}
-
-.btn-outline-light-price:hover {
-    border-color: #8b5cf6;
-    background: #f5f3ff;
-}
-
 /* FAQ */
 .faq-section {
     padding: 5rem 0;
@@ -853,7 +1299,7 @@ body {
 
 .roadmap-icon i {
     font-size: 28px;
-    color: #7c3aed;
+    color: var(--primary);
 }
 
 .roadmap-card h4 {
@@ -874,7 +1320,7 @@ body {
     border-radius: 100px;
     font-size: 0.7rem;
     font-weight: 600;
-    color: #7c3aed;
+    color: var(--primary);
 }
 
 /* Команда */
@@ -918,12 +1364,11 @@ body {
 
 /* CTA финальная */
 .cta-section {
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    background: var(--primary-gradient);
     padding: 5rem 0;
     color: white;
 }
 
-/* Общие */
 .section-title {
     font-size: 2.5rem;
     font-weight: 800;
@@ -943,10 +1388,129 @@ body {
     border-radius: 100px;
     font-size: 0.75rem;
     font-weight: 600;
-    color: #7c3aed;
+    color: var(--primary);
 }
 
+/* ============================================================ */
+/* ========== АДАПТИВНОСТЬ (МОБИЛЬНЫЕ СТИЛИ) ========== */
+/* ============================================================ */
+
 @media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        left: -280px;
+        z-index: 1000;
+        transition: left 0.3s ease;
+        margin: 0;
+        height: 100vh;
+        border-radius: 0;
+    }
+    
+    .app-container.sidebar-collapsed .sidebar {
+        left: 0;
+    }
+    
+    .sidebar-toggle {
+        display: block;
+    }
+    
+    .content-wrapper {
+        padding: 16px;
+    }
+    
+    .user-name, .support-link span, .wallet span {
+        display: none;
+    }
+    
+    .top-bar {
+        margin: 12px;
+    }
+    
+    /* Мобильные уведомления */
+    .notification-bell span {
+        display: none;
+    }
+    
+    .notification-bell {
+        padding: 8px 12px;
+    }
+    
+    /* Мобильные карточки */
+    .card-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+    
+    .card-header .btn-sm {
+        width: 100%;
+    }
+    
+    /* Мобильные таблицы */
+    .table-responsive {
+        overflow-x: auto;
+    }
+    
+    /* Мобильные модальные окна */
+    .modal-dialog {
+        margin: 16px;
+    }
+}
+
+/* Десктопные уточнения */
+@media (min-width: 769px) {
+    .mobile-bottom-nav {
+        display: none;
+    }
+}
+
+/* Мобильное нижнее меню (будет добавлено позже) */
+@media (max-width: 768px) {
+    .mobile-bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        display: flex;
+        justify-content: space-around;
+        padding: 10px 0;
+        padding-bottom: max(10px, env(safe-area-inset-bottom, 10px));
+        border-top: 1px solid var(--gray-200);
+        z-index: 1000;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .mobile-bottom-nav a {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        font-size: 12px;
+        color: var(--gray-500);
+        text-decoration: none;
+        flex: 1;
+        padding: 4px 0;
+    }
+    
+    .mobile-bottom-nav a i {
+        font-size: 22px;
+    }
+    
+    .mobile-bottom-nav a.active {
+        color: var(--primary);
+    }
+    
+    .mobile-bottom-nav a span {
+        font-size: 11px;
+    }
+    
+    .content-wrapper {
+        padding-bottom: 80px;
+    }
+}
+
+@media (max-width: 380px) {
     .hero-title {
         font-size: 2rem;
     }
@@ -961,5 +1525,17 @@ body {
     
     .time-stats {
         flex-direction: column;
+    }
+    
+    .mobile-bottom-nav a span {
+        font-size: 10px;
+    }
+    
+    .mobile-bottom-nav a i {
+        font-size: 18px;
+    }
+    
+    .mobile-bottom-nav {
+        padding: 6px 0;
     }
 }
