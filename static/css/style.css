@@ -41,7 +41,7 @@ body {
 /* ========== ГЛОБАЛЬНЫЕ КОМПОНЕНТЫ ========== */
 /* ============================================================ */
 
-/* Карточки */
+/* Карточки - убираем отступы по бокам */
 .card {
     background: white;
     border-radius: 20px;
@@ -49,6 +49,9 @@ body {
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     transition: all 0.2s;
     margin-bottom: 24px;
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
 }
 
 .card-header {
@@ -225,6 +228,10 @@ body {
     overflow-x: hidden;
 }
 
+.content-wrapper {
+    padding: 24px;
+}
+
 .top-bar {
     background: var(--primary-gradient);
     margin: 16px 16px 0 16px;
@@ -278,6 +285,29 @@ body {
     display: flex;
     align-items: center;
     gap: 20px;
+}
+
+.notification-bell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 30px;
+    color: white;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.notification-bell:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+}
+
+.notification-bell i {
+    font-size: 1.1rem;
 }
 
 .support-link {
@@ -375,36 +405,46 @@ body {
     background-color: var(--gray-100);
 }
 
-.content-wrapper {
-    padding: 24px;
+@media (max-width: 768px) {
+    .top-bar {
+        margin: 0;
+        padding: 5px 15px;
+    }
+    .logo img {
+        height: 32px;  /* было 40px */
+    }
+    .logo {
+        gap: 8px;  /* было 10px */
+        font-size: 1.1rem;  /* было 1.25rem */
+    }
+        /* Скрываем текст у поддержки и кошелька на мобильных, оставляем только иконки */
+    .support-link span {
+        display: none;
+    }
+    .wallet span {
+        font-size: 12px;
+    }
+    
+    /* Уменьшаем отступы для иконок */
+    .support-link,
+    .wallet,
+    .notification-bell {
+        padding: 8px 5px;
+    }
+    
+    /* Увеличиваем иконки для удобства нажатия */
+    .support-link i,
+    .wallet i,
+    .notification-bell i {
+        font-size: 15px;
+    }
+
 }
+
 
 /* ============================================================ */
-/* ========== УВЕДОМЛЕНИЯ И ЧАТ (ОБЩИЕ СТИЛИ) ========== */
+/* ========== УВЕДОМЛЕНИЯ (ОБЩИЕ СТИЛИ) ========== */
 /* ============================================================ */
-
-.notification-bell {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 30px;
-    color: white;
-    text-decoration: none;
-    font-size: 0.9rem;
-    transition: all 0.2s;
-    cursor: pointer;
-}
-
-.notification-bell:hover {
-    background: rgba(255, 255, 255, 0.25);
-    color: white;
-}
-
-.notification-bell i {
-    font-size: 1.1rem;
-}
 
 .notification-dot {
     position: absolute;
@@ -445,25 +485,6 @@ body {
     color: var(--primary);
 }
 
-.support-link {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 30px;
-    color: white;
-    text-decoration: none;
-    font-size: 0.9rem;
-    transition: all 0.2s;
-}
-
-.support-link:hover {
-    background: rgba(255, 255, 255, 0.25);
-    color: white;
-}
-
 .support-dot {
     position: absolute;
     top: -3px;
@@ -475,6 +496,201 @@ body {
     border: 1px solid white;
 }
 
+.support-link {
+    position: relative;
+}
+
+/* ============================================================ */
+/* ========== МОДАЛЬНОЕ ОКНО ЧАТА (ДЕСКТОП И МОБИЛЬНЫЕ) ========== */
+/* ============================================================ */
+
+/* Десктопная версия (по умолчанию) */
+#supportChatModal .modal-dialog {
+    max-width: 500px;
+}
+
+#supportChatModal .modal-content {
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+#supportChatModal .modal-body {
+    padding: 0;
+}
+
+/* Сообщения в чате - десктоп */
+.chat-message {
+    margin-bottom: 12px;
+}
+
+.chat-message-user {
+    background: var(--primary-gradient);
+    color: white;
+    border-radius: 18px 18px 4px 18px;
+    padding: 10px 15px;
+    max-width: 75%;
+    margin-left: auto;
+}
+
+.chat-message-support {
+    background: #f1f3f5;
+    color: #333;
+    border-radius: 18px 18px 18px 4px;
+    padding: 10px 15px;
+    max-width: 75%;
+}
+
+.chat-message-time {
+    font-size: 0.7rem;
+    margin-top: 4px;
+    opacity: 0.7;
+}
+
+
+/* ============================================================ */
+/* ========== ЧАТ ПОДДЕРЖКИ (ПОЛНОСТЬЮ) ========== */
+/* ============================================================ */
+
+
+/* Модальное окно чата - десктоп */
+#supportChatModal .modal-dialog {
+    max-width: 500px;
+}
+
+#supportChatModal .modal-content {
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+#supportChatModal .modal-body {
+    padding: 0;
+}
+
+/* Стили сообщений (для Bootstrap классов) */
+#supportChatModal .bg-primary.text-white {
+    background: #e5e7eb !important;
+    border-radius: 18px 18px 4px 18px !important;
+    padding: 10px 15px !important;
+    color: #1f2937 !important;
+}
+
+#supportChatModal .bg-light.border {
+    background: linear-gradient(135deg, #d0a2fc 0%, #c084fc 100%) !important;
+    border: none !important;
+    border-radius: 18px 18px 18px 4px !important;
+    padding: 10px 15px !important;
+}
+
+#supportChatModal .text-white-50 {
+    color: rgba(48, 48, 48, 0.7) !important;
+}
+
+#supportChatModal .message-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* Время сообщения */
+.chat-message-time {
+    font-size: 0.65rem;
+    margin-top: 4px;
+    opacity: 0.7;
+}
+
+/* Поле ввода и кнопка */
+#chat-input {
+    resize: none;
+    font-size: 0.9rem;
+}
+
+#chat-send-btn {
+    white-space: nowrap;
+}
+
+
+
+/* ============================================================ */
+/* ========== ЧАТ ПОДДЕРЖКИ - МОБИЛЬНАЯ ВЕРСИЯ ========== */
+/* ============================================================ */
+
+@media (max-width: 768px) {
+    
+        #supportChatModal .modal-dialog {
+        margin: 0;
+        max-width: 100%;
+        width: 100%;
+        height: 100%;
+    }
+    
+    #supportChatModal .modal-content {
+        height: 100%;
+        border-radius: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    #supportChatModal .modal-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0;
+    }
+    
+    #chat-messages {
+        height: auto !important;
+        max-height: none;
+        flex: 1;
+    }
+    
+    /* Поле ввода и кнопка */
+    #supportChatModal .p-3.border-top.bg-white {
+        padding: 12px !important;
+    }
+    
+    #chat-input {
+        width: 100% !important;
+        font-size: 16px;
+        resize: vertical;
+        margin-bottom: 10px !important;
+        border-radius: 12px;
+        padding: 12px;
+    }
+    
+    #chat-send-btn {
+        width: 100% !important;
+        padding: 10px 16px;
+        font-size: 1rem;
+        border-radius: 30px;
+    }
+    
+    #supportChatModal .input-group {
+        display: block !important;
+    }
+    
+    /* Сообщения */
+    #supportChatModal .bg-primary.text-white,
+    #supportChatModal .bg-light.border {
+        padding: 8px 12px !important;
+        max-width: 85% !important;
+
+        max-width: 85% !important;
+        width: auto !important;
+        display: inline-block !important;
+        padding: 8px 12px !important;
+        word-wrap: break-word !important;
+        white-space: normal !important;
+    }
+}
+
+@media (max-width: 480px) {
+    #chat-send-btn {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+    }
+    
+    #chat-send-btn i {
+        font-size: 0.8rem;
+    }
+}
 
 /* ============================================================ */
 /* ========== МОБИЛЬНОЕ НИЖНЕЕ МЕНЮ ========== */
@@ -525,13 +741,21 @@ body {
         font-size: 10px;
     }
     
-    /* Отступ для контента, чтобы не перекрывался меню */
     .content-wrapper {
-        padding-bottom: 80px;
+        padding: 20px 0 80px 0;
     }
     
-    /* Скрываем кнопку поддержки и кошелёк в десктопной шапке на мобильных */
-    .support-link {
+    /* Скрываем колокольчик и поддержку в шапке на мобильных */
+    .notification-bell {
+        display: none !important;
+    }
+    
+    /* Убираем имя пользователя на мобильных */
+    .user-name {
+        display: none;
+    }
+    
+    .sidebar-toggle {
         display: none !important;
     }
 }
@@ -651,9 +875,9 @@ body {
     top: 4px;
     right: 4px;
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
+    flex-direction: row;
+    gap: 4px;
+    align-items: center;
 }
 
 .booking-badge {
@@ -722,7 +946,6 @@ body {
     display: none !important;
 }
 
-
 /* Принудительное скрытие кнопки в выходных днях */
 #dayOffActions[style*="display: block"] ~ #addBookingButtonContainer,
 #dayOffActions[style*="display: block"] + hr + #addBookingButtonContainer,
@@ -737,143 +960,45 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     display: block !important;
 }
 
-/* Стили для всплывающих окон */
-#confirmModal .modal-backdrop,
-#alertModal .modal-backdrop {
-    display: none !important;
-}
 
-#confirmModal,
-#alertModal {
-    z-index: 1060 !important;
-}
 
-/* Стили для всплывающих окон (отличаются от основного) */
-#confirmModal .modal-content,
-#alertModal .modal-content {
-    background-color: #f8f9fa !important;
-    border: 1px solid #dee2e6 !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
-}
-
-#confirmModal .modal-header,
-#alertModal .modal-header {
-    background-color: #e9ecef !important;
-    border-bottom: 1px solid #dee2e6 !important;
-    border-radius: 8px 8px 0 0 !important;
-}
-
-#confirmModal .modal-footer,
-#alertModal .modal-footer {
-    background-color: #f8f9fa !important;
-    border-top: 1px solid #dee2e6 !important;
-}
-
-#confirmModal .btn-pink,
-#alertModal .btn-pink {
-    background-color: #ff85b3 !important;
-    color: white !important;
-}
-
-#confirmModal .btn-secondary,
-#alertModal .btn-secondary {
-    background-color: #6c757d !important;
-    color: white !important;
-}
 
 @media (max-width: 768px) {
-    .calendar-weekdays {
-        gap: 4px;
+    /* Кнопка добавления записи - на всю ширину */
+    .add-booking-btn {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+        display: block;
     }
     
-    .calendar-weekday {
-        font-size: 0.7rem;
-        padding: 6px 2px;
+    /* Статистика - карточки в ряд по горизонтали на мобильных */
+    .stats-container .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
     }
     
-    .calendar-dates {
-        gap: 4px;
+    .stats-container .col-md-4 {
+        flex: 1;
+        min-width: calc(33.333% - 8px);
     }
     
-    .calendar-date {
-        padding: 6px 2px;
-        min-height: 55px;
-        font-size: 0.8rem;
+    .dashboard-stat {
+        padding: 12px;
     }
     
-    .calendar-time {
-        font-size: 0.55rem;
-        margin-top: 2px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
+    .dashboard-stat i {
+        font-size: 1.8rem;
     }
     
-    .calendar-icons {
-        top: 2px;
-        right: 2px;
-        gap: 1px;
+    .dashboard-stat h3 {
+        font-size: 1.4rem;
     }
     
-    .booking-badge {
-        font-size: 0.55rem;
-        min-width: 14px;
-        height: 14px;
-        padding: 0 3px;
-    }
-    
-    .break-badge {
-        font-size: 0.55rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .calendar-weekday {
-        font-size: 0.65rem;
-        padding: 4px 1px;
-    }
-    
-    .calendar-date {
-        min-height: 48px;
+    .dashboard-stat p {
         font-size: 0.75rem;
     }
-    
-    .calendar-time {
-        font-size: 0.5rem;
-    }
-    
-    /* На очень маленьких экранах скрываем время */
-    .calendar-time {
-        display: none;
-    }
-}
-/* ============================================================ */
-/* ========== УСЛУГИ (СТИЛИ ДЛЯ ДЕСКТОПА И МОБАЙЛА) ========== */
-/* ============================================================ */
-
-.service-card, .date-card, .slot-card {
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.service-card:hover, .date-card:hover, .slot-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.border-primary {
-    border: 2px solid var(--primary) !important;
-    background-color: #fff9fb !important;
-}
-
-.list-group-item {
-    border-left: none;
-    border-right: none;
-}
-
-.list-group-item:first-child {
-    border-top: none;
 }
 
 /* ============================================================ */
@@ -924,6 +1049,34 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 }
 
 /* ============================================================ */
+/* ========== УСЛУГИ (СТИЛИ ДЛЯ ДЕСКТОПА И МОБАЙЛА) ========== */
+/* ============================================================ */
+
+.service-card, .date-card, .slot-card {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.service-card:hover, .date-card:hover, .slot-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.border-primary {
+    border: 2px solid var(--primary) !important;
+    background-color: #fff9fb !important;
+}
+
+.list-group-item {
+    border-left: none;
+    border-right: none;
+}
+
+.list-group-item:first-child {
+    border-top: none;
+}
+
+/* ============================================================ */
 /* ========== СТАТИСТИКА КЛИЕНТОВ ========== */
 /* ============================================================ */
 
@@ -955,6 +1108,122 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     color: white;
     font-size: 3rem;
     font-weight: 600;
+}
+
+/* ============================================================ */
+/* ========== МОБИЛЬНЫЙ КАЛЕНДАРЬ ========== */
+/* ============================================================ */
+
+@media (max-width: 768px) {
+    .calendar-weekdays {
+        gap: 4px;
+    }
+    
+    .calendar-weekday {
+        font-size: 0.7rem;
+        padding: 6px 2px;
+    }
+    
+    .calendar-dates {
+        gap: 4px;
+    }
+    
+    .calendar-date {
+        padding: 6px 2px;
+        min-height: 55px;
+        font-size: 0.8rem;
+        padding-bottom: 20px;
+    }
+    
+    .calendar-time {
+        font-size: 0.55rem;
+        margin-top: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+    }
+    
+    .calendar-icons {
+        position: absolute;
+        bottom: 4px;
+        top: auto;
+        right: 4px;
+        flex-direction: row;
+        gap: 4px;
+    }
+    
+    .booking-badge {
+        font-size: 0.6rem;
+        min-width: 16px;
+        height: 16px;
+    }
+    
+    .break-badge {
+        font-size: 0.6rem;
+    }
+    
+    .sidebar {
+        position: fixed;
+        left: -280px;
+        z-index: 1000;
+        transition: left 0.3s ease;
+        margin: 0;
+        height: 100vh;
+        border-radius: 0;
+    }
+    
+    .app-container.sidebar-collapsed .sidebar {
+        left: 0;
+    }
+    
+    
+    
+    
+    .card-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+    
+    .card-header .btn-sm {
+        width: 100%;
+    }
+    
+    .table-responsive {
+        overflow-x: auto;
+    }
+    
+    .modal-dialog {
+        margin: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .calendar-weekday {
+        font-size: 0.65rem;
+        padding: 4px 1px;
+    }
+    
+    .calendar-date {
+        min-height: 48px;
+        font-size: 0.75rem;
+    }
+    
+    .calendar-time {
+        display: none;
+    }
+}
+
+/* Десктопные уточнения */
+@media (min-width: 769px) {
+    .mobile-bottom-nav {
+        display: none;
+    }
+    
+    .sidebar-toggle {
+        display: block !important;
+    }
 }
 
 /* ============================================================ */
@@ -1534,126 +1803,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     color: var(--primary);
 }
 
-/* ============================================================ */
-/* ========== АДАПТИВНОСТЬ (МОБИЛЬНЫЕ СТИЛИ) ========== */
-/* ============================================================ */
-
 @media (max-width: 768px) {
-    .sidebar {
-        position: fixed;
-        left: -280px;
-        z-index: 1000;
-        transition: left 0.3s ease;
-        margin: 0;
-        height: 100vh;
-        border-radius: 0;
-    }
-    
-    .app-container.sidebar-collapsed .sidebar {
-        left: 0;
-    }
-    
-        .sidebar-toggle {
-        display: none !important;
-    }
-    
-    .content-wrapper {
-        padding: 16px;
-    }
-    
-    .user-name, .support-link span, .wallet span {
-        display: none;
-    }
-    
-    .top-bar {
-        margin: 12px;
-    }
-    
-    /* Мобильные уведомления */
-    .notification-bell span {
-        display: none;
-    }
-    
-    .notification-bell {
-        padding: 8px 12px;
-    }
-    
-    /* Мобильные карточки */
-    .card-header {
-        flex-direction: column;
-        gap: 12px;
-        align-items: stretch;
-    }
-    
-    .card-header .btn-sm {
-        width: 100%;
-    }
-    
-    /* Мобильные таблицы */
-    .table-responsive {
-        overflow-x: auto;
-    }
-    
-    /* Мобильные модальные окна */
-    .modal-dialog {
-        margin: 16px;
-    }
-}
-
-/* Десктопные уточнения */
-@media (min-width: 769px) {
-    .mobile-bottom-nav {
-        display: none;
-    }
-}
-
-/* Мобильное нижнее меню (будет добавлено позже) */
-@media (max-width: 768px) {
-    .mobile-bottom-nav {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: white;
-        display: flex;
-        justify-content: space-around;
-        padding: 10px 0;
-        padding-bottom: max(10px, env(safe-area-inset-bottom, 10px));
-        border-top: 1px solid var(--gray-200);
-        z-index: 1000;
-        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-    }
-    
-    .mobile-bottom-nav a {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        font-size: 12px;
-        color: var(--gray-500);
-        text-decoration: none;
-        flex: 1;
-        padding: 4px 0;
-    }
-    
-    .mobile-bottom-nav a i {
-        font-size: 22px;
-    }
-    
-    .mobile-bottom-nav a.active {
-        color: var(--primary);
-    }
-    
-    .mobile-bottom-nav a span {
-        font-size: 11px;
-    }
-    
-    .content-wrapper {
-        padding-bottom: 80px;
-    }
-}
-
-@media (max-width: 380px) {
     .hero-title {
         font-size: 2rem;
     }
@@ -1668,17 +1818,5 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     
     .time-stats {
         flex-direction: column;
-    }
-    
-    .mobile-bottom-nav a span {
-        font-size: 10px;
-    }
-    
-    .mobile-bottom-nav a i {
-        font-size: 18px;
-    }
-    
-    .mobile-bottom-nav {
-        padding: 6px 0;
     }
 }

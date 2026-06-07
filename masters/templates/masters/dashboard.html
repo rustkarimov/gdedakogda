@@ -3,46 +3,22 @@
 {% block title %}Личный кабинет - {{ master.first_name }} {{ master.last_name }}{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="fas fa-tachometer-alt me-2" style="color: var(--primary);"></i>Личный кабинет</h2>
-    <div>
-        <a href="{% url 'add_manual_booking' %}" class="btn btn-primary">
-            <i class="fas fa-pen-alt me-1"></i>Добавить запись
-        </a>
-    </div>
+<!-- Кнопка добавления записи -->
+<div class="mb-4">
+    <a href="{% url 'add_manual_booking' %}" class="btn btn-primary add-booking-btn">
+        <i class="fas fa-pen-alt me-2"></i>
+        Добавить запись
+    </a>
 </div>
 
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="dashboard-stat">
-            <i class="fas fa-calendar-check"></i>
-            <h3>{{ total_bookings }}</h3>
-            <p>Всего записей</p>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="dashboard-stat">
-            <i class="fas fa-cut"></i>
-            <h3>{{ total_services }}</h3>
-            <p>Услуг</p>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="dashboard-stat">
-            <i class="fas fa-link"></i>
-            <h3><i class="fas fa-copy copy-link" style="cursor: pointer;" onclick="copyPublicLink()"></i></h3>
-            <p>Ваша ссылка</p>
-        </div>
-    </div>
-</div>
-
+<!-- Календарь -->
 <div class="card mb-4">
     <div class="card-header bg-white"><h5 class="mb-0"><i class="far fa-calendar-alt me-2" style="color: var(--primary);"></i>Календарь</h5></div>
     <div class="card-body">
         <div class="text-center mb-3">
-            <button class="btn btn-sm btn-outline-pink" onclick="changeMonth(-1)">←</button>
+            <button class="btn btn-sm btn-outline-primary" onclick="changeMonth(-1)">←</button>
             <span class="mx-3 fw-bold" id="current-month"></span>
-            <button class="btn btn-sm btn-outline-pink" onclick="changeMonth(1)">→</button>
+            <button class="btn btn-sm btn-outline-primary" onclick="changeMonth(1)">→</button>
         </div>
         <div id="calendar-grid"></div>
         <div class="mt-2 small text-muted text-center">
@@ -52,7 +28,8 @@
     </div>
 </div>
 
-<div class="card">
+<!-- Ближайшие записи -->
+<div class="card mb-4">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0"><i class="fas fa-clock me-2" style="color: var(--primary);"></i>Ближайшие записи</h5>
         <div class="d-flex align-items-center gap-3">
@@ -64,7 +41,7 @@
                     <option value="15">15</option>
                 </select>
             </div>
-            <span class="badge bg-pink" id="total-bookings-count">0</span>
+            <span class="badge bg-primary" id="total-bookings-count">0</span>
         </div>
     </div>
     <div class="card-body">
@@ -74,17 +51,44 @@
             </div>
         </div>
         <div class="text-center mt-3">
-            <button id="load-more-bookings" class="btn btn-outline-pink" style="display: none;" onclick="loadMoreBookings()">
+            <button id="load-more-bookings" class="btn btn-outline-primary" style="display: none;" onclick="loadMoreBookings()">
                 <i class="fas fa-chevron-down me-2"></i>Показать еще
             </button>
         </div>
     </div>
 </div>
 
+<!-- Статистика -->
+<div class="stats-container mb-4">
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <div class="dashboard-stat">
+                <i class="fas fa-calendar-check"></i>
+                <h3>{{ total_bookings }}</h3>
+                <p>Всего записей</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="dashboard-stat">
+                <i class="fas fa-cut"></i>
+                <h3>{{ total_services }}</h3>
+                <p>Услуг</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="dashboard-stat">
+                <i class="fas fa-link"></i>
+                <h3><i class="fas fa-copy copy-link" style="cursor: pointer;" onclick="copyPublicLink()"></i></h3>
+                <p>Ваша ссылка</p>
+            </div>
+        </div>
+    </div>
+</div>
 
+<!-- Ваша страница для записи -->
 <div class="card mb-4">
     <div class="card-body">
-        <h5><i class="fas fa-share-alt me-2" style="color: #ff85b3;"></i>Ваша страница для записи</h5>
+        <h5><i class="fas fa-share-alt me-2" style="color: var(--primary);"></i>Ваша страница для записи</h5>
         <div class="input-group">
             <input type="text" class="form-control" id="publicLink" 
                 value="{{ request.scheme }}://{{ request.get_host }}/{{ master.public_slug }}/" readonly>
