@@ -11,23 +11,6 @@
     </a>
 </div>
 
-<!-- Календарь -->
-<div class="card mb-4">
-    <div class="card-header bg-white"><h5 class="mb-0"><i class="far fa-calendar-alt me-2" style="color: var(--primary);"></i>Календарь</h5></div>
-    <div class="card-body">
-        <div class="text-center mb-3">
-            <button class="btn btn-sm btn-outline-primary" onclick="changeMonth(-1)">←</button>
-            <span class="mx-3 fw-bold" id="current-month"></span>
-            <button class="btn btn-sm btn-outline-primary" onclick="changeMonth(1)">→</button>
-        </div>
-        <div id="calendar-grid"></div>
-        <div class="mt-2 small text-muted text-center">
-            <span class="badge bg-success me-2">Рабочий день</span>
-            <span class="badge bg-secondary me-2">Выходной</span>
-        </div>
-    </div>
-</div>
-
 <!-- Ближайшие записи -->
 <div class="card mb-4">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
@@ -57,6 +40,25 @@
         </div>
     </div>
 </div>
+
+<!-- Календарь -->
+<div class="card mb-4">
+    <div class="card-header bg-white"><h5 class="mb-0"><i class="far fa-calendar-alt me-2" style="color: var(--primary);"></i>Календарь</h5></div>
+    <div class="card-body">
+        <div class="text-center mb-3">
+            <button class="btn btn-sm btn-outline-primary" onclick="changeMonth(-1)">←</button>
+            <span class="mx-3 fw-bold" id="current-month"></span>
+            <button class="btn btn-sm btn-outline-primary" onclick="changeMonth(1)">→</button>
+        </div>
+        <div id="calendar-grid"></div>
+        <div class="mt-2 small text-muted text-center">
+            <span class="badge bg-success me-2">Рабочий день</span>
+            <span class="badge bg-secondary me-2">Выходной</span>
+        </div>
+    </div>
+</div>
+
+
 
 <!-- Статистика -->
 <div class="stats-container mb-4">
@@ -1932,25 +1934,26 @@ function createBookingRow(b) {
         serviceDisplay = '<div class="service-name">' + escapeHtml(b.service_name) + '</div>';
     }
     
+    // Добавляем data-label для мобильной версии
     return '<tr class="' + rowClass + '">' +
-        '<td>' + escapeHtml(b.date) + '</td>' +
-        '<td>' + escapeHtml(b.time) + '</td>' +
-        '<td>' + escapeHtml(b.client_name) + '</td>' +
-        '<td>' + serviceDisplay + '</td>' +
-        '<td>' +
+        '<td data-label="Дата">' + escapeHtml(b.date) + '</td>' +
+        '<td data-label="Время">' + escapeHtml(b.time) + '</td>' +
+        '<td data-label="Клиент">' + escapeHtml(b.client_name) + '</td>' +
+        '<td data-label="Услуга">' + serviceDisplay + '</td>' +
+        '<td data-label="Телефон">' +
             '<button class="btn btn-sm btn-outline-info" onclick="showBookingDetails(' + b.id + ')">' +
                 '<i class="fas fa-info-circle"></i> Подробности' +
             '</button>' +
         '</td>' +
-        '<td>' +
-            '<button class="btn btn-sm btn-outline-pink" onclick="editBookingInModal(' + b.id + ')" title="Редактировать">' +
+        '<td data-label="Действия">' +
+            '<button class="btn btn-sm btn-outline-primary" onclick="editBookingInModal(' + b.id + ')" title="Редактировать">' +
                 '<i class="fas fa-edit"></i>' +
             '</button> ' +
             '<button class="btn btn-sm btn-outline-danger" onclick="deleteBooking(' + b.id + ', \'' + escapeHtml(b.client_name) + '\', \'' + b.time + '\')" title="Удалить">' +
                 '<i class="fas fa-trash"></i>' +
             '</button>' +
         '</td>' +
-        '<td>' + statusBadge + '</td>' +
+        '<td data-label="Статус">' + statusBadge + '</td>' +
         '</tr>';
 }
 
