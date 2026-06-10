@@ -4,28 +4,17 @@
 
 {% block content %}
 <!-- Кнопка добавления записи -->
-<div class="mb-4">
+<div class="mb-4 text-end">
     <a href="{% url 'add_manual_booking' %}" class="btn btn-primary add-booking-btn">
-        <i class="fas fa-pen-alt me-2"></i>
-        Добавить запись
+        <i class="fas fa-pen-alt me-1"></i>
+        <span>Добавить запись</span>
     </a>
 </div>
 
 <!-- Ближайшие записи -->
 <div class="card mb-4">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+    <div class="card-header bg-white">
         <h5 class="mb-0"><i class="fas fa-clock me-2" style="color: var(--primary);"></i>Ближайшие записи</h5>
-        <div class="d-flex align-items-center gap-3">
-            <div class="d-flex align-items-center">
-                <label class="form-label me-2 mb-0 small">Показывать:</label>
-                <select id="bookings-limit-select" class="form-select form-select-sm" style="width: 70px;">
-                    <option value="5" selected>5</option>
-                    <option value="10">10</option>
-                    <option value="15">15</option>
-                </select>
-            </div>
-            <span class="badge bg-primary" id="total-bookings-count">0</span>
-        </div>
     </div>
     <div class="card-body">
         <div id="upcoming-bookings-container">
@@ -33,10 +22,19 @@
                 <div class="spinner-border" style="color: var(--primary);"></div>
             </div>
         </div>
-        <div class="text-center mt-3">
-            <button id="load-more-bookings" class="btn btn-outline-primary" style="display: none;" onclick="loadMoreBookings()">
-                <i class="fas fa-chevron-down me-2"></i>Показать еще
-            </button>
+    </div>
+    <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center pt-0 flex-wrap">
+        <button id="load-more-bookings" class="btn btn-sm btn-outline-primary" style="display: none;" onclick="loadMoreBookings()">
+            <i class="fas fa-chevron-down me-1"></i>Показать еще
+        </button>
+        <div class="d-flex align-items-center gap-2">
+            <label class="form-label me-1 mb-0 small">Показывать:</label>
+            <select id="bookings-limit-select" class="form-select form-select-sm" style="width: 70px;">
+                <option value="5" selected>5</option>
+                <option value="10">10</option>
+                <option value="15">15</option>
+            </select>
+            <span class="badge bg-primary" id="total-bookings-count">0</span>
         </div>
     </div>
 </div>
@@ -1860,13 +1858,12 @@ function renderBookings(b) {
     h += '<th>Время</th>';
     h += '<th>Клиент</th>';
     h += '<th>Услуга</th>';
-    h += '<th>Телефон</th>';
     h += '<th>Действия</th>';
     h += '<th>Статус</th>';
     h += '</tr>';
     h += '</thead>';
     h += '<tbody>';
-    
+       
     sortedBookings.forEach(bb => { 
         h += createBookingRow(bb); 
     });
@@ -1909,8 +1906,8 @@ function createBookingRow(b) {
         isPast = true;
     }
     
-    let rowClass = '';
     let statusBadge = '';
+    let rowClass = '';
     
     if (isPast) {
         statusBadge = '<span class="badge bg-secondary">Прошла</span>';
@@ -1926,34 +1923,31 @@ function createBookingRow(b) {
         rowClass = 'booking-future';
     }
     
-    let serviceDisplay = '';
+    // Формируем название услуги
+    let serviceDisplay = b.service_name;
     if (b.category_name) {
-        serviceDisplay = '<div class="service-category small text-muted">' + escapeHtml(b.category_name) + '</div>' +
-                         '<div class="service-name">' + escapeHtml(b.service_name) + '</div>';
-    } else {
-        serviceDisplay = '<div class="service-name">' + escapeHtml(b.service_name) + '</div>';
+        serviceDisplay = b.category_name + ': ' + b.service_name;
     }
     
-    // Добавляем data-label для мобильной версии
     return '<tr class="' + rowClass + '">' +
         '<td data-label="Дата">' + escapeHtml(b.date) + '</td>' +
         '<td data-label="Время">' + escapeHtml(b.time) + '</td>' +
         '<td data-label="Клиент">' + escapeHtml(b.client_name) + '</td>' +
-        '<td data-label="Услуга">' + serviceDisplay + '</td>' +
-        '<td data-label="Телефон">' +
-            '<button class="btn btn-sm btn-outline-info" onclick="showBookingDetails(' + b.id + ')">' +
-                '<i class="fas fa-info-circle"></i> Подробности' +
-            '</button>' +
+        '<td data-label="Услуга">' + escapeHtml(serviceDisplay) + '</td>' +
+        '<td class="actions-cell">' +
+            '<div class="action-icons">' +
+                '<button class="btn btn-sm btn-outline-info" onclick="showBookingDetails(' + b.id + ')" title="Подробности">' +
+                    '<i class="fas fa-info-circle"></i>' +
+                '</button>' +
+                '<button class="btn btn-sm btn-outline-primary" onclick="editBookingInModal(' + b.id + ')" title="Редактировать">' +
+                    '<i class="fas fa-edit"></i>' +
+                '</button>' +
+                '<button class="btn btn-sm btn-outline-danger" onclick="deleteBooking(' + b.id + ', \'' + escapeHtml(b.client_name) + '\', \'' + b.time + '\')" title="Удалить">' +
+                    '<i class="fas fa-trash"></i>' +
+                '</button>' +
+            '</div>' +
+            '<div class="status-badge">' + statusBadge + '</div>' +
         '</td>' +
-        '<td data-label="Действия">' +
-            '<button class="btn btn-sm btn-outline-primary" onclick="editBookingInModal(' + b.id + ')" title="Редактировать">' +
-                '<i class="fas fa-edit"></i>' +
-            '</button> ' +
-            '<button class="btn btn-sm btn-outline-danger" onclick="deleteBooking(' + b.id + ', \'' + escapeHtml(b.client_name) + '\', \'' + b.time + '\')" title="Удалить">' +
-                '<i class="fas fa-trash"></i>' +
-            '</button>' +
-        '</td>' +
-        '<td data-label="Статус">' + statusBadge + '</td>' +
         '</tr>';
 }
 
