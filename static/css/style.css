@@ -745,6 +745,15 @@ body {
         z-index: 1000;
         box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
     }
+
+        .mobile-bottom-nav {
+        z-index: 1060 !important;
+    }
+    
+    /* Модальные окна получают нижний отступ */
+    .modal.show {
+        padding-bottom: 70px !important;
+    }
     
     .mobile-bottom-nav a {
         display: flex;
@@ -806,6 +815,9 @@ body {
 
 /* ============================================================ */
 /* ========== ДАШБОРД (СТИЛИ ДЛЯ ДЕСКТОПА И МОБАЙЛА) ========== */
+/* ============================================================ */
+/* ============================================================ */
+/* ========== ДАШБОРД (ДЕСКТОПНАЯ ВЕРСИЯ) ========== */
 /* ============================================================ */
 
 /* Статистика */
@@ -990,21 +1002,24 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     display: block !important;
 }
 
+/* Ближайшие записи - десктоп */
 .card-footer {
     border-top: none !important;
     padding-top: 0 !important;
     padding-bottom: 20px !important;
-}
-
-/* Десктоп */
-.card-footer {
+    flex-direction: row !important;
     justify-content: space-between !important;
+    align-items: center !important;
 }
 
-.flex-grow-1 {
-    flex-grow: 1 !important;
+#load-more-bookings {
+    width: auto !important;
+    display: inline-block !important;
 }
 
+.card-footer .d-flex {
+    justify-content: flex-end !important;
+}
 
 /* Стили для ячейки действий в десктопе */
 #upcoming-bookings-table .actions-cell {
@@ -1017,33 +1032,34 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     align-items: center;
 }
 
-/* Статус — последняя ячейка */
-#upcoming-bookings-table td:last-child {
-    margin-top: 8px !important;
-    padding-top: 8px !important;
-    border-top: 1px solid var(--gray-200) !important;
-    justify-content: space-between !important;
+/* Статистика - десктоп */
+.stats-container .row {
+    display: flex;
+    flex-wrap: wrap;
 }
 
-#upcoming-bookings-table td:last-child .badge {
-    margin-left: auto !important;
+.stats-container .col-4 {
+    flex: 0 0 33.333%;
+    max-width: 33.333%;
+    padding: 0 12px;
 }
 
-/* Для десктопа показываем иконки, но можно добавить подписи */
-@media (min-width: 769px) {
-    .action-icons {
-        gap: 10px;
-    }
-    
-    #upcoming-bookings-table .btn-sm {
-        padding: 4px 8px;
-    }
+/* Ссылка на страницу записи */
+.public-link-mobile {
+    display: none;
 }
 
+.public-link-desktop {
+    display: block;
+    width: 60%;
+}
+
+/* ============================================================ */
+/* ========== ДАШБОРД (МОБИЛЬНАЯ ВЕРСИЯ) ========== */
+/* ============================================================ */
 
 @media (max-width: 768px) {
-    
-
+    /* Кнопка добавления записи */
     .add-booking-btn {
         padding: 8px 10px !important;
         font-size: 12px !important;
@@ -1057,19 +1073,8 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         margin-right: 4px !important;
     }
     
-    /* Статистика - карточки в ряд по горизонтали на мобильных */
-    .stats-container .row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-    }
-    
-    .stats-container .col-md-4 {
-        flex: 1;
-        min-width: calc(33.333% - 8px);
-    }
-
-        #upcoming-bookings-table,
+    /* Ближайшие записи - карточки */
+    #upcoming-bookings-table,
     #upcoming-bookings-table tbody,
     #upcoming-bookings-table tr,
     #upcoming-bookings-table td {
@@ -1127,7 +1132,6 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         margin-bottom: 10px !important;
     }
     
-    
     /* Ячейка с действиями - иконки и статус */
     #upcoming-bookings-table td:last-child {
         display: flex !important;
@@ -1164,29 +1168,14 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         display: none !important;
     }
     
-    /* Статус */
+    /* Статус badge */
     .badge {
         font-size: 0.7rem !important;
         padding: 4px 10px !important;
     }
     
-    .dashboard-stat {
-        padding: 12px;
-    }
-    
-    .dashboard-stat i {
-        font-size: 1.8rem;
-    }
-    
-    .dashboard-stat h3 {
-        font-size: 1.4rem;
-    }
-    
-    .dashboard-stat p {
-        font-size: 0.75rem;
-    }
-
-        .card-footer {
+    /* Футер карточки записей */
+    .card-footer {
         flex-direction: column !important;
         gap: 12px !important;
         align-items: stretch !important;
@@ -1203,7 +1192,216 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     .card-footer .d-flex {
         justify-content: center !important;
     }
+    
+    /* Статистика - мобильная */
+    .stats-container .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0;
+    }
+    
+    .stats-container .col-4 {
+        flex: 0 0 33.333%;
+        max-width: 33.333%;
+        padding: 0 4px;
+    }
+    
+    .dashboard-stat {
+        padding: 12px 4px;
+    }
+    
+    .dashboard-stat i {
+        font-size: 25px;
+        margin-bottom: 4px;
+    }
+    
+    .dashboard-stat h3 {
+        font-size: 1.2rem;
+        margin-bottom: 2px;
+    }
+    
+    .dashboard-stat p {
+        font-size: 0.65rem;
+    }
+
+    .public-link-desktop {
+        display: none !important;
+    }
+    
+    .public-link-mobile {
+        display: block !important;
+    }
+    
+    .public-link-mobile input {
+        font-size: 12px;
+        padding: 10px;
+    }
+    
+    .public-link-mobile .btn {
+        background: transparent !important;
+        border: 1px solid var(--primary) !important;
+        color: var(--primary) !important;
+        border-radius: 30px !important;
+        padding: 8px 16px !important;
+        font-size: 0.85rem !important;
+        font-weight: 500 !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    .public-link-mobile .btn:hover,
+    .public-link-mobile .btn:active {
+        background: var(--primary-gradient) !important;
+        border-color: transparent !important;
+        color: white !important;
+    }
+
+    /* ===== МОДАЛЬНОЕ ОКНО КАЛЕНДАРЯ (dayModal) ===== */
+    
+    /* Окно на всю ширину */
+        /* Окно на всю ширину */
+    #dayModal .modal-dialog {
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+    }
+    
+    #dayModal .modal-content {
+        height: 100% !important;
+        border-radius: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    #dayModal .modal-body {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        padding: 16px !important;
+    }
+    
+    /* Все кнопки в модальном окне — одинаковые, компактные */
+    #dayModal .btn,
+    #dayModal .btn-outline-primary,
+    #dayModal .btn-outline-danger,
+    #dayModal .btn-outline-success,
+    #dayModal .btn-primary {
+        width: 100% !important;
+        padding: 10px 12px !important;
+        font-size: 0.85rem !important;
+        border-radius: 30px !important;
+        margin-bottom: 8px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 8px !important;
+    }
+    
+    /* Убираем последний margin у последней кнопки */
+    #dayModal .btn:last-child {
+        margin-bottom: 0 !important;
+    }
+    
+    /* Группы кнопок */
+    #dayModal .d-grid {
+        gap: 8px !important;
+    }
+    
+    /* Кнопка "Добавить запись" */
+    #addBookingButtonContainer .btn {
+        background: var(--primary-gradient) !important;
+        color: white !important;
+        border: none !important;
+    }
+    
+    /* Кнопка "Сделать выходным" */
+    #workingDayActions .btn-outline-danger {
+        border: 1px solid var(--danger) !important;
+        color: var(--danger) !important;
+        background: transparent !important;
+    }
+    
+    #workingDayActions .btn-outline-danger:hover {
+        background: var(--danger) !important;
+        color: white !important;
+    }
+    
+    /* Кнопка "Сделать рабочим днём" */
+    #dayOffActions .btn-outline-success {
+        border: 1px solid var(--success) !important;
+        color: var(--success) !important;
+        background: transparent !important;
+    }
+    
+    #dayOffActions .btn-outline-success:hover {
+        background: var(--success) !important;
+        color: white !important;
+    }
+    
+    /* Таблица записей в карточки */
+    #dayBookingsContainer .table-responsive {
+        overflow-x: visible !important;
+    }
+    
+    #dayBookingsContainer table,
+    #dayBookingsContainer thead,
+    #dayBookingsContainer tbody,
+    #dayBookingsContainer tr,
+    #dayBookingsContainer td,
+    #dayBookingsContainer th {
+        display: block !important;
+    }
+    
+    #dayBookingsContainer thead {
+        display: none !important;
+    }
+    
+    #dayBookingsContainer tr {
+        background: white;
+        border-radius: 16px !important;
+        margin-bottom: 12px !important;
+        padding: 12px !important;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border: 1px solid var(--gray-200);
+    }
+    
+    #dayBookingsContainer td {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 6px 0 !important;
+        border: none !important;
+        font-size: 0.85rem !important;
+    }
+    
+    #dayBookingsContainer td:before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: var(--gray-600);
+        margin-right: 12px;
+        min-width: 70px;
+    }
+    
+    /* Кнопки в таблице записей дня */
+    #dayBookingsContainer .btn-sm {
+        width: auto !important;
+        display: inline-flex !important;
+        padding: 4px 10px !important;
+        font-size: 0.7rem !important;
+        margin: 0 2px !important;
+    }
+    
+    #dayBookingsContainer .btn-sm i {
+        font-size: 0.7rem !important;
+        margin-right: 4px !important;
+    }
+
+    
 }
+
+
+
 
 /* ============================================================ */
 /* ========== МОДАЛЬНЫЕ ОКНА (ОБЩИЕ СТИЛИ) ========== */
@@ -1292,11 +1490,11 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-.dashboard-stat i {
+/* .dashboard-stat i {
     font-size: 2.5rem;
     color: var(--primary);
     margin-bottom: 10px;
-}
+} */
 
 .dashboard-stat h3 {
     font-size: 2rem;

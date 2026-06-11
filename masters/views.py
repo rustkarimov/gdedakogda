@@ -45,7 +45,6 @@ def get_month_ru(date_obj):
 def home(request):
     return render(request, 'masters/public/index.html')
 
-# Личный кабинет
 @login_required
 def dashboard(request):
     try:
@@ -61,13 +60,70 @@ def dashboard(request):
     
     total_services = Service.objects.filter(master=master).count()
     
+    # Добавляем количество уникальных клиентов
+    from cryptography.fernet import Fernet, InvalidToken
+    import re
+    key = master.get_encryption_key()
+    
+    unique_phones = set()
+    bookings = Booking.objects.filter(master=master, status='confirmed')
+    
+    for booking in bookings:
+        phone = ''
+        if key:
+            try:
+                f = Fernet(key)
+                decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
+                phone = decrypted
+            except (InvalidToken, Exception):
+                try:
+                    phone = booking.encrypted_phone.decode('utf-8')
+                except:
+                    phone = str(booking.encrypted_phone)
+        else:
+            try:
+                phone = booking.encrypted_phone.decode('utf-8')
+            except:
+                phone = str(booking.encrypted_phone)
+        
+        phone_cleaned = re.sub(r'\D', '', phone)
+        if phone_cleaned:
+            unique_phones.add(phone_cleaned)
+    
+    total_clients = len(unique_phones)
+    
     context = {
         'master': master,
         'total_bookings': total_bookings,
         'upcoming_bookings': upcoming_bookings,
         'total_services': total_services,
+        'total_clients': total_clients,
     }
     return render(request, 'masters/dashboard.html', context)
+    
+# # Личный кабинет
+# @login_required
+# def dashboard(request):
+#     try:
+#         master = request.user.master
+#     except Master.DoesNotExist:
+#         master = Master.objects.create(user=request.user)
+    
+#     total_bookings = Booking.objects.filter(master=master).count()
+#     upcoming_bookings = Booking.objects.filter(
+#         master=master, 
+#         status='confirmed'
+#     ).order_by('date', 'time')[:5]
+    
+#     total_services = Service.objects.filter(master=master).count()
+    
+#     context = {
+#         'master': master,
+#         'total_bookings': total_bookings,
+#         'upcoming_bookings': upcoming_bookings,
+#         'total_services': total_services,
+#     }
+#     return render(request, 'masters/dashboard.html', context)
 
 @login_required
 def get_calendar_schedule(request):

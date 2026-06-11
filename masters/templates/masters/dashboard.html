@@ -59,44 +59,60 @@
 
 
 <!-- Статистика -->
+<!-- Статистика -->
 <div class="stats-container mb-4">
-    <div class="row">
-        <div class="col-md-4 mb-3">
+    <div class="row g-3">
+        <div class="col-4">
             <div class="dashboard-stat">
                 <i class="fas fa-calendar-check"></i>
                 <h3>{{ total_bookings }}</h3>
-                <p>Всего записей</p>
+                <p>Записей</p>
             </div>
         </div>
-        <div class="col-md-4 mb-3">
+        <div class="col-4">
             <div class="dashboard-stat">
                 <i class="fas fa-cut"></i>
                 <h3>{{ total_services }}</h3>
                 <p>Услуг</p>
             </div>
         </div>
-        <div class="col-md-4 mb-3">
+        <div class="col-4">
             <div class="dashboard-stat">
-                <i class="fas fa-link"></i>
-                <h3><i class="fas fa-copy copy-link" style="cursor: pointer;" onclick="copyPublicLink()"></i></h3>
-                <p>Ваша ссылка</p>
+                <i class="fas fa-users"></i>
+                <h3>{{ total_clients }}</h3>
+                <p>Клиентов</p>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Ваша страница для записи -->
+<!-- Ваша страница для записи -->
 <div class="card mb-4">
     <div class="card-body">
         <h5><i class="fas fa-share-alt me-2" style="color: var(--primary);"></i>Ваша страница для записи</h5>
-        <div class="input-group">
-            <input type="text" class="form-control" id="publicLink" 
+        
+        <!-- Десктопная версия: строка + кнопка в одной строке -->
+        <div class="public-link-desktop">
+            <div class="input-group">
+                <input type="text" class="form-control" id="publicLink" 
+                    value="{{ request.scheme }}://{{ request.get_host }}/{{ master.public_slug }}/" readonly>
+                <button class="btn btn-primary" type="button" onclick="copyPublicLink()">
+                    <i class="fas fa-copy"></i> Копировать
+                </button>
+            </div>
+        </div>
+        
+        <!-- Мобильная версия: строка сверху, кнопка снизу -->
+        <div class="public-link-mobile">
+            <input type="text" class="form-control mb-2" id="publicLinkMobile" 
                 value="{{ request.scheme }}://{{ request.get_host }}/{{ master.public_slug }}/" readonly>
-            <button class="btn btn-primary" type="button" onclick="copyPublicLink()">
-                <i class="fas fa-copy"></i> Копировать
+            <button class="btn btn-primary w-100" type="button" onclick="copyPublicLinkMobile()">
+                <i class="fas fa-copy me-2"></i> Копировать ссылку
             </button>
         </div>
-        <small class="text-muted">Отправьте эту ссылку клиентам, и они смогут записаться к вам</small>
+        
+        <small class="text-muted d-block mt-2">Отправьте эту ссылку клиентам, и они смогут записаться к вам</small>
     </div>
 </div>
 
@@ -491,6 +507,14 @@ function copyPublicLink() {
     showAlert('Ссылка скопирована!', 'Готово');
 }
 
+function copyPublicLinkMobile() {
+    const t = document.getElementById("publicLinkMobile");
+    t.select();
+    t.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(t.value);
+    showAlert('Ссылка скопирована!', 'Готово');
+}
+
 // ============================================================
 // КАЛЕНДАРЬ
 // ============================================================
@@ -661,16 +685,16 @@ function renderDayBookings(bookings) {
     html += '<thead><tr><th>Время</th><th>Клиент</th><th>Услуга</th><th>Телефон</th><th>Действия</th></tr></thead><tbody>';
     bookings.forEach(b => {
         html += `<tr>
-                    <td>${b.time}</td>
-                    <td>${escapeHtml(b.client_name)}</td>
-                    <td>${escapeHtml(b.service_name)}</td>
-                    <td>${b.phone || '—'}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-pink" onclick="editBookingInModal(${b.id})" title="Редактировать">
-                            <i class="fas fa-edit"></i>
+                    <td data-label="Время">${b.time}</td>
+                    <td data-label="Клиент">${escapeHtml(b.client_name)}</td>
+                    <td data-label="Услуга">${escapeHtml(b.service_name)}</td>
+                    <td data-label="Телефон">${b.phone || '—'}</td>
+                    <td data-label="Действия">
+                        <button class="btn btn-sm btn-outline-primary" onclick="editBookingInModal(${b.id})" title="Редактировать">
+                            <i class="fas fa-edit"></i> Редактировать
                         </button>
                         <button class="btn btn-sm btn-outline-danger" onclick="deleteBooking(${b.id}, '${escapeHtml(b.client_name)}', '${b.time}')" title="Удалить">
-                            <i class="fas fa-trash"></i>
+                            <i class="fas fa-trash"></i> Удалить
                         </button>
                     </td>
                 </tr>`;
