@@ -4,12 +4,12 @@
 
 {% block content %}
 <!-- Кнопка добавления записи -->
-<div class="mb-4 text-end">
+<!-- <div class="mb-4 text-end">
     <a href="{% url 'add_manual_booking' %}" class="btn btn-primary add-booking-btn">
         <i class="fas fa-pen-alt me-1"></i>
         <span>Добавить запись</span>
     </a>
-</div>
+</div> -->
 
 <!-- Ближайшие записи -->
 <div class="card mb-4">
@@ -1839,12 +1839,21 @@ function loadBookings(p = 1, append = false) {
                 renderBookings(d.bookings);
                 document.getElementById('total-bookings-count').textContent = d.total;
             }
-            bookingsHasMore = d.has_more;
+            
+            const total = d.total;
+            const currentLimit = getBookingsLimit();
+            const currentPageCount = d.bookings.length;
+            
+            const hasMore = total > currentLimit && currentPageCount === currentLimit;
+            
+            bookingsHasMore = hasMore;
             bookingsPage = p;
-            bookingsCurrentLimit = limit;
+            bookingsCurrentLimit = currentLimit;
             
             const btn = document.getElementById('load-more-bookings');
-            btn.style.display = (bookingsHasMore && d.bookings.length > 0) ? 'inline-block' : 'none';
+            if (btn) {
+                btn.style.display = hasMore ? 'inline-block' : 'none';
+            }
         })
         .catch(error => {
             console.error('Ошибка загрузки записей:', error);
@@ -1995,11 +2004,14 @@ function parseDateFromDisplay(dateDisplay) {
 }
 
 function loadMoreBookings() { 
-    if (bookingsHasMore) loadBookings(bookingsPage + 1, true); 
+    if (bookingsHasMore) {
+        loadBookings(bookingsPage + 1, true);
+    }
 }
 
 // Обновляем записи при изменении лимита
 document.getElementById('bookings-limit-select')?.addEventListener('change', function() {
+    localStorage.setItem('bookingsLimit', this.value);
     bookingsPage = 1;
     loadBookings(1, false);
 });
@@ -2185,10 +2197,19 @@ function escapeHtml(str) {
 // ИНИЦИАЛИЗАЦИЯ
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Восстанавливаем сохранённый лимит
+    const savedLimit = localStorage.getItem('bookingsLimit');
+    if (savedLimit) {
+        const select = document.getElementById('bookings-limit-select');
+        if (select) {
+            select.value = savedLimit;
+        }
+    }
+    
     loadCalendar();
     loadBookings(1, false);
     initPhoneMasks();
-    startAutoRefresh();  // ← ДОБАВИТЬ ЭТУ СТРОКУ
+    startAutoRefresh();
 });
 
 // Останавливаем обновление при уходе со страницы (опционально)

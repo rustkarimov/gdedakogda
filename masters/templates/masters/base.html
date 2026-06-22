@@ -54,59 +54,86 @@
         <main class="main-content">
             <!-- Шапка с градиентом -->
             <header class="top-bar">
-                <div class="top-bar-left">
-                    <button class="sidebar-toggle" id="sidebarToggle">
-                        <i class="fas fa-bars"></i>
-                    </button>
-                    <div class="logo">
-                        <a href="{% url 'dashboard' %}">
-                            <img src="{% static 'images/logo.png' %}" alt="ДАТЫ" height="40">
-                        </a>
+    <!-- Левая часть -->
+    <div class="top-bar-left">
+        <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <!-- Мобильный аватар (виден только на мобильных) -->
+        <div class="user-menu mobile-avatar">
+            <div class="user-avatar" data-bs-toggle="dropdown">
+                {% if request.user.master.avatar %}
+                    <img src="{{ request.user.master.avatar.url }}" alt="Avatar">
+                {% else %}
+                    <div class="avatar-placeholder">
+                        {{ request.user.master.first_name|first|default:request.user.phone|first|upper }}
                     </div>
-                </div>
+                {% endif %}
+                <span class="user-name">{{ request.user.master.first_name|default:request.user.phone }}</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <ul class="dropdown-menu dropdown-menu-start">
+                <li><a class="dropdown-item" href="{% url 'profile' %}">Профиль</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">Выйти</a></li>
+            </ul>
+        </div>
+        
+        <div class="logo">
+            <a href="{% url 'dashboard' %}">
+                <img src="{% static 'images/logo.png' %}" alt="ДАТЫ" height="40">
+            </a>
+        </div>
+    </div>
 
-                <div class="top-bar-right">
-                    <!-- Колокольчик (уведомления) -->
-                    <div class="notification-bell" onclick="toggleNotifications()" style="position: relative; cursor: pointer">
-                        <i class="fas fa-bell" style="color: white; font-size: 1.3rem;"></i>
-                        <span class="notification-dot" id="notification-dot"></span>
+    <!-- Правая часть -->
+    <div class="top-bar-right">
+        <!-- Кошелёк (только десктоп) -->
+        <div class="wallet desktop-only">
+            <i class="fas fa-wallet"></i>
+            <span>0 ₽</span>
+        </div>
+
+        <!-- Колокольчик (уведомления) -->
+        <div class="notification-bell" onclick="toggleNotifications()" style="position: relative; cursor: pointer">
+            <i class="fas fa-bell" style="color: white; font-size: 1.3rem;"></i>
+            <span class="notification-dot" id="notification-dot"></span>
+        </div>
+
+        <!-- Поддержка -->
+        <a href="#" class="support-link" onclick="openSupportChat(); return false;">
+            <i class="fas fa-comment-dots"></i>
+            <span>Поддержка</span>
+        </a>
+
+        <!-- Кнопка "Добавить запись" -->
+        <a href="{% url 'add_manual_booking' %}" class="add-booking-header-btn">
+            <i class="fas fa-plus"></i>
+            <span>Добавить запись</span>
+        </a>
+
+        <!-- Десктопный аватар (скрыт на мобильных) -->
+        <div class="user-menu desktop-avatar">
+            <div class="user-avatar" data-bs-toggle="dropdown">
+                {% if request.user.master.avatar %}
+                    <img src="{{ request.user.master.avatar.url }}" alt="Avatar">
+                {% else %}
+                    <div class="avatar-placeholder">
+                        {{ request.user.master.first_name|first|default:request.user.phone|first|upper }}
                     </div>
-
-                    <!-- Кошелёк -->
-                    <div class="wallet">
-                        <i class="fas fa-wallet"></i>
-                        <span>0 ₽</span>
-                    </div>
-
-                    
-
-                    <!-- Поддержка -->
-                    <a href="#" class="support-link" onclick="openSupportChat(); return false;">
-                        <i class="fas fa-comment-dots"></i>
-                        <span>Поддержка</span>
-                    </a>
-
-                    <!-- Аватарка с меню -->
-                    <div class="user-menu dropdown">
-                        <div class="user-avatar" data-bs-toggle="dropdown">
-                            {% if request.user.master.avatar %}
-                                <img src="{{ request.user.master.avatar.url }}" alt="Avatar">
-                            {% else %}
-                                <div class="avatar-placeholder">
-                                    {{ request.user.master.first_name|first|default:request.user.phone|first|upper }}
-                                </div>
-                            {% endif %}
-                            <span class="user-name">{{ request.user.master.first_name|default:request.user.phone }}</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{% url 'profile' %}">Профиль</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">Выйти</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </header>
+                {% endif %}
+                <span class="user-name">{{ request.user.master.first_name|default:request.user.phone }}</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="{% url 'profile' %}">Профиль</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="{% url 'logout' %}">Выйти</a></li>
+            </ul>
+        </div>
+    </div>
+</header>
 
             <!-- Контент -->
             <div class="content-wrapper">

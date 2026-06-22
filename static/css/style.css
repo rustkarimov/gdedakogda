@@ -221,6 +221,10 @@ body {
 /* ========== ШАПКА С ГРАДИЕНТОМ ========== */
 /* ============================================================ */
 
+/* ============================================================ */
+/* ========== ШАПКА С ГРАДИЕНТОМ ========== */
+/* ============================================================ */
+
 .main-content {
     flex: 1;
     display: flex;
@@ -252,8 +256,18 @@ body {
     gap: 20px;
 }
 
+.top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+/* ============================================================ */
+/* ========== БУРГЕР ========== */
+/* ============================================================ */
+
 .sidebar-toggle {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(160, 3, 3, 0.2);
     border: none;
     font-size: 1.25rem;
     color: white;
@@ -261,12 +275,16 @@ body {
     padding: 8px 12px;
     border-radius: 12px;
     transition: all 0.2s;
-    display: none;
+    display: none !important; /* Скрыт по умолчанию (десктоп) */
 }
 
 .sidebar-toggle:hover {
     background: rgba(255, 255, 255, 0.3);
 }
+
+/* ============================================================ */
+/* ========== ЛОГОТИП ========== */
+/* ============================================================ */
 
 .logo {
     display: flex;
@@ -281,11 +299,18 @@ body {
     font-size: 1.4rem;
 }
 
-.top-bar-right {
-    display: flex;
-    align-items: center;
-    gap: 20px;
+.logo a {
+    color: white;
+    text-decoration: none;
 }
+
+.logo a:hover {
+    color: white;
+}
+
+/* ============================================================ */
+/* ========== ПРАВАЯ ЧАСТЬ ========== */
+/* ============================================================ */
 
 .notification-bell {
     display: flex;
@@ -326,6 +351,10 @@ body {
 .support-link:hover {
     background: rgba(255, 255, 255, 0.25);
     color: white;
+}
+
+.support-link span {
+    display: inline;
 }
 
 .wallet {
@@ -389,92 +418,199 @@ body {
     color: rgba(255, 255, 255, 0.8);
 }
 
-.dropdown-menu {
-    border-radius: 16px;
-    border: none;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    padding: 8px;
-}
+.mobile-avatar {
+        display: none;
+    }
 
-.dropdown-item {
-    border-radius: 12px;
+.add-booking-header-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 30px;
+    color: white;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
 }
 
-.dropdown-item:hover {
-    background-color: var(--gray-100);
+.add-booking-header-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+    text-decoration: none;
 }
+
+.add-booking-header-btn i {
+    font-size: 0.9rem;
+}
+
+/* ============================================================ */
+/* ========== МОБИЛЬНАЯ ШАПКА (до 768px) ========== */
+/* ============================================================ */
 
 @media (max-width: 768px) {
     .top-bar {
         background: transparent !important;
         box-shadow: none !important;
         margin: 0 !important;
-        padding: 8px 10px !important;
+        padding: 10px 16px !important;
+        border-radius: 0 !important;
+        top: 0 !important;
+        border-bottom: none !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        position: relative !important;
     }
-    
-    /* Контейнер для правых иконок */
-    .top-bar-right {
+
+    /* Скрываем бургер */
+    .sidebar-toggle {
+        display: none !important;
+    }
+
+    /* Левая часть: аватар */
+    .top-bar-left {
+        display: flex !important;
+        align-items: center !important;
         gap: 8px !important;
+        flex: 0 0 auto !important;
+        order: 0 !important;
+        z-index: 1 !important;
+    }
+
+    /* Мобильный аватар показываем, десктопный скрываем */
+    .mobile-avatar {
+        display: flex !important;
+        align-items: center !important;
     }
     
-    /* Стили для иконок в овалах */
-    .wallet,
-    .support-link {
-        background: rgba(124, 58, 237, 0.15) !important;
-        border-radius: 30px !important;
-        padding: 5px 12px !important;
+    .desktop-avatar {
+        display: none !important;
+    }
+
+    .top-bar-left .user-avatar {
+        background: transparent !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        gap: 4px !important;
+    }
+
+    .top-bar-left .user-name {
+        display: none !important;
+    }
+
+    .top-bar-left .user-avatar i {
+        color: var(--gray-400) !important;
+        font-size: 0.65rem !important;
+        display: inline-block !important;
+    }
+
+    .top-bar-left .avatar-placeholder {
+        background: var(--primary-gradient) !important;
+        color: white !important;
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 0.85rem !important;
+        border-radius: 50% !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        transition: all 0.2s ease;
     }
-    
-    .wallet i,
-    .support-link i {
-        color: var(--primary) !important;
-        font-size: 1.1rem !important;
+
+    .top-bar-left .user-avatar img {
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 50% !important;
+        object-fit: cover !important;
     }
-    
-    .support-link span {
-        display: none !important; /* скрываем текст */
+
+    /* Логотип — абсолютно по центру */
+    .logo {
+        position: absolute !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        color: var(--gray-800) !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        z-index: 0 !important;
     }
-    
-    /* Аватар в овале */
-    .user-avatar {
-        background: rgba(124, 58, 237, 0.15) !important;
-        border-radius: 30px !important;
-        padding: 4px 10px 4px 6px !important;
-        gap: 6px !important;
-    }
-    
-    .avatar-placeholder {
-        background: var(--primary) !important;
-        color: white !important;
-        width: 28px !important;
-        height: 28px !important;
-        font-size: 0.8rem !important;
-    }
-    
-    .user-name {
-        display: none !important; /* скрываем имя */
-    }
-    
-    .user-avatar i {
-        color: var(--primary) !important;
-        font-size: 0.7rem !important;
-    }
-    
-    /* Колокольчик (уведомления) - скрыт на мобильных, так как есть в нижнем меню */
-    .notification-bell {
-        display: none !important;
-    }
-    
-    /* Логотип оставляем как есть, но можно сделать меньше */
     .logo img {
         height: 32px !important;
     }
+    .logo a {
+        color: var(--gray-800) !important;
+    }
 
+    /* Правая часть */
+    .top-bar-right {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        flex: 0 0 auto !important;
+        order: 2 !important;
+        z-index: 1 !important;
+    }
+
+    /* Скрываем кошелёк на мобильных */
+    .top-bar-right .wallet {
+        display: none !important;
+    }
+
+    /* Убираем фон с иконок */
+    .top-bar-right .support-link {
+        background: transparent !important;
+        padding: 4px 6px !important;
+        border-radius: 0 !important;
+        color: var(--gray-600) !important;
+    }
+
+    .top-bar-right .support-link i {
+        color: var(--gray-600) !important;
+        font-size: 1.2rem !important;
+    }
+
+    .top-bar-right .support-link span {
+        display: none !important;
+    }
+
+    /* Кнопка "Добавить запись" на мобильных — только иконка */
+    .add-booking-header-btn {
+        background: transparent !important;
+        padding: 4px 6px !important;
+        border-radius: 0 !important;
+        color: var(--gray-600) !important;
+        font-size: 0 !important;
+    }
+
+    .add-booking-header-btn i {
+        font-size: 1.4rem !important;
+        color: var(--gray-600) !important;
+    }
+
+    .add-booking-header-btn span {
+        display: none !important;
+    }
+
+    .add-booking-header-btn:hover {
+        background: transparent !important;
+        color: var(--gray-600) !important;
+    }
+
+    /* Колокольчик скрыт на мобильных (есть в нижнем меню) */
+    .notification-bell {
+        display: none !important;
+    }
+
+    /* Убираем градиентный фон */
+    .top-bar .logo a,
+    .top-bar .logo span {
+        color: var(--gray-800) !important;
+    }
 }
 
 
@@ -1014,7 +1150,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
 #load-more-bookings {
     width: auto !important;
-    display: inline-block !important;
+    /* display: inline-block !important; */
 }
 
 .card-footer .d-flex {
@@ -1614,16 +1750,6 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     }
 }
 
-/* Десктопные уточнения */
-@media (min-width: 769px) {
-    .mobile-bottom-nav {
-        display: none;
-    }
-    
-    .sidebar-toggle {
-        display: block !important;
-    }
-}
 
 /* ============================================================ */
 /* ========== ПУБЛИЧНАЯ ГЛАВНАЯ (ЛЕНДИНГ) ========== */
