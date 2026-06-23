@@ -1776,6 +1776,59 @@ function saveEditedBooking() {
     });
 }
 
+function deleteGroupedBooking(bookingIds, clientName, time) {
+    const ids = Array.isArray(bookingIds) ? bookingIds : JSON.parse(bookingIds);
+    const count = ids.length;
+    const message = count > 1 
+        ? `Удалить ${count} записи клиента "${clientName}" на ${time}?`
+        : `Удалить запись клиента "${clientName}" на ${time}?`;
+    
+    showConfirm(message, (confirmed) => {
+        if (confirmed) {
+            let deleted = 0;
+            let errors = 0;
+            
+            ids.forEach(id => {
+                fetch(`/api/booking/${id}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        deleted++;
+                    } else {
+                        errors++;
+                    }
+                    
+                    // Если все обработаны
+                    if (deleted + errors === ids.length) {
+                        if (errors === 0) {
+                            showToast(`✅ ${deleted} запись(ей) удалена`, 'success');
+                        } else {
+                            showToast(`⚠️ Удалено ${deleted}, ошибок ${errors}`, 'error');
+                        }
+                        loadCalendar();
+                        loadBookings(1, false);
+                        if (currentSelectedDate) {
+                            fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
+                                .then(r => r.json())
+                                .then(data => renderDayBookings(data.bookings));
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    errors++;
+                });
+            });
+        }
+    });
+}
+
 function deleteBooking(bookingId, clientName, time) {
     showConfirm(`Удалить запись клиента "${clientName}" на ${time}?`, (confirmed) => {
         if (confirmed) {
@@ -1823,6 +1876,107 @@ function getBookingsLimit() {
     return parseInt(document.getElementById('bookings-limit-select').value);
 }
 
+function deleteGroupedBooking(bookingIds, clientName, time) {
+    const ids = Array.isArray(bookingIds) ? bookingIds : JSON.parse(bookingIds);
+    const count = ids.length;
+    const message = count > 1 
+        ? `Удалить ${count} записи клиента "${clientName}" на ${time}?`
+        : `Удалить запись клиента "${clientName}" на ${time}?`;
+    
+    showConfirm(message, (confirmed) => {
+        if (confirmed) {
+            let deleted = 0;
+            let errors = 0;
+            
+            ids.forEach(id => {
+                fetch(`/api/booking/${id}/delete/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        deleted++;
+                    } else {
+                        errors++;
+                    }
+                    
+                    // Если все обработаны
+                    if (deleted + errors === ids.length) {
+                        if (errors === 0) {
+                            showToast(`✅ ${deleted} запись(ей) удалена`, 'success');
+                        } else {
+                            showToast(`⚠️ Удалено ${deleted}, ошибок ${errors}`, 'error');
+                        }
+                        loadCalendar();
+                        loadBookings(1, false);
+                        if (currentSelectedDate) {
+                            fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
+                                .then(r => r.json())
+                                .then(data => renderDayBookings(data.bookings));
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    errors++;
+                });
+            });
+        }
+    });
+}
+
+function groupBookingsByClientAndDate(bookings) {
+    const groups = {};
+    
+    bookings.forEach(booking => {
+        // Ключ: клиент + дата (без времени)
+        const key = `${booking.client_name}|${booking.date}`;
+        
+        if (!groups[key]) {
+            groups[key] = {
+                client_name: booking.client_name,
+                date: booking.date,
+                time: booking.time,
+                services: [],
+                services_full: [],
+                phone: booking.phone,
+                booking_ids: [],
+                category_name: booking.category_name || null
+            };
+        }
+        
+        // Сохраняем полное название услуги
+        let serviceFullName = booking.service_name;
+        if (booking.category_name) {
+            serviceFullName = `${booking.category_name}: ${booking.service_name}`;
+        }
+        
+        groups[key].services.push(booking.service_name);
+        groups[key].services_full.push(serviceFullName);
+        groups[key].booking_ids.push(booking.id);
+        
+        // Если время раньше — обновляем (для сортировки)
+        if (booking.time < groups[key].time) {
+            groups[key].time = booking.time;
+        }
+    });
+    
+    // Преобразуем в массив
+    return Object.values(groups).map(group => {
+        return {
+            ...group,
+            services_count: group.services.length,
+            services_list: group.services.join(', '),
+            services_full_list: group.services_full.join(', '),
+            first_booking_id: group.booking_ids[0]
+        };
+    });
+}
+
 function loadBookings(p = 1, append = false) {
     const limit = getBookingsLimit();
     
@@ -1830,11 +1984,25 @@ function loadBookings(p = 1, append = false) {
         .then(r => r.json())
         .then(d => {
             if (append) {
-                const t = document.querySelector('#upcoming-bookings-table tbody');
-                d.bookings.forEach(b => {
-                    const r = createBookingRow(b);
-                    t.insertAdjacentHTML('beforeend', r);
-                });
+                // Проверяем, существует ли таблица
+                const table = document.querySelector('#upcoming-bookings-table');
+                if (!table) {
+                    // Если таблицы нет — перерисовываем всё заново
+                    renderBookings(d.bookings);
+                    document.getElementById('total-bookings-count').textContent = d.total;
+                } else {
+                    const tbody = table.querySelector('tbody');
+                    if (tbody) {
+                        // Группируем новые записи
+                        const grouped = groupBookingsByClientAndDate(d.bookings);
+                        grouped.forEach(group => {
+                            const row = createGroupedBookingRow(group);
+                            tbody.insertAdjacentHTML('beforeend', row);
+                        });
+                    } else {
+                        renderBookings(d.bookings);
+                    }
+                }
             } else {
                 renderBookings(d.bookings);
                 document.getElementById('total-bookings-count').textContent = d.total;
@@ -1871,15 +2039,14 @@ function renderBookings(b) {
         return;
     }
     
-    // Сортируем записи по дате и времени (на всякий случай)
-    const sortedBookings = [...b].sort((a, b) => {
-        // Сначала сравниваем даты
+    // Группируем записи
+    const grouped = groupBookingsByClientAndDate(b);
+    
+    // Сортируем по дате и времени
+    grouped.sort((a, b) => {
         const dateA = parseDateFromDisplay(a.date);
         const dateB = parseDateFromDisplay(b.date);
-        if (dateA !== dateB) {
-            return dateA.localeCompare(dateB);
-        }
-        // Если даты одинаковые, сравниваем время
+        if (dateA !== dateB) return dateA.localeCompare(dateB);
         return a.time.localeCompare(b.time);
     });
     
@@ -1890,15 +2057,15 @@ function renderBookings(b) {
     h += '<th>Дата</th>';
     h += '<th>Время</th>';
     h += '<th>Клиент</th>';
-    h += '<th>Услуга</th>';
+    h += '<th>Услуги</th>';
     h += '<th>Действия</th>';
     h += '<th>Статус</th>';
     h += '</tr>';
     h += '</thead>';
     h += '<tbody>';
        
-    sortedBookings.forEach(bb => { 
-        h += createBookingRow(bb); 
+    grouped.forEach(group => { 
+        h += createGroupedBookingRow(group);
     });
     
     h += '</tbody>';
@@ -1908,17 +2075,17 @@ function renderBookings(b) {
     c.innerHTML = h;
 }
 
-function createBookingRow(b) {
+function createGroupedBookingRow(group) {
     const now = new Date();
     const today = now.toISOString().split('T')[0];
-    const bookingDate = b.date.includes('сегодня') ? today : parseDateFromDisplay(b.date);
+    const bookingDate = group.date.includes('сегодня') ? today : parseDateFromDisplay(group.date);
     
     let isPast = false;
     let isSoon = false;
     let isVerySoon = false;
     
     if (bookingDate === today) {
-        const [hours, minutes] = b.time.split(':');
+        const [hours, minutes] = group.time.split(':');
         const bookingTime = new Date();
         bookingTime.setHours(parseInt(hours), parseInt(minutes), 0);
         
@@ -1956,26 +2123,28 @@ function createBookingRow(b) {
         rowClass = 'booking-future';
     }
     
-    // Формируем название услуги
-    let serviceDisplay = b.service_name;
-    if (b.category_name) {
-        serviceDisplay = b.category_name + ': ' + b.service_name;
-    }
+    // Используем полные названия с категориями
+    const servicesDisplay = group.services_count > 1 
+        ? `${group.services_full_list} (${group.services_count} услуги)`
+        : group.services_full_list;
+    
+    // Формируем строку с ID для удаления
+    const idsJson = JSON.stringify(group.booking_ids).replace(/"/g, '&quot;');
     
     return '<tr class="' + rowClass + '">' +
-        '<td data-label="Дата">' + escapeHtml(b.date) + '</td>' +
-        '<td data-label="Время">' + escapeHtml(b.time) + '</td>' +
-        '<td data-label="Клиент">' + escapeHtml(b.client_name) + '</td>' +
-        '<td data-label="Услуга">' + escapeHtml(serviceDisplay) + '</td>' +
+        '<td data-label="Дата">' + escapeHtml(group.date) + '</td>' +
+        '<td data-label="Время">' + escapeHtml(group.time) + '</td>' +
+        '<td data-label="Клиент">' + escapeHtml(group.client_name) + '</td>' +
+        '<td data-label="Услуги">' + escapeHtml(servicesDisplay) + '</td>' +
         '<td class="actions-cell">' +
             '<div class="action-icons">' +
-                '<button class="btn btn-sm btn-outline-info" onclick="showBookingDetails(' + b.id + ')" title="Подробности">' +
+                '<button class="btn btn-sm btn-outline-info" onclick="showBookingDetails(' + group.first_booking_id + ')" title="Подробности">' +
                     '<i class="fas fa-info-circle"></i>' +
                 '</button>' +
-                '<button class="btn btn-sm btn-outline-primary" onclick="editBookingInModal(' + b.id + ')" title="Редактировать">' +
+                '<button class="btn btn-sm btn-outline-primary" onclick="editBookingInModal(' + group.first_booking_id + ')" title="Редактировать">' +
                     '<i class="fas fa-edit"></i>' +
                 '</button>' +
-                '<button class="btn btn-sm btn-outline-danger" onclick="deleteBooking(' + b.id + ', \'' + escapeHtml(b.client_name) + '\', \'' + b.time + '\')" title="Удалить">' +
+                '<button class="btn btn-sm btn-outline-danger" onclick="deleteGroupedBooking(\'' + idsJson + '\', \'' + escapeHtml(group.client_name) + '\', \'' + group.time + '\')" title="Удалить все">' +
                     '<i class="fas fa-trash"></i>' +
                 '</button>' +
             '</div>' +
