@@ -2115,10 +2115,14 @@ function createBookingRow(b) {
         allIds = JSON.stringify([b.id]).replace(/"/g, '&quot;');
     }
     
+    // Формируем строку с ID для кнопки редактирования
+    let bookingIdsJson = JSON.stringify(b.booking_ids || [b.id]).replace(/"/g, '&quot;');
+    let serviceNamesJson = JSON.stringify([b.service_name]).replace(/"/g, '&quot;');
+    
     const servicesCount = b.services_count || 1;
     const isGroup = servicesCount > 1;
     
-    // ТОЛЬКО ОДИН RETURN
+    // 👇 ВОТ ЗДЕСЬ МЕНЯЕМ КНОПКУ "Редактировать"
     return '<tr class="' + rowClass + '">' +
         '<td data-label="Дата">' + escapeHtml(b.date) + '</td>' +
         '<td data-label="Время">' + escapeHtml(b.time) + '</td>' +
@@ -2126,12 +2130,21 @@ function createBookingRow(b) {
         '<td data-label="Услуги">' + escapeHtml(b.service_name) + '</td>' +
         '<td class="actions-cell">' +
             '<div class="action-icons">' +
+                // Кнопка "Подробности" (i)
                 '<button class="btn btn-sm btn-outline-info" onclick="showBookingDetails(' + b.id + ')" title="Подробности">' +
                     '<i class="fas fa-info-circle"></i>' +
                 '</button>' +
-                '<button class="btn btn-sm btn-outline-primary" onclick="editBookingInModal(' + b.id + ')" title="Редактировать">' +
+                // 👇 НОВАЯ КНОПКА "Редактировать" с меню выбора услуги
+                '<button class="btn btn-sm btn-outline-primary edit-booking-btn" ' +
+                    'data-booking-id="' + b.id + '" ' +
+                    'data-booking-ids=\'' + bookingIdsJson + '\' ' +
+                    'data-client-name="' + escapeHtml(b.client_name) + '" ' +
+                    'data-service-names=\'' + serviceNamesJson + '\' ' +
+                    'onclick="showEditServicesMenu(this)" ' +
+                    'title="Редактировать">' +
                     '<i class="fas fa-edit"></i>' +
                 '</button>' +
+                // Кнопка "Удалить"
                 '<button class="btn btn-sm btn-outline-danger" onclick="deleteGroupedBooking(\'' + allIds + '\', \'' + escapeHtml(b.client_name) + '\', \'' + b.time + '\')" title="Удалить все">' +
                     '<i class="fas fa-trash"></i>' +
                 '</button>' +
@@ -2139,6 +2152,128 @@ function createBookingRow(b) {
             '<div class="status-badge">' + statusBadge + '</div>' +
         '</td>' +
         '</tr>';
+}
+
+// ============================================================
+// МЕНЮ ВЫБОРА УСЛУГИ ДЛЯ РЕДАКТИРОВАНИЯ
+// ============================================================
+
+function showEditServicesMenu(button) {
+    // Получаем данные из кнопки
+    const bookingIds = JSON.parse(button.dataset.bookingIds);
+    const clientName = button.dataset.clientName;
+    
+    // Если только одна услуга - сразу открываем редактирование
+    if (bookingIds.length === 1) {
+        editBookingInModal(bookingIds[0]);
+        return;
+    }
+    
+    // Создаем меню выбора
+    const menu = document.createElement('div');
+    menu.className = 'edit-services-menu';
+    menu.style.cssText = `
+        position: fixed;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        padding: 8px;
+        z-index: 10000;
+        min-width: 250px;
+        max-width: 350px;
+    `;
+    
+    // Добавляем заголовок
+    const header = document.createElement('div');
+    header.className = 'menu-header';
+    header.style.cssText = `
+        padding: 8px 12px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #374151;
+        border-bottom: 1px solid #f3f4f6;
+        margin-bottom: 4px;
+    `;
+    header.textContent = `Выберите услугу (${clientName})`;
+    menu.appendChild(header);
+    
+    // Получаем детали всех услуг в группе
+    fetch(`/api/booking/${bookingIds[0]}/services/`)
+        .then(response => response.json())
+        .then(data => {
+            if (!data.success) {
+                showAlert('Ошибка загрузки услуг', 'Ошибка');
+                return;
+            }
+            
+            // Добавляем пункты меню для каждой услуги
+            data.services.forEach((service, index) => {
+                const item = document.createElement('div');
+                item.className = 'menu-item';
+                item.style.cssText = `
+                    padding: 10px 12px;
+                    cursor: pointer;
+                    border-radius: 8px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    transition: background 0.15s;
+                    font-size: 0.9rem;
+                `;
+                
+                // При наведении
+                item.onmouseover = () => {
+                    item.style.background = '#f3f4f6';
+                };
+                item.onmouseout = () => {
+                    item.style.background = 'transparent';
+                };
+                
+                // При клике - открываем редактирование конкретной услуги
+                item.onclick = () => {
+                    menu.remove();
+                    editBookingInModal(bookingIds[index]);
+                };
+                
+                item.innerHTML = `
+                    <span>
+                        <i class="fas fa-cut me-2" style="color: #ff85b3; font-size: 0.8rem;"></i>
+                        ${escapeHtml(service.name)}
+                    </span>
+                    <span class="badge bg-light text-dark" style="font-size: 0.7rem;">
+                        ${service.time || '—'}
+                    </span>
+                `;
+                
+                menu.appendChild(item);
+            });
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            showAlert('Ошибка загрузки данных', 'Ошибка');
+        });
+    
+    // Позиционируем меню рядом с кнопкой
+    const rect = button.getBoundingClientRect();
+    menu.style.left = `${Math.min(rect.left, window.innerWidth - 280)}px`;
+    menu.style.top = `${rect.bottom + 8}px`;
+    
+    // Добавляем обработчик для закрытия при клике вне меню
+    const closeMenu = (e) => {
+        if (!menu.contains(e.target) && e.target !== button) {
+            menu.remove();
+            document.removeEventListener('click', closeMenu);
+        }
+    };
+    
+    // Добавляем меню на страницу
+    document.body.appendChild(menu);
+    
+    // Закрываем при клике вне меню (с небольшой задержкой, чтобы не сработало сразу)
+    setTimeout(() => {
+        document.addEventListener('click', closeMenu);
+    }, 100);
 }
 
 function parseDateFromDisplay(dateDisplay) {

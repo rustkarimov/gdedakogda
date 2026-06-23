@@ -113,12 +113,9 @@ class ScheduleCalculator:
                     if not (abs(s - original_start) <= 1 and abs(e - original_end) <= 1)
                 ]
                 
-                # Для отладки - выведем в консоль (временно)
-                print(f"🔓 Разблокирован диапазон {original_start}-{original_end} для записи #{original_booking_id}")
-                print(f"📋 Осталось заблокированных слотов: {len(booked_slots)}")
+            
                 
             except Booking.DoesNotExist:
-                print(f"⚠️ Запись #{original_booking_id} не найдена")
                 pass
         # ================================================================
         

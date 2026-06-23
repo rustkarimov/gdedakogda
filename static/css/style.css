@@ -1191,6 +1191,83 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 }
 
 /* ============================================================ */
+/* ========== ВЫДЕЛЕНИЕ ДЛЯ КАРТОЧЕК УСЛУГ, ДАТ И ВРЕМЕНИ ========== */
+/* ============================================================ */
+
+.border-pink {
+    border: 2px solid #ff85b3 !important;
+    background-color: #fff9fb !important;
+}
+
+.border-2 {
+    border-width: 2px !important;
+}
+
+.bg-light {
+    background-color: #f8f9fa !important;
+}
+
+/* Дополнительные стили для карточек в модалках */
+.service-card,
+.date-card,
+.slot-card {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.service-card:hover,
+.date-card:hover,
+.slot-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Крестик на выбранной услуге */
+.service-close-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 10;
+}
+
+.service-close-btn:hover {
+    background-color: #c82333;
+    transform: scale(1.1);
+}
+
+/* Анимация для появления блоков */
+.services-cart,
+#date-card,
+#time-card,
+#booking-card,
+#confirmation-card {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================================ */
 /* ========== ДАШБОРД (МОБИЛЬНАЯ ВЕРСИЯ) ========== */
 /* ============================================================ */
 

@@ -169,7 +169,7 @@ def get_calendar_schedule(request):
 
 @login_required
 def get_bookings_api(request):
-    """API для получения записей с пагинацией (группировка по клиенту+дате)"""
+    """API для получения записей с пагинацией"""
     master = request.user.master
     page = int(request.GET.get('page', 1))
     limit = int(request.GET.get('limit', 10))
@@ -197,82 +197,10 @@ def get_bookings_api(request):
     import re
     key = master.get_encryption_key()
     
-    # ========== ГРУППИРУЕМ ЗАПИСИ ==========
-    groups = {}
-    for booking in filtered_bookings:
-        # Расшифровываем телефон
-        phone = ''
-        if key:
-            try:
-                f = Fernet(key)
-                decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
-                phone = decrypted
-            except (InvalidToken, Exception):
-                try:
-                    phone = booking.encrypted_phone.decode('utf-8')
-                except:
-                    phone = str(booking.encrypted_phone)
-        else:
-            try:
-                phone = booking.encrypted_phone.decode('utf-8')
-            except:
-                phone = str(booking.encrypted_phone)
-        
-        phone_cleaned = re.sub(r'\D', '', phone)
-        
-        # Ключ группы: клиент + дата
-        group_key = f"{booking.client_name}|{booking.date.isoformat()}"
-        
-        if group_key not in groups:
-            groups[group_key] = {
-                'client_name': booking.client_name,
-                'date': booking.date,
-                'time': booking.time,
-                'phone': phone_cleaned,
-                'booking_ids': [],
-                'services': [],
-                'first_booking_id': None
-            }
-        
-        # Сохраняем ID записи
-        groups[group_key]['booking_ids'].append(booking.id)
-        if groups[group_key]['first_booking_id'] is None:
-            groups[group_key]['first_booking_id'] = booking.id
-        
-        # Сохраняем услугу с категорией
-        service_name = booking.service.name
-        if booking.service.category:
-            service_name = f"{booking.service.category.name}: {service_name}"
-        
-        groups[group_key]['services'].append(service_name)
-        
-        # Обновляем время на самое раннее
-        if booking.time < groups[group_key]['time']:
-            groups[group_key]['time'] = booking.time
-    
-    # Преобразуем в список
-    grouped_bookings = []
-    for key, group in groups.items():
-        grouped_bookings.append({
-            'id': group['first_booking_id'],
-            'date': group['date'],
-            'time': group['time'],
-            'client_name': group['client_name'],
-            'phone': group['phone'],
-            'services': group['services'],
-            'services_count': len(group['services']),
-            'services_display': ', '.join(group['services']),
-            'booking_ids': group['booking_ids'],
-            'first_booking_id': group['first_booking_id']
-        })
-    
-    # Сортируем по дате и времени
-    grouped_bookings.sort(key=lambda x: (x['date'], x['time']))
-    
-    # Пагинация по группам
-    total = len(grouped_bookings)
+    # Пагинация
+    total = len(filtered_bookings)
     has_more = offset + limit < total
-    groups_page = grouped_bookings[offset:offset + limit]
+    bookings_page = filtered_bookings[offset:offset + limit]
     
     def get_month_name(month_num):
         months = [
@@ -285,53 +213,11 @@ def get_bookings_api(request):
         return date_obj == today
     
     data = []
-    for group in groups_page:
-        if is_today(group['date']):
-            date_display = f"{group['date'].day} {get_month_name(group['date'].month)} (сегодня)"
+    for booking in bookings_page:
+        if is_today(booking.date):
+            date_display = f"{booking.date.day} {get_month_name(booking.date.month)} (сегодня)"
         else:
-            date_display = f"{group['date'].day} {get_month_name(group['date'].month)}"
-        
-        # Форматируем телефон
-        phone_cleaned = re.sub(r'\D', '', group['phone'])
-        if len(phone_cleaned) == 11:
-            formatted_phone = f"{phone_cleaned[0]} {phone_cleaned[1:4]} {phone_cleaned[4:7]}-{phone_cleaned[7:9]}-{phone_cleaned[9:11]}"
-        else:
-            formatted_phone = group['phone']
-        
-        # Формируем отображение услуг
-        services_display = group['services_display']
-        if group['services_count'] > 1:
-            services_display = f"{services_display} ({group['services_count']} услуги)"
-        
-        data.append({
-            'id': group['first_booking_id'],
-            'date': date_display,
-            'time': group['time'].strftime('%H:%M'),
-            'client_name': group['client_name'],
-            'service_name': services_display,
-            'phone': formatted_phone,
-            'booking_ids': group['booking_ids'],
-            'services_count': group['services_count']
-        })
-    
-    return JsonResponse({
-        'bookings': data,
-        'total': total,
-        'page': page,
-        'has_more': has_more
-    })
-
-
-@login_required
-def get_booking_details(request, booking_id):
-    """API для получения подробной информации о записи и клиенте (с группировкой)"""
-    try:
-        booking = get_object_or_404(Booking, id=booking_id, master=request.user.master)
-        master = request.user.master
-        
-        from cryptography.fernet import Fernet, InvalidToken
-        import re
-        key = master.get_encryption_key()
+            date_display = f"{booking.date.day} {get_month_name(booking.date.month)}"
         
         # Расшифровываем телефон
         phone = ''
@@ -352,67 +238,85 @@ def get_booking_details(request, booking_id):
                 phone = str(booking.encrypted_phone)
         
         phone_cleaned = re.sub(r'\D', '', phone)
+        if len(phone_cleaned) == 11:
+            formatted_phone = f"{phone_cleaned[0]} {phone_cleaned[1:4]} {phone_cleaned[4:7]}-{phone_cleaned[7:9]}-{phone_cleaned[9:11]}"
+        else:
+            formatted_phone = phone
         
-        # Находим все записи этого клиента на эту дату
-        all_bookings = Booking.objects.filter(
-            master=master,
-            date=booking.date,
-            status='confirmed'
-        ).select_related('service', 'service__category')
+        # 👇 ФОРМИРУЕМ НАЗВАНИЕ УСЛУГИ С КАТЕГОРИЕЙ
+        service_name = booking.service.name
+        if booking.service.category:
+            service_name = f"{booking.service.category.name}: {service_name}"
         
-        # Фильтруем по телефону
-        group_bookings = []
-        for b in all_bookings:
-            b_phone = ''
-            if key:
+        data.append({
+            'id': booking.id,
+            'date': date_display,
+            'time': booking.time.strftime('%H:%M'),
+            'client_name': booking.client_name,
+            'service_name': service_name,  # ← теперь с категорией
+            'phone': formatted_phone,
+        })
+    
+    return JsonResponse({
+        'bookings': data,
+        'total': total,
+        'page': page,
+        'has_more': has_more
+    })
+
+
+@login_required
+def get_booking_details(request, booking_id):
+    """API для получения подробной информации о записи и клиенте"""
+    try:
+        booking = get_object_or_404(Booking, id=booking_id, master=request.user.master)
+        master = request.user.master
+        
+        # Расшифровываем телефон
+        from cryptography.fernet import Fernet, InvalidToken
+        import re
+        key = master.get_encryption_key()
+        
+        phone = ''
+        if key:
+            try:
+                f = Fernet(key)
+                decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
+                phone = decrypted
+            except (InvalidToken, Exception) as e:
+                print(f"Ошибка расшифровки: {e}")
                 try:
-                    f = Fernet(key)
-                    b_phone = f.decrypt(bytes(b.encrypted_phone)).decode()
+                    phone = booking.encrypted_phone.decode('utf-8')
                 except:
-                    continue
-            else:
-                try:
-                    b_phone = b.encrypted_phone.decode('utf-8')
-                except:
-                    continue
-            
-            if re.sub(r'\D', '', b_phone) == phone_cleaned:
-                group_bookings.append(b)
+                    phone = str(booking.encrypted_phone)
+        else:
+            try:
+                phone = booking.encrypted_phone.decode('utf-8')
+            except:
+                phone = str(booking.encrypted_phone)
         
-        group_bookings.sort(key=lambda x: x.time)
+        phone_cleaned = re.sub(r'\D', '', phone)
         
-        # Формируем список услуг с полными данными для редактирования
-        services_list = []
-        for b in group_bookings:
-            service_name = b.service.name
-            if b.service.category:
-                service_name = f"{b.service.category.name}: {service_name}"
-            services_list.append({
-                'booking_id': b.id,
-                'name': service_name,
-                'time': b.time.strftime('%H:%M'),
-                'duration': b.service.duration,
-                'service_id': b.service.id,
-                'status': b.status
-            })
-        
+        # Функция для форматирования телефона
         def format_phone_num(phone_num):
             if not phone_num or len(phone_num) != 11:
                 return phone_num
             return f"{phone_num[0]} {phone_num[1:4]} {phone_num[4:7]}-{phone_num[7:9]}-{phone_num[9:11]}"
         
-        # Статистика клиента
+        # Получаем все записи этого клиента для статистики
         client_bookings = Booking.objects.filter(
             master=master,
             status='confirmed'
-        ).select_related('service', 'service__category')
+        ).select_related('service')
         
+        # Группируем по этому телефону
         visits = []
         total_visits = 0
         first_visit = None
         last_visit = None
         
         for b in client_bookings:
+            # Расшифровываем телефон каждой записи
             b_phone = ''
             if key:
                 try:
@@ -432,45 +336,49 @@ def get_booking_details(request, booking_id):
                     first_visit = b.date
                 if last_visit is None or b.date > last_visit:
                     last_visit = b.date
-                service_name = b.service.name
-                if b.service.category:
-                    service_name = f"{b.service.category.name}: {service_name}"
                 visits.append({
                     'date': b.date.strftime('%d.%m.%Y'),
                     'time': b.time.strftime('%H:%M'),
-                    'service': service_name,
-                    'booking_id': b.id
+                    'service': b.service.name
                 })
         
+        # Сортируем визиты по дате (сначала новые)
         visits.sort(key=lambda x: x['date'], reverse=True)
         
+        # Услуги текущей записи (просто одна услуга, без group_id)
+        current_services = [{
+            'name': booking.service.name,
+            'time': booking.time.strftime('%H:%M'),
+            'duration': booking.service.duration
+        }]
+        
+        # Статус по-русски
         status_map = {
             'confirmed': 'Подтверждена',
             'cancelled': 'Отменена',
             'completed': 'Выполнена'
         }
         
-        first_booking = group_bookings[0] if group_bookings else booking
-        
         return JsonResponse({
             'success': True,
             'booking_id': booking.id,
-            'client_name': first_booking.client_name,
+            'client_name': booking.client_name,
             'client_phone': phone,
             'client_phone_formatted': format_phone_num(phone_cleaned),
-            'date': first_booking.date.strftime('%d.%m.%Y'),
-            'services': services_list,  # ← все услуги с ID для редактирования
-            'total_services': len(services_list),
-            'comment': first_booking.client_comment or '',
-            'status': status_map.get(first_booking.status, first_booking.status),
-            'created_by': 'Мастер' if first_booking.created_by == 'master' else 'Клиент',
+            'date': booking.date.strftime('%d.%m.%Y'),
+            'time': booking.time.strftime('%H:%M'),
+            'services': current_services,
+            'total_services': len(current_services),
+            'total_duration': sum(s['duration'] for s in current_services),
+            'comment': booking.client_comment or '',
+            'status': status_map.get(booking.status, booking.status),
+            'created_by': 'Мастер' if booking.created_by == 'master' else 'Клиент',
             'client_stats': {
                 'total_visits': total_visits,
                 'first_visit': first_visit.strftime('%d.%m.%Y') if first_visit else '—',
                 'last_visit': last_visit.strftime('%d.%m.%Y') if last_visit else '—',
                 'visits': visits[:10]
-            },
-            'all_booking_ids': [b.id for b in group_bookings]
+            }
         })
         
     except Exception as e:
