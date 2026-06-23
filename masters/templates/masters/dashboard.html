@@ -30,7 +30,8 @@
         <div class="d-flex align-items-center gap-2">
             <label class="form-label me-1 mb-0 small">Показывать:</label>
             <select id="bookings-limit-select" class="form-select form-select-sm" style="width: 70px;">
-                <option value="5" selected>5</option>
+                <option value="3" selected>3</option>
+                <option value="5">5</option>
                 <option value="10">10</option>
                 <option value="15">15</option>
             </select>
@@ -1921,7 +1922,7 @@ function deleteBooking(bookingId, clientName, time) {
 // ============================================================
 let bookingsPage = 1;
 let bookingsHasMore = true;
-let bookingsCurrentLimit = 5;
+let bookingsCurrentLimit = 3;
 
 function getBookingsLimit() {
     return parseInt(document.getElementById('bookings-limit-select').value);
@@ -2107,22 +2108,9 @@ function createBookingRow(b) {
         rowClass = 'booking-future';
     }
     
-    // Формируем строку с ID для удаления (все ID группы)
-    let allIds = '[]';
-    if (b.booking_ids && b.booking_ids.length > 0) {
-        allIds = JSON.stringify(b.booking_ids).replace(/"/g, '&quot;');
-    } else {
-        allIds = JSON.stringify([b.id]).replace(/"/g, '&quot;');
-    }
+    // Формируем строку с ID для удаления
+    let allIds = JSON.stringify([b.id]).replace(/"/g, '&quot;');
     
-    // Формируем строку с ID для кнопки редактирования
-    let bookingIdsJson = JSON.stringify(b.booking_ids || [b.id]).replace(/"/g, '&quot;');
-    let serviceNamesJson = JSON.stringify([b.service_name]).replace(/"/g, '&quot;');
-    
-    const servicesCount = b.services_count || 1;
-    const isGroup = servicesCount > 1;
-    
-    // 👇 ВОТ ЗДЕСЬ МЕНЯЕМ КНОПКУ "Редактировать"
     return '<tr class="' + rowClass + '">' +
         '<td data-label="Дата">' + escapeHtml(b.date) + '</td>' +
         '<td data-label="Время">' + escapeHtml(b.time) + '</td>' +
@@ -2130,22 +2118,13 @@ function createBookingRow(b) {
         '<td data-label="Услуги">' + escapeHtml(b.service_name) + '</td>' +
         '<td class="actions-cell">' +
             '<div class="action-icons">' +
-                // Кнопка "Подробности" (i)
-                '<button class="btn btn-sm btn-outline-info" onclick="showBookingDetails(' + b.id + ')" title="Подробности">' +
+                '<button class="btn btn-sm" onclick="showBookingDetails(' + b.id + ')" title="Подробности">' +
                     '<i class="fas fa-info-circle"></i>' +
                 '</button>' +
-                // 👇 НОВАЯ КНОПКА "Редактировать" с меню выбора услуги
-                '<button class="btn btn-sm btn-outline-primary edit-booking-btn" ' +
-                    'data-booking-id="' + b.id + '" ' +
-                    'data-booking-ids=\'' + bookingIdsJson + '\' ' +
-                    'data-client-name="' + escapeHtml(b.client_name) + '" ' +
-                    'data-service-names=\'' + serviceNamesJson + '\' ' +
-                    'onclick="showEditServicesMenu(this)" ' +
-                    'title="Редактировать">' +
+                '<button class="btn btn-sm" onclick="editBookingInModal(' + b.id + ')" title="Редактировать">' +
                     '<i class="fas fa-edit"></i>' +
                 '</button>' +
-                // Кнопка "Удалить"
-                '<button class="btn btn-sm btn-outline-danger" onclick="deleteGroupedBooking(\'' + allIds + '\', \'' + escapeHtml(b.client_name) + '\', \'' + b.time + '\')" title="Удалить все">' +
+                '<button class="btn btn-sm" onclick="deleteBooking(' + b.id + ', \'' + escapeHtml(b.client_name) + '\', \'' + b.time + '\')" title="Удалить">' +
                     '<i class="fas fa-trash"></i>' +
                 '</button>' +
             '</div>' +
@@ -2380,6 +2359,10 @@ function renderNotifications(notifications, append) {
 // БЛИЖАЙШИЕ ЗАПИСИ - ДЕТАЛИ
 // ============================================================
 
+// ============================================================
+// БЛИЖАЙШИЕ ЗАПИСИ - ДЕТАЛИ (ТОЛЬКО ПРОСМОТР)
+// ============================================================
+
 function showBookingDetails(bookingId) {
     const modal = new bootstrap.Modal(document.getElementById('bookingDetailsModal'));
     const content = document.getElementById('bookingDetailsContent');
@@ -2399,14 +2382,7 @@ function showBookingDetails(bookingId) {
                                 <span>${escapeHtml(service.name)}</span>
                                 <span class="text-muted small ms-2">${service.time}</span>
                             </div>
-                            <div class="btn-group btn-group-sm">
-                                <button class="btn btn-outline-primary" onclick="editSingleBooking(${service.booking_id})" title="Редактировать эту услугу">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn btn-outline-danger" onclick="deleteSingleBooking(${service.booking_id}, '${escapeHtml(data.client_name)}', '${service.time}')" title="Удалить эту услугу">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </div>
+                            <!-- 👇 УБРАЛИ КНОПКИ РЕДАКТИРОВАНИЯ И УДАЛЕНИЯ -->
                         </div>
                     `;
                 });
@@ -2438,6 +2414,10 @@ function showBookingDetails(bookingId) {
                     <div class="mb-3">
                         <strong><i class="fas fa-calendar-day me-2"></i>Дата:</strong>
                         <p class="mt-1">${data.date}</p>
+                    </div>
+                    <div class="mb-3">
+                        <strong><i class="fas fa-clock me-2"></i>Время:</strong>
+                        <p class="mt-1">${data.time || '—'}</p>
                     </div>
                     <div class="mb-3">
                         <strong><i class="fas fa-cut me-2"></i>Услуги (${data.total_services}):</strong>
@@ -2477,11 +2457,7 @@ function showBookingDetails(bookingId) {
                         <i class="fas fa-info-circle me-1"></i>
                         Запись создана: ${data.created_by}
                     </div>
-                    <div class="mt-3 d-grid gap-2">
-                        <button class="btn btn-outline-danger" onclick="deleteGroupFromDetails('${JSON.stringify(data.all_booking_ids).replace(/"/g, '&quot;')}', '${escapeHtml(data.client_name)}')">
-                            <i class="fas fa-trash me-2"></i>Удалить все записи клиента на эту дату
-                        </button>
-                    </div>
+                    <!-- 👇 УБРАЛИ КНОПКУ "Удалить все записи клиента на эту дату" -->
                 `;
             } else {
                 content.innerHTML = '<div class="text-center text-danger">Ошибка загрузки данных</div>';
@@ -2494,95 +2470,6 @@ function showBookingDetails(bookingId) {
 }
 
 
-// Редактирование отдельной записи (из модалки подробностей)
-function editSingleBooking(bookingId) {
-    // Закрываем модалку подробностей
-    bootstrap.Modal.getInstance(document.getElementById('bookingDetailsModal')).hide();
-    // Открываем модалку редактирования
-    editBookingInModal(bookingId);
-}
-
-// Удаление отдельной записи (из модалки подробностей)
-function deleteSingleBooking(bookingId, clientName, time) {
-    if (!confirm(`Удалить запись "${clientName}" на ${time}?`)) return;
-    
-    fetch(`/api/booking/${bookingId}/delete/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            bootstrap.Modal.getInstance(document.getElementById('bookingDetailsModal')).hide();
-            showToast('✅ Запись удалена', 'success');
-            loadCalendar();
-            loadBookings(1, false);
-            if (currentSelectedDate) {
-                fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
-                    .then(r => r.json())
-                    .then(data => renderDayBookings(data.bookings));
-            }
-        } else {
-            showAlert(data.error || 'Ошибка при удалении', 'Ошибка');
-        }
-    })
-    .catch(error => {
-        console.error('Ошибка:', error);
-        showAlert('Произошла ошибка при удалении', 'Ошибка');
-    });
-}
-
-// Удаление всей группы из модалки подробностей
-function deleteGroupFromDetails(bookingIdsJson, clientName) {
-    const ids = JSON.parse(bookingIdsJson);
-    const count = ids.length;
-    
-    if (!confirm(`Удалить все ${count} записи клиента "${clientName}"?`)) return;
-    
-    let deleted = 0;
-    let errors = 0;
-    
-    ids.forEach(id => {
-        fetch(`/api/booking/${id}/delete/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                deleted++;
-            } else {
-                errors++;
-            }
-            
-            if (deleted + errors === ids.length) {
-                bootstrap.Modal.getInstance(document.getElementById('bookingDetailsModal')).hide();
-                if (errors === 0) {
-                    showToast(`✅ ${deleted} запись(ей) удалена`, 'success');
-                } else {
-                    showToast(`⚠️ Удалено ${deleted}, ошибок ${errors}`, 'error');
-                }
-                loadCalendar();
-                loadBookings(1, false);
-                if (currentSelectedDate) {
-                    fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
-                        .then(r => r.json())
-                        .then(data => renderDayBookings(data.bookings));
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Ошибка:', error);
-            errors++;
-        });
-    });
-}
 
 // ============================================================
 // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
@@ -2594,14 +2481,27 @@ function escapeHtml(str) {
 // ИНИЦИАЛИЗАЦИЯ
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Восстанавливаем сохранённый лимит
+    // Устанавливаем значение по умолчанию = 3
+    const select = document.getElementById('bookings-limit-select');
+    
+    // Проверяем, есть ли сохранённое значение в localStorage
     const savedLimit = localStorage.getItem('bookingsLimit');
+    
     if (savedLimit) {
-        const select = document.getElementById('bookings-limit-select');
+        // Если есть сохранённое значение — используем его
         if (select) {
             select.value = savedLimit;
         }
+    } else {
+        // Если нет сохранённого значения — устанавливаем 3 и сохраняем
+        if (select) {
+            select.value = '3';
+            localStorage.setItem('bookingsLimit', '3');
+        }
     }
+    
+    // Устанавливаем текущий лимит для загрузки
+    bookingsCurrentLimit = parseInt(select ? select.value : '3');
     
     loadCalendar();
     loadBookings(1, false);

@@ -933,6 +933,7 @@ body {
     .sidebar-toggle {
         display: none !important;
     }
+
 }
 
 @media (max-width: 380px) {
@@ -946,6 +947,35 @@ body {
     
     .mobile-bottom-nav {
         padding: 6px 0;
+    }
+}
+
+/* ============================================================ */
+/* ========== МОБИЛЬНАЯ ТОЧКА УВЕДОМЛЕНИЙ ========== */
+/* ============================================================ */
+
+.mobile-notification-link {
+    position: relative !important;
+}
+
+.mobile-notification-dot {
+    position: absolute !important;
+    top: -2px !important;
+    right: 50% !important;
+    transform: translateX(calc(50% + 8px)) !important;
+    width: 10px !important;
+    height: 10px !important;
+    background-color: #ff4444 !important;
+    border-radius: 50% !important;
+    border: 2px solid white !important;
+    display: none !important;
+    z-index: 10 !important;
+}
+
+/* Показываем точку только на мобильных */
+@media (max-width: 768px) {
+    .mobile-notification-dot.show {
+        display: block !important;
     }
 }
 
@@ -1247,25 +1277,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     transform: scale(1.1);
 }
 
-/* Анимация для появления блоков */
-.services-cart,
-#date-card,
-#time-card,
-#booking-card,
-#confirmation-card {
-    animation: fadeInUp 0.4s ease-out;
-}
 
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
 
 /* ============================================================ */
 /* ========== ДАШБОРД (МОБИЛЬНАЯ ВЕРСИЯ) ========== */
@@ -1286,7 +1298,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         margin-right: 4px !important;
     }
     
-    /* Ближайшие записи - карточки */
+    /* Ближайшие записи - карточки (КОМПАКТНЫЕ) */
     #upcoming-bookings-table,
     #upcoming-bookings-table tbody,
     #upcoming-bookings-table tr,
@@ -1300,16 +1312,17 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     
     #upcoming-bookings-table tr {
         background: white;
-        border-radius: 16px !important;
-        margin-bottom: 12px !important;
-        padding: 12px !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border-radius: 12px !important;
+        margin-bottom: 8px !important;
+        padding: 10px 12px !important;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
         border: 1px solid var(--gray-200);
     }
     
     #upcoming-bookings-table td {
-        padding: 4px 0 !important;
+        padding: 2px 0 !important;
         border: none !important;
+        font-size: 0.8rem !important;
     }
     
     /* Скрываем data-label для обычных строк */
@@ -1322,27 +1335,36 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     #upcoming-bookings-table td:nth-child(2) {
         display: inline-block !important;
         width: auto !important;
-        font-size: 0.85rem !important;
+        font-size: 0.7rem !important;
     }
     
     #upcoming-bookings-table td:first-child {
         font-weight: 600 !important;
         color: var(--primary) !important;
-        margin-right: 12px !important;
+        margin-right: 8px !important;
+    }
+    
+    #upcoming-bookings-table td:nth-child(2) {
+        color: var(--gray-500) !important;
     }
     
     /* Имя клиента */
     #upcoming-bookings-table td:nth-child(3) {
         font-weight: 500 !important;
-        font-size: 0.9rem !important;
-        margin-top: 6px !important;
+        font-size: 0.85rem !important;
+        margin-top: 2px !important;
+        margin-bottom: 2px !important;
     }
     
     /* Услуга */
     #upcoming-bookings-table td:nth-child(4) {
         color: var(--gray-500) !important;
-        font-size: 0.75rem !important;
-        margin-bottom: 10px !important;
+        font-size: 0.7rem !important;
+        margin-bottom: 6px !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: 100% !important;
     }
     
     /* Ячейка с действиями - иконки и статус */
@@ -1350,14 +1372,14 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
-        margin-top: 8px !important;
-        padding-top: 8px !important;
+        margin-top: 4px !important;
+        padding-top: 6px !important;
         border-top: 1px solid var(--gray-200) !important;
     }
     
     .action-icons {
         display: flex !important;
-        gap: 12px !important;
+        gap: 6px !important;
         align-items: center !important;
     }
     
@@ -1365,15 +1387,36 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         display: inline-block !important;
     }
     
-    /* Кнопки иконок */
+    /* Кнопки иконок - компактные */
     #upcoming-bookings-table .btn-sm {
-        padding: 6px 8px !important;
-        font-size: 0.8rem !important;
+        padding: 4px 6px !important;
+        font-size: 0.7rem !important;
+        border-radius: 6px !important;
+        background: transparent !important;
+        border: none !important;
     }
     
     #upcoming-bookings-table .btn-sm i {
-        font-size: 0.9rem !important;
+        font-size: 0.75rem !important;
         margin: 0 !important;
+        color: #6b7280 !important;
+    }
+    
+    #upcoming-bookings-table .btn-sm:hover {
+        background: #f3f4f6 !important;
+    }
+    
+    #upcoming-bookings-table .btn-sm:hover i {
+        color: #374151 !important;
+    }
+    
+    /* Кнопка удалить - красноватая при наведении */
+    #upcoming-bookings-table .btn-sm:last-child:hover {
+        background: #fef2f2 !important;
+    }
+    
+    #upcoming-bookings-table .btn-sm:last-child:hover i {
+        color: #dc2626 !important;
     }
     
     /* Убираем текст у кнопок на мобильных */
@@ -1381,17 +1424,18 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         display: none !important;
     }
     
-    /* Статус badge */
-    .badge {
-        font-size: 0.7rem !important;
-        padding: 4px 10px !important;
+    /* Статус badge - компактный */
+    #upcoming-bookings-table .badge {
+        font-size: 0.6rem !important;
+        padding: 2px 8px !important;
     }
     
     /* Футер карточки записей */
     .card-footer {
         flex-direction: column !important;
-        gap: 12px !important;
+        gap: 10px !important;
         align-items: stretch !important;
+        padding-top: 8px !important;
     }
     
     .card-footer .flex-grow-1 {
@@ -1400,6 +1444,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     
     #load-more-bookings {
         width: 100% !important;
+        font-size: 0.8rem !important;
     }
     
     .card-footer .d-flex {
@@ -1467,6 +1512,9 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         border-color: transparent !important;
         color: white !important;
     }
+}
+
+
 
     /* ===== МОДАЛЬНОЕ ОКНО КАЛЕНДАРЯ (dayModal) ===== */
     
@@ -1610,8 +1658,6 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         margin-right: 4px !important;
     }
 
-    
-}
 
 
 

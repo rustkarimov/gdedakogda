@@ -345,11 +345,15 @@ def get_booking_details(request, booking_id):
         # Сортируем визиты по дате (сначала новые)
         visits.sort(key=lambda x: x['date'], reverse=True)
         
-        # Услуги текущей записи (просто одна услуга, без group_id)
+        # 👇 ВАЖНО: формат services должен совпадать с тем, что ожидает шаблон
+        # В шаблоне используется service.booking_id и service.time
         current_services = [{
+            'booking_id': booking.id,  # ← обязательно booking_id!
             'name': booking.service.name,
             'time': booking.time.strftime('%H:%M'),
-            'duration': booking.service.duration
+            'duration': booking.service.duration,
+            'service_id': booking.service.id,
+            'status': booking.status
         }]
         
         # Статус по-русски
@@ -367,7 +371,7 @@ def get_booking_details(request, booking_id):
             'client_phone_formatted': format_phone_num(phone_cleaned),
             'date': booking.date.strftime('%d.%m.%Y'),
             'time': booking.time.strftime('%H:%M'),
-            'services': current_services,
+            'services': current_services,  # ← теперь в правильном формате
             'total_services': len(current_services),
             'total_duration': sum(s['duration'] for s in current_services),
             'comment': booking.client_comment or '',
@@ -378,7 +382,8 @@ def get_booking_details(request, booking_id):
                 'first_visit': first_visit.strftime('%d.%m.%Y') if first_visit else '—',
                 'last_visit': last_visit.strftime('%d.%m.%Y') if last_visit else '—',
                 'visits': visits[:10]
-            }
+            },
+            'all_booking_ids': [booking.id]  # ← добавляем для совместимости
         })
         
     except Exception as e:

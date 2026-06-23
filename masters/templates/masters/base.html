@@ -152,6 +152,7 @@
     </div>
 
     <!-- МОБИЛЬНОЕ НИЖНЕЕ МЕНЮ -->
+    <!-- МОБИЛЬНОЕ НИЖНЕЕ МЕНЮ -->
     <div class="mobile-bottom-nav">
         <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
             <i class="fas fa-tachometer-alt"></i>
@@ -169,8 +170,10 @@
             <i class="fas fa-chart-line"></i>
             <span>Статистика</span>
         </a>
-        <a href="#" onclick="toggleNotifications(); return false;">
+        <a href="#" onclick="toggleNotifications(); return false;" class="mobile-notification-link" style="position: relative;">
             <i class="fas fa-bell"></i>
+            <!-- 👇 ТОЧКА ДЛЯ МОБИЛЬНОЙ ВЕРСИИ -->
+            <span class="mobile-notification-dot" id="mobile-notification-dot" style="display: none;"></span>
             <span>Уведомления</span>
         </a>
     </div>
@@ -257,11 +260,25 @@
             .then(data => {
                 if (!append) {
                     document.getElementById('unread-count').innerHTML = `${data.unread} непрочитанных`;
+                    
+                    // Десктопная точка
                     const dot = document.getElementById('notification-dot');
                     if (data.unread > 0) {
                         dot.style.display = 'block';
                     } else {
                         dot.style.display = 'none';
+                    }
+                    
+                    // 👇 МОБИЛЬНАЯ ТОЧКА
+                    const mobileDot = document.getElementById('mobile-notification-dot');
+                    if (mobileDot) {
+                        if (data.unread > 0) {
+                            mobileDot.style.display = 'block';
+                            mobileDot.classList.add('show');
+                        } else {
+                            mobileDot.style.display = 'none';
+                            mobileDot.classList.remove('show');
+                        }
                     }
                 }
                 
@@ -369,9 +386,26 @@
             .then(r => r.json())
             .then(data => {
                 document.getElementById('unread-count').innerHTML = `${data.unread} непрочитанных`;
+                
+                // Десктопная точка
                 const dot = document.getElementById('notification-dot');
-                dot.style.display = data.unread > 0 ? 'block' : 'none';
-            });
+                if (dot) {
+                    dot.style.display = data.unread > 0 ? 'block' : 'none';
+                }
+                
+                // 👇 МОБИЛЬНАЯ ТОЧКА
+                const mobileDot = document.getElementById('mobile-notification-dot');
+                if (mobileDot) {
+                    if (data.unread > 0) {
+                        mobileDot.style.display = 'block';
+                        mobileDot.classList.add('show');
+                    } else {
+                        mobileDot.style.display = 'none';
+                        mobileDot.classList.remove('show');
+                    }
+                }
+            })
+            .catch(error => console.error('Ошибка обновления уведомлений:', error));
     }
 
     function toggleReadStatus(notificationId, markAsRead) {
