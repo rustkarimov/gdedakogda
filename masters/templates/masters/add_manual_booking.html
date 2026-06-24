@@ -4,12 +4,12 @@
 {% block title %}Добавить запись вручную{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="row add-booking-page">
     <div class="col-lg-8 mx-auto">
         <div class="card mb-4">
             <div class="card-header bg-white">
                 <h4 class="mb-0">
-                    <i class="fas fa-pen-alt me-2" style="color: #ff85b3;"></i>
+                    <i class="fas fa-pen-alt me-2" style="color: var(--primary);"></i>
                     Добавить запись вручную
                 </h4>
             </div>
@@ -28,14 +28,14 @@
             <div class="card mb-4" id="step-services">
                 <div class="card-header bg-white">
                     <h5 class="mb-0">
-                        <i class="fas fa-cut me-2" style="color: #ff85b3;"></i>
+                        <i class="fas fa-cut me-2" style="color: var(--primary);"></i>
                         Шаг 1: Выберите услуги (можно несколько)
                     </h5>
                 </div>
                 <div class="card-body">
                     <div id="services-list">
                         <div class="text-center py-3">
-                            <div class="spinner-border" style="color: #ff85b3;"></div>
+                            <div class="spinner-border" style="color: var(--primary);"></div>
                         </div>
                     </div>
                 </div>
@@ -45,7 +45,7 @@
             <div class="card mb-4 services-cart" style="display: none;">
                 <div class="card-header bg-white">
                     <h5 class="mb-0">
-                        <i class="fas fa-shopping-cart me-2" style="color: #ff85b3;"></i>
+                        <i class="fas fa-shopping-cart me-2" style="color: var(--primary);"></i>
                         Выбранные услуги
                         <button class="btn btn-sm btn-outline-danger float-end" onclick="masterClearServices()">Очистить все</button>
                     </h5>
@@ -56,11 +56,11 @@
             <!-- Шаг 2: Даты (появляется после выбора услуги) -->
             <div class="card mb-4" id="step-dates" style="display: none;">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="far fa-calendar-alt me-2" style="color: #ff85b3;"></i>Шаг 2: Выберите дату</h5>
+                    <h5 class="mb-0"><i class="far fa-calendar-alt me-2" style="color: var(--primary);"></i>Шаг 2: Выберите дату</h5>
                 </div>
                 <div class="card-body">
                     <div id="dates-loading" style="display: none;" class="text-center py-3">
-                        <div class="spinner-border" style="color: #ff85b3;"></div>
+                        <div class="spinner-border" style="color: var(--primary);"></div>
                     </div>
                     <div class="row" id="dates-container"></div>
                 </div>
@@ -69,11 +69,11 @@
             <!-- Шаг 3: Время (появляется после выбора даты) -->
             <div class="card mb-4" id="step-times" style="display: none;">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="far fa-clock me-2" style="color: #ff85b3;"></i>Шаг 3: Выберите время</h5>
+                    <h5 class="mb-0"><i class="far fa-clock me-2" style="color: var(--primary);"></i>Шаг 3: Выберите время</h5>
                 </div>
                 <div class="card-body">
                     <div id="slots-loading" style="display: none;" class="text-center py-3">
-                        <div class="spinner-border" style="color: #ff85b3;"></div>
+                        <div class="spinner-border" style="color: var(--primary);"></div>
                     </div>
                     <div class="row" id="slots-container"></div>
                 </div>
@@ -82,7 +82,7 @@
             <!-- Шаг 4: Данные клиента (появляется после выбора времени) -->
             <div class="card mb-4" id="step-form" style="display: none;">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0"><i class="fas fa-pencil-alt me-2" style="color: #ff85b3;"></i>Шаг 4: Данные клиента</h5>
+                    <h5 class="mb-0"><i class="fas fa-pencil-alt me-2" style="color: var(--primary);"></i>Шаг 4: Данные клиента</h5>
                 </div>
                 <div class="card-body">
                     <form id="manual-booking-form">
@@ -114,7 +114,7 @@
                         </div>
                         
                         <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-pink">Добавить запись</button>
+                            <button type="submit" class="btn btn-primary">Добавить запись</button>
                         </div>
                     </form>
                 </div>
@@ -402,7 +402,7 @@ function renderServices(data) {
         html += `
             <div class="mb-3">
                 <div class="fw-bold mb-2" style="cursor: pointer;" onclick="toggleCategory(${cat.id})">
-                    <i class="fas fa-folder-open me-2" style="color: #ff85b3;"></i>
+                    <i class="fas fa-folder-open me-2" style="color: var(--primary);"></i>
                     <span>${escapeHtml(cat.name)}</span>
                     <i class="fas fa-chevron-down ms-2" id="cat-icon-${cat.id}" style="font-size: 12px;"></i>
                 </div>
@@ -451,7 +451,7 @@ function renderServiceCard(service) {
                         <span class="badge bg-light text-dark">
                             <i class="far fa-clock me-1"></i>${service.duration} мин
                         </span>
-                        <span class="fw-bold" style="color: #ff85b3;">${service.price} ₽</span>
+                        <span class="fw-bold" style="color: var(--primary);">${service.price} ₽</span>
                     </div>
                 </div>
             </div>
@@ -502,7 +502,7 @@ function showStyledAlert(message, type = 'success') {
                         <p id="styled-alert-message"></p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-pink" data-bs-dismiss="modal">OK</button>
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
                     </div>
                 </div>
             </div>
@@ -665,87 +665,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<style>
-.service-card, .date-card, .slot-card {
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-}
 
-.service-card:hover, .date-card:hover, .slot-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 12px rgba(255, 133, 179, 0.15);
-}
-
-.border-pink {
-    border: 2px solid #ff85b3 !important;
-    background-color: #fff9fb !important;
-}
-
-/* Крестик на выбранной услуге */
-.service-close-btn {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    z-index: 10;
-}
-
-.service-close-btn:hover {
-    background-color: #c82333;
-    transform: scale(1.1);
-}
-
-.btn-pink {
-    background-color: #ff85b3;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 25px;
-    font-weight: 500;
-}
-
-.btn-pink:hover {
-    background-color: #e06e9e;
-    color: white;
-}
-
-.services-cart {
-    animation: fadeInUp 0.3s ease-out;
-}
-
-.cart-item {
-    transition: all 0.2s ease;
-}
-
-.cart-item:hover {
-    background-color: #e9ecef !important;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-#step-dates, #step-times, #step-form {
-    animation: fadeInUp 0.4s ease-out;
-}
-</style>
 {% endblock %}
