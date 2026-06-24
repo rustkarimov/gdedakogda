@@ -197,8 +197,8 @@
                     </div>
                     <div id="notifications-list" class="notifications-list"></div>
                     <div class="text-center p-3" id="load-more-notifications" style="display: none;">
-                        <button class="btn btn-sm btn-outline-primary" onclick="loadMoreNotifications()">
-                            Загрузить ещё
+                        <button class="btn btn-outline-primary" onclick="loadMoreNotifications()">
+                            <i class="fas fa-chevron-down me-1"></i>Загрузить ещё
                         </button>
                     </div>
                 </div>
@@ -255,7 +255,8 @@
         
         if (!append) notificationsOffset = 0;
         
-        fetch(`/api/notifications/?offset=${notificationsOffset}&limit=20`)
+        // 👇 ИЗМЕНЯЕМ limit с 20 на 10
+        fetch(`/api/notifications/?offset=${notificationsOffset}&limit=10`)
             .then(r => r.json())
             .then(data => {
                 if (!append) {
@@ -269,7 +270,7 @@
                         dot.style.display = 'none';
                     }
                     
-                    // 👇 МОБИЛЬНАЯ ТОЧКА
+                    // Мобильная точка
                     const mobileDot = document.getElementById('mobile-notification-dot');
                     if (mobileDot) {
                         if (data.unread > 0) {
@@ -442,6 +443,24 @@
         const modal = new bootstrap.Modal(document.getElementById('notificationsModal'));
         modal.show();
         loadNotifications(false);
+        
+        // 👇 ДОБАВИТЬ ЭТОТ БЛОК
+        // Обновляем точку при открытии
+        fetch('/api/notifications/?offset=0&limit=1')
+            .then(r => r.json())
+            .then(data => {
+                const mobileDot = document.getElementById('mobile-notification-dot');
+                if (mobileDot) {
+                    if (data.unread > 0) {
+                        mobileDot.style.display = 'block';
+                        mobileDot.classList.add('show');
+                    } else {
+                        mobileDot.style.display = 'none';
+                        mobileDot.classList.remove('show');
+                    }
+                }
+            })
+            .catch(error => console.error('Ошибка:', error));
     }
 
     function getTypeBadgeClass(type) {
@@ -458,7 +477,7 @@
 
     function getTypeName(type) {
         const names = {
-            'new_booking': '📅 Новая запись',
+            'new_booking': 'Новая запись',
             'cancelled_booking': '❌ Отмена',
             'changed_booking': '✏️ Изменение',
             'system': '🔧 Системное',
@@ -653,11 +672,26 @@
         fetch('/api/notifications/?offset=0&limit=1')
             .then(r => r.json())
             .then(data => {
+                // Десктопная точка
                 const dot = document.getElementById('notification-dot');
-                if (data.unread > 0) {
-                    dot.style.display = 'block';
-                } else {
-                    dot.style.display = 'none';
+                if (dot) {
+                    if (data.unread > 0) {
+                        dot.style.display = 'block';
+                    } else {
+                        dot.style.display = 'none';
+                    }
+                }
+                
+                // 👇 МОБИЛЬНАЯ ТОЧКА
+                const mobileDot = document.getElementById('mobile-notification-dot');
+                if (mobileDot) {
+                    if (data.unread > 0) {
+                        mobileDot.style.display = 'block';
+                        mobileDot.classList.add('show');
+                    } else {
+                        mobileDot.style.display = 'none';
+                        mobileDot.classList.remove('show');
+                    }
                 }
             })
             .catch(error => console.error('Ошибка загрузки уведомлений:', error));
