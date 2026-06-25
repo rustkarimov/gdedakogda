@@ -1967,33 +1967,6 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     color: white !important;
 }
 
-/* ============================================================ */
-/* ========== УСЛУГИ (СТИЛИ ДЛЯ ДЕСКТОПА И МОБАЙЛА) ========== */
-/* ============================================================ */
-
-.service-card, .date-card, .slot-card {
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.service-card:hover, .date-card:hover, .slot-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.border-primary {
-    border: 2px solid var(--primary) !important;
-    background-color: #fff9fb !important;
-}
-
-.list-group-item {
-    border-left: none;
-    border-right: none;
-}
-
-.list-group-item:first-child {
-    border-top: none;
-}
 
 /* ============================================================ */
 /* ========== СТАТИСТИКА КЛИЕНТОВ ========== */
@@ -2362,16 +2335,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         font-size: 0.8rem !important;
     }
     
-    /* Alert */
-    .add-booking-page .alert {
-        padding: 10px 12px !important;
-        font-size: 0.8rem !important;
-        border-radius: 10px !important;
-    }
-    
-    .add-booking-page .alert i {
-        font-size: 0.8rem !important;
-    }
+
 }
 
 /* Очень маленькие экраны */
@@ -2409,6 +2373,775 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     
     .add-booking-page .card-header h5 {
         font-size: 0.75rem !important;
+    }
+}
+
+/* ============================================================ */
+/* ========== СТРАНИЦА УСЛУГ (services.html) ========== */
+/* ============================================================ */
+
+
+/* ---- Шапка страницы ---- */
+
+.services-page .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.services-page .page-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin: 0;
+}
+
+.services-page .page-header h2 i {
+    color: var(--primary);
+    margin-right: 10px;
+}
+
+.services-page .page-header .btn-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.services-page .page-header .btn {
+    padding: 8px 20px !important;
+    font-size: 0.85rem !important;
+    border-radius: 30px !important;
+    font-weight: 500 !important;
+    transition: all 0.2s ease !important;
+}
+
+.services-page .page-header .btn-outline-pink {
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    background: transparent;
+}
+
+.services-page .page-header .btn-outline-pink:hover {
+    background: var(--primary-gradient);
+    border-color: transparent;
+    color: white;
+}
+
+.services-page .page-header .btn-pink {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+}
+
+.services-page .page-header .btn-pink:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+    color: white;
+}
+
+/* ---- Карточки категорий ---- */
+.services-page .category-card {
+    border-radius: 16px;
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+    margin-bottom: 16px;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s ease;
+}
+
+.services-page .category-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.services-page .category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--gray-50);
+    cursor: pointer;
+    transition: background 0.2s ease;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.services-page .category-header:hover {
+    background: var(--gray-100);
+}
+
+.services-page .category-header .category-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--gray-700);
+}
+
+.services-page .category-header .category-title i {
+    color: var(--primary);
+}
+
+.services-page .category-header .category-title .badge {
+    font-size: 0.7rem;
+    padding: 2px 10px;
+    background: var(--gray-300);
+    color: var(--gray-700);
+}
+
+.services-page .category-header .category-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.services-page .category-header .category-actions .btn {
+    padding: 4px 8px;
+    font-size: 0.7rem;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    transition: all 0.2s ease;
+}
+
+.services-page .category-header .category-actions .btn-edit {
+    color: var(--gray-500);
+}
+
+.services-page .category-header .category-actions .btn-edit:hover {
+    background: #f3f4f6;
+    color: var(--gray-700);
+}
+
+.services-page .category-header .category-actions .btn-delete {
+    color: var(--gray-500);
+}
+
+.services-page .category-header .category-actions .btn-delete:hover {
+    background: #fef2f2;
+    color: var(--danger);
+}
+
+/* ---- Сетка услуг ---- */
+.services-page .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+    padding: 12px 16px;
+}
+
+.services-page .service-card {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 12px;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.services-page .service-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.08);
+    transform: translateY(-2px);
+}
+
+.services-page .service-card .service-name {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--gray-800);
+    margin-bottom: 4px;
+}
+
+.services-page .service-card .service-description {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    margin-bottom: 8px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.services-page .service-card .service-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 8px;
+    border-top: 1px solid var(--gray-100);
+}
+
+.services-page .service-card .service-meta .duration {
+    font-size: 0.7rem;
+    color: var(--gray-500);
+}
+
+.services-page .service-card .service-meta .duration i {
+    margin-right: 4px;
+}
+
+.services-page .service-card .service-meta .price {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--primary);
+}
+
+.services-page .service-card .service-actions {
+    display: flex;
+    gap: 4px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--gray-100);
+}
+
+.services-page .service-card .service-actions .btn {
+    flex: 1;
+    padding: 4px 8px;
+    font-size: 0.7rem;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    transition: all 0.2s ease;
+}
+
+.services-page .service-card .service-actions .btn-edit {
+    color: var(--gray-500);
+}
+
+.services-page .service-card .service-actions .btn-edit:hover {
+    background: #f3f4f6;
+    color: var(--gray-700);
+}
+
+.services-page .service-card .service-actions .btn-delete {
+    color: var(--gray-500);
+}
+
+.services-page .service-card .service-actions .btn-delete:hover {
+    background: #fef2f2;
+    color: var(--danger);
+}
+
+/* ---- Пустое состояние ---- */
+.services-page .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.services-page .empty-state i {
+    font-size: 4rem;
+    color: var(--gray-300);
+    margin-bottom: 16px;
+}
+
+.services-page .empty-state h5 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: 8px;
+}
+
+.services-page .empty-state p {
+    color: var(--gray-500);
+    margin-bottom: 16px;
+}
+
+/* ---- Компактный режим для мобильных ---- */
+@media (max-width: 768px) {
+    .services-page {
+        margin: 0 10px;
+    }
+    
+    .services-page .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    
+    .services-page .page-header h2 {
+        font-size: 1.2rem;
+        text-align: left;
+    }
+    
+    .services-page .page-header .btn-group {
+        width: 100%;
+        flex-direction: column;
+        gap: 6px;
+    }
+    
+    .services-page .page-header .btn-group .btn {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        padding: 8px 16px;
+        border-radius: 30px;
+    }
+    
+    .services-page .category-header {
+        padding: 10px 12px;
+    }
+    
+    .services-page .category-header .category-title {
+        font-size: 0.85rem;
+    }
+    
+    .services-page .category-header .category-actions .btn {
+        padding: 2px 6px;
+        font-size: 0.65rem;
+    }
+    
+    .services-page .services-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 8px;
+        padding: 8px 12px;
+    }
+    
+    .services-page .service-card {
+        padding: 10px;
+    }
+    
+    .services-page .service-card .service-name {
+        font-size: 0.8rem;
+    }
+    
+    .services-page .service-card .service-description {
+        font-size: 0.7rem;
+        -webkit-line-clamp: 1;
+    }
+    
+    .services-page .service-card .service-meta .duration {
+        font-size: 0.65rem;
+    }
+    
+    .services-page .service-card .service-meta .price {
+        font-size: 0.75rem;
+    }
+    
+    .services-page .service-card .service-actions .btn {
+        font-size: 0.65rem;
+        padding: 2px 6px;
+    }
+    
+    .services-page .empty-state {
+        padding: 40px 16px;
+    }
+    
+    .services-page .empty-state i {
+        font-size: 3rem;
+    }
+    
+    .services-page .empty-state h5 {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .services-page .services-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        padding: 6px 10px;
+    }
+    
+    .services-page .service-card {
+        padding: 8px;
+    }
+    
+    .services-page .service-card .service-name {
+        font-size: 0.7rem;
+    }
+    
+    .services-page .service-card .service-description {
+        display: none;
+    }
+    
+    .services-page .service-card .service-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 2px;
+        padding-top: 4px;
+    }
+    
+    .services-page .service-card .service-meta .duration {
+        font-size: 0.6rem;
+    }
+    
+    .services-page .service-card .service-meta .price {
+        font-size: 0.7rem;
+    }
+    
+    .services-page .service-card .service-actions .btn {
+        font-size: 0.6rem;
+        padding: 2px 4px;
+    }
+    
+    .services-page .page-header .btn-group .btn {
+        font-size: 0.7rem;
+        padding: 6px 12px;
+    }
+}
+
+/* ============================================================ */
+/* ========== МОДАЛЬНОЕ ОКНО КАТЕГОРИЙ ========== */
+/* ============================================================ */
+
+/* ---- Десктопная версия ---- */
+#categoryModal .modal-dialog {
+    max-width: 600px;
+    margin: 1.75rem auto;
+}
+
+#categoryModal .modal-content {
+    border-radius: 20px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+#categoryModal .modal-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--gray-200);
+    background: white;
+}
+
+#categoryModal .modal-header h5 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
+#categoryModal .modal-header h5 i {
+    color: var(--primary);
+}
+
+#categoryModal .modal-body {
+    padding: 20px 24px;
+    max-height: calc(90vh - 140px);
+    overflow-y: auto;
+}
+
+#categoryModal .modal-footer {
+    padding: 12px 24px;
+    border-top: 1px solid var(--gray-200);
+    background: var(--gray-50);
+}
+
+/* ---- Карточка формы внутри модалки ---- */
+#categoryModal .card {
+    border-radius: 12px;
+    border: 1px solid var(--gray-200);
+    margin-bottom: 16px;
+    box-shadow: none;
+}
+
+#categoryModal .card-header {
+    background: var(--gray-50);
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--gray-200);
+    border-radius: 12px 12px 0 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+#categoryModal .card-body {
+    padding: 16px;
+}
+
+#categoryModal .card-body .form-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    margin-bottom: 4px;
+}
+
+#categoryModal .card-body .form-control {
+    border-radius: 10px;
+    border: 1px solid var(--gray-300);
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease;
+}
+
+#categoryModal .card-body .form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+#categoryModal .card-body .text-muted {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+}
+
+/* ---- Кнопка "Сохранить категорию" ---- */
+#categoryModal .btn-pink {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+#categoryModal .btn-pink:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+    color: white;
+}
+
+/* ---- Список категорий в модалке ---- */
+#categoryModal .list-group-item {
+    padding: 12px 16px;
+    border-left: none;
+    border-right: none;
+    border-bottom: 1px solid var(--gray-100);
+    transition: background 0.2s ease;
+}
+
+#categoryModal .list-group-item:last-child {
+    border-bottom: none;
+}
+
+#categoryModal .list-group-item:hover {
+    background: var(--gray-50);
+}
+
+#categoryModal .list-group-item .badge {
+    font-size: 0.7rem;
+    padding: 2px 10px;
+    background: var(--gray-200);
+    color: var(--gray-700);
+}
+
+#categoryModal .list-group-item .text-muted {
+    font-size: 0.75rem;
+}
+
+/* ---- Кнопки в списке категорий ---- */
+#categoryModal .list-group-item .btn-sm {
+    padding: 2px 6px;
+    font-size: 0.7rem;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    transition: all 0.2s ease;
+}
+
+#categoryModal .list-group-item .btn-outline-pink {
+    color: var(--gray-500);
+}
+
+#categoryModal .list-group-item .btn-outline-pink:hover {
+    background: #f3f4f6;
+    color: var(--gray-700);
+}
+
+#categoryModal .list-group-item .btn-outline-success {
+    color: var(--success);
+}
+
+#categoryModal .list-group-item .btn-outline-success:hover {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+#categoryModal .list-group-item .btn-outline-secondary {
+    color: var(--gray-500);
+}
+
+#categoryModal .list-group-item .btn-outline-secondary:hover {
+    background: #f3f4f6;
+    color: var(--gray-700);
+}
+
+#categoryModal .list-group-item .btn-outline-danger {
+    color: var(--gray-500);
+}
+
+#categoryModal .list-group-item .btn-outline-danger:hover {
+    background: #fef2f2;
+    color: var(--danger);
+}
+
+/* ---- Кнопка "Закрыть" ---- */
+#categoryModal .btn-secondary {
+    background: var(--gray-200);
+    color: var(--gray-700);
+    border: none;
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+#categoryModal .btn-secondary:hover {
+    background: var(--gray-300);
+    color: var(--gray-800);
+}
+
+/* ============================================================ */
+/* ========== МОДАЛЬНОЕ ОКНО КАТЕГОРИЙ (МОБИЛЬНАЯ ВЕРСИЯ) ========== */
+/* ============================================================ */
+
+@media (max-width: 768px) {
+    #categoryModal .modal-dialog {
+        margin: 8px !important;
+        max-width: 100% !important;
+        width: calc(100% - 16px) !important;
+    }
+    
+    #categoryModal .modal-content {
+        border-radius: 16px !important;
+    }
+    
+    #categoryModal .modal-header {
+        padding: 12px 16px !important;
+    }
+    
+    #categoryModal .modal-header h5 {
+        font-size: 0.95rem !important;
+    }
+    
+    #categoryModal .modal-body {
+        padding: 12px 16px !important;
+        max-height: calc(100vh - 180px) !important;
+    }
+    
+    #categoryModal .modal-footer {
+        padding: 10px 16px !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+    }
+    
+    #categoryModal .modal-footer .btn {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+    
+    /* Карточка формы */
+    #categoryModal .card {
+        border-radius: 10px !important;
+    }
+    
+    #categoryModal .card-header {
+        padding: 8px 12px !important;
+        font-size: 0.8rem !important;
+    }
+    
+    #categoryModal .card-body {
+        padding: 12px !important;
+    }
+    
+    #categoryModal .card-body .form-label {
+        font-size: 0.8rem !important;
+    }
+    
+    #categoryModal .card-body .form-control {
+        font-size: 16px !important;
+        padding: 8px 12px !important;
+        border-radius: 8px !important;
+    }
+    
+    /* Список категорий */
+    #categoryModal .list-group-item {
+        padding: 10px 12px !important;
+        flex-wrap: wrap !important;
+    }
+    
+    #categoryModal .list-group-item .d-flex {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+    
+    #categoryModal .list-group-item .category-view-mode {
+        flex: 1 !important;
+        min-width: 120px !important;
+    }
+    
+    #categoryModal .list-group-item .category-view-mode strong {
+        font-size: 0.85rem !important;
+    }
+    
+    #categoryModal .list-group-item .category-view-mode .badge {
+        font-size: 0.6rem !important;
+        padding: 1px 6px !important;
+    }
+    
+    #categoryModal .list-group-item .category-view-mode .text-muted {
+        font-size: 0.65rem !important;
+    }
+    
+    /* Режим редактирования */
+    #categoryModal .category-edit-mode {
+        width: 100% !important;
+        margin-top: 4px !important;
+    }
+    
+    #categoryModal .category-edit-mode .form-control {
+        width: 100% !important;
+        font-size: 14px !important;
+        padding: 6px 10px !important;
+        margin-bottom: 4px !important;
+    }
+    
+    #categoryModal .category-edit-mode .form-control-sm {
+        width: 100% !important;
+        display: block !important;
+    }
+    
+    /* Кнопки в списке категорий */
+    #categoryModal .list-group-item .btn-sm {
+        padding: 2px 6px !important;
+        font-size: 0.65rem !important;
+    }
+}
+
+@media (max-width: 480px) {
+    #categoryModal .modal-dialog {
+        margin: 4px !important;
+        width: calc(100% - 8px) !important;
+    }
+    
+    #categoryModal .modal-content {
+        border-radius: 12px !important;
+    }
+    
+    #categoryModal .modal-header {
+        padding: 10px 12px !important;
+    }
+    
+    #categoryModal .modal-header h5 {
+        font-size: 0.85rem !important;
+    }
+    
+    #categoryModal .modal-body {
+        padding: 10px 12px !important;
+    }
+    
+    #categoryModal .card-header {
+        font-size: 0.75rem !important;
+        padding: 6px 10px !important;
+    }
+    
+    #categoryModal .card-body {
+        padding: 10px !important;
+    }
+    
+    #categoryModal .card-body .form-label {
+        font-size: 0.75rem !important;
+    }
+    
+    #categoryModal .list-group-item {
+        padding: 8px 10px !important;
+    }
+    
+    #categoryModal .list-group-item .category-view-mode strong {
+        font-size: 0.8rem !important;
     }
 }
 

@@ -3,21 +3,23 @@
 {% block title %}Мои услуги{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="fas fa-cut me-2" style="color: #ff85b3;"></i>Мои услуги</h2>
-    <div>
-        <button class="btn btn-outline-pink me-2" data-bs-target="#categoryModal" onclick="openCategoryModal()">
-            <i class="fas fa-folder-plus me-1"></i>Добавить категорию
-        </button>
-        <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#serviceModal" onclick="openAddServiceModal()">
-            <i class="fas fa-plus me-1"></i>Добавить услугу
-        </button>
+<div class="services-page">
+    <div class="page-header">
+        <h2><i class="fas fa-cut me-2"></i>Мои услуги</h2>
+        <div class="btn-group">
+            <button class="btn btn-outline-pink" data-bs-target="#categoryModal" onclick="openCategoryModal()">
+                <i class="fas fa-folder-plus me-1"></i>Добавить категорию
+            </button>
+            <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#serviceModal" onclick="openAddServiceModal()">
+                <i class="fas fa-plus me-1"></i>Добавить услугу
+            </button>
+        </div>
     </div>
-</div>
 
-<div id="services-container">
-    <div class="text-center py-4">
-        <div class="spinner-border" style="color: #ff85b3;"></div>
+    <div id="services-container">
+        <div class="text-center py-4">
+            <div class="spinner-border" style="color: var(--primary);"></div>
+        </div>
     </div>
 </div>
 
@@ -182,12 +184,10 @@ function renderServices(data) {
     const container = document.getElementById('services-container');
     if (data.categories.length === 0 && data.uncategorized.length === 0) {
         container.innerHTML = `
-            <div class="card">
-                <div class="card-body text-center py-5">
-                    <i class="fas fa-cut fa-4x mb-3" style="color: #ff85b3;"></i>
-                    <h5>У вас пока нет услуг</h5>
-                    <p class="text-muted">Добавьте первую услугу или категорию</p>
-                </div>
+            <div class="empty-state">
+                <i class="fas fa-cut"></i>
+                <h5>У вас пока нет услуг</h5>
+                <p class="text-muted">Добавьте первую услугу или категорию</p>
             </div>
         `;
         return;
@@ -199,53 +199,47 @@ function renderServices(data) {
         if (cat.services.length === 0) continue;
         
         html += `
-            <div class="card mb-2">
-                <div class="card-header bg-white p-2" style="cursor: pointer;" onclick="toggleCategory(${cat.id})">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="fas fa-chevron-right me-2" id="cat-icon-${cat.id}" style="font-size: 12px;"></i>
-                            <i class="fas fa-folder-open me-2" style="color: #ff85b3;"></i>
-                            <strong>${escapeHtml(cat.name)}</strong>
-                            <span class="badge bg-secondary ms-2">${cat.services.length}</span>
-                        </div>
-                        <div>
-                            <button class="btn btn-sm btn-outline-pink" onclick="event.stopPropagation(); editCategory(${cat.id}, '${escapeHtml(cat.name)}', ${cat.order})">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation(); deleteCategory(${cat.id}, '${escapeHtml(cat.name)}')">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
+            <div class="category-card">
+                <div class="category-header" onclick="toggleCategory(${cat.id})">
+                    <div class="category-title">
+                        <i class="fas fa-chevron-right" id="cat-icon-${cat.id}" style="font-size: 12px; transition: transform 0.2s;"></i>
+                        <i class="fas fa-folder-open"></i>
+                        <span>${escapeHtml(cat.name)}</span>
+                        <span class="badge">${cat.services.length}</span>
+                    </div>
+                    <div class="category-actions" onclick="event.stopPropagation();">
+                        <button class="btn btn-edit" onclick="editCategory(${cat.id}, '${escapeHtml(cat.name)}', ${cat.order})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-delete" onclick="deleteCategory(${cat.id}, '${escapeHtml(cat.name)}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="card-body p-2" id="cat-body-${cat.id}" style="display: none;">
-                    <div class="row g-2">
+                <div class="services-grid" id="cat-body-${cat.id}" style="display: none;">
         `;
         for (const service of cat.services) {
             html += renderServiceCard(service);
         }
-        html += `</div></div></div>`;
+        html += `</div></div>`;
     }
     
     if (data.uncategorized.length > 0) {
         html += `
-            <div class="card mb-2">
-                <div class="card-header bg-white p-2">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <i class="fas fa-tag me-2" style="color: #ff85b3;"></i>
-                            <strong>Без категории</strong>
-                            <span class="badge bg-secondary ms-2">${data.uncategorized.length}</span>
-                        </div>
+            <div class="category-card">
+                <div class="category-header">
+                    <div class="category-title">
+                        <i class="fas fa-tag"></i>
+                        <span>Без категории</span>
+                        <span class="badge">${data.uncategorized.length}</span>
                     </div>
                 </div>
-                <div class="card-body p-2">
-                    <div class="row g-2">
+                <div class="services-grid">
         `;
         for (const service of data.uncategorized) {
             html += renderServiceCard(service);
         }
-        html += `</div></div></div>`;
+        html += `</div></div>`;
     }
     
     container.innerHTML = html;
@@ -253,40 +247,38 @@ function renderServices(data) {
 
 function renderServiceCard(service) {
     return `
-        <div class="col-md-4 col-lg-3">
-            <div class="card h-100">
-                <div class="card-body p-2">
-                    <h6 class="card-title mb-1" style="font-size: 0.9rem;">${escapeHtml(service.name)}</h6>
-                    <p class="card-text small text-muted mb-1">${escapeHtml(service.description || '')}</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge bg-light text-dark small">${service.duration} мин</span>
-                        <span class="fw-bold small" style="color: #ff85b3;">${service.price} ₽</span>
-                    </div>
-                </div>
-                <div class="card-footer bg-white border-0 p-1">
-                    <div class="btn-group w-100">
-                        <button class="btn btn-sm btn-outline-pink" onclick="editService(${service.id})">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteService(${service.id}, '${escapeHtml(service.name)}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
+        <div class="service-card">
+            <div class="service-name">${escapeHtml(service.name)}</div>
+            ${service.description ? `<div class="service-description">${escapeHtml(service.description)}</div>` : ''}
+            <div class="service-meta">
+                <span class="duration">
+                    <i class="far fa-clock me-1"></i>${service.duration} мин
+                </span>
+                <span class="price">${service.price} ₽</span>
+            </div>
+            <div class="service-actions">
+                <button class="btn btn-edit" onclick="editService(${service.id})">
+                    <i class="fas fa-edit me-1"></i>Изменить
+                </button>
+                <button class="btn btn-delete" onclick="deleteService(${service.id}, '${escapeHtml(service.name)}')">
+                    <i class="fas fa-trash me-1"></i>Удалить
+                </button>
             </div>
         </div>
     `;
 }
 
+
+
 function toggleCategory(catId) {
     const body = document.getElementById(`cat-body-${catId}`);
     const icon = document.getElementById(`cat-icon-${catId}`);
-    if (body.style.display === 'none') {
-        body.style.display = 'block';
-        icon.className = 'fas fa-chevron-down me-2';
+    if (body.style.display === 'none' || body.style.display === '') {
+        body.style.display = 'grid';
+        icon.style.transform = 'rotate(90deg)';
     } else {
         body.style.display = 'none';
-        icon.className = 'fas fa-chevron-right me-2';
+        icon.style.transform = 'rotate(0deg)';
     }
 }
 
@@ -328,17 +320,23 @@ function loadCategoriesList() {
             data.categories.forEach(cat => {
                 html += `
                     <div class="list-group-item" data-category-id="${cat.id}" id="category-item-${cat.id}">
-                        <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap">
                             <div class="category-view-mode">
                                 <strong>${escapeHtml(cat.name)}</strong>
                                 <span class="badge bg-secondary ms-2">${cat.services.length} услуг</span>
                                 <span class="text-muted ms-2">(порядок: ${cat.order})</span>
                             </div>
-                            <div class="category-edit-mode" style="display: none;">
-                                <input type="text" class="form-control form-control-sm d-inline-block w-auto" value="${escapeHtml(cat.name)}" id="edit-name-${cat.id}" style="width: 200px;">
-                                <input type="number" class="form-control form-control-sm d-inline-block w-auto ms-2" value="${cat.order}" id="edit-order-${cat.id}" style="width: 80px;" min="0">
+                            <div class="category-edit-mode" style="display: none; width: 100%; margin-top: 8px;">
+                                <div class="row g-2">
+                                    <div class="col-8">
+                                        <input type="text" class="form-control form-control-sm" value="${escapeHtml(cat.name)}" id="edit-name-${cat.id}" placeholder="Название">
+                                    </div>
+                                    <div class="col-4">
+                                        <input type="number" class="form-control form-control-sm" value="${cat.order}" id="edit-order-${cat.id}" min="0">
+                                    </div>
+                                </div>
                             </div>
-                            <div>
+                            <div class="category-actions">
                                 <button class="btn btn-sm btn-outline-pink me-1" onclick="editCategoryInline(${cat.id})" id="edit-btn-${cat.id}">
                                     <i class="fas fa-edit"></i>
                                 </button>
@@ -642,41 +640,5 @@ function showConfirm(message, onConfirm) {
 document.addEventListener('DOMContentLoaded', loadServices);
 </script>
 
-<!-- <style>
-/* Блокируем автофокус и прокрутку Bootstrap модальных окон */
-.modal {
-    overflow-y: auto !important;
-}
-
-.modal-open {
-    overflow: auto !important;
-    padding-right: 0 !important;
-}
-
-.modal:focus {
-    outline: none !important;
-}
-
-.modal.fade .modal-dialog {
-    transition: transform 0.2s ease-out;
-}
-
-.modal.show .modal-content {
-    pointer-events: auto;
-}
-
-.modal.show {
-    background-color: rgba(0, 0, 0, 0.5);
-}
-
-.modal-backdrop {
-    display: none !important;
-}
-
-/* Приоритет для всплывающих окон */
-#alertModal, #confirmModal {
-    z-index: 1060 !important;
-}
-</style> -->
 
 {% endblock %}
