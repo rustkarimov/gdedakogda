@@ -29,7 +29,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="categoryModalTitle">
-                    <i class="fas fa-folder-plus me-2" style="color: #ff85b3;"></i>
+                    <i class="fas fa-folder-plus me-2" style="color: var(--primary);"></i>
                     Управление категориями
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -296,7 +296,7 @@ function openCategoryModal() {
     document.getElementById('categoryId').value = '';
     document.getElementById('categoryName').value = '';
     document.getElementById('categoryOrder').value = '0';
-    document.getElementById('categoryModalTitle').innerHTML = '<i class="fas fa-folder-plus me-2" style="color: #ff85b3;"></i>Управление категориями';
+    document.getElementById('categoryModalTitle').innerHTML = '<i class="fas fa-folder-plus me-2" style="color: var(--primary);"></i>Управление категориями';
     
     loadCategoriesList();
     
@@ -520,18 +520,22 @@ function saveCategory() {
 
 // ========== УСЛУГИ ==========
 
+// ========== УСЛУГИ ==========
+
 function openAddServiceModal() {
-    document.getElementById('serviceModalTitle').innerText = 'Добавить услугу';
+    document.getElementById('serviceModalTitle').innerHTML = '<i class="fas fa-plus me-2" style="color: var(--primary);"></i>Добавить услугу';
     document.getElementById('serviceForm').reset();
     document.getElementById('serviceId').value = '';
     document.getElementById('serviceActive').checked = true;
+    // Очищаем поле категории
+    document.getElementById('serviceCategory').value = '';
 }
 
 function editService(id) {
     fetch(`/api/services/${id}/get/`)
         .then(r => r.json())
         .then(service => {
-            document.getElementById('serviceModalTitle').innerText = 'Редактировать услугу';
+            document.getElementById('serviceModalTitle').innerHTML = '<i class="fas fa-edit me-2" style="color: var(--primary);"></i>Редактировать услугу';
             document.getElementById('serviceId').value = service.id;
             document.getElementById('serviceCategory').value = service.category_id || '';
             document.getElementById('serviceName').value = service.name;

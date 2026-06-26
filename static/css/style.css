@@ -2647,6 +2647,8 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     margin-bottom: 16px;
 }
 
+
+
 /* ---- Компактный режим для мобильных ---- */
 @media (max-width: 768px) {
     .services-page {
@@ -2913,7 +2915,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 #categoryModal .list-group-item .badge {
     font-size: 0.7rem;
     padding: 2px 10px;
-    background: var(--gray-200);
+    background: rgb(231, 231, 231) !important;
     color: var(--gray-700);
 }
 
@@ -2990,32 +2992,43 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
 @media (max-width: 768px) {
     #categoryModal .modal-dialog {
-        margin: 8px !important;
+        margin: 0 !important;
         max-width: 100% !important;
-        width: calc(100% - 16px) !important;
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
     }
     
     #categoryModal .modal-content {
-        border-radius: 16px !important;
+        height: 100% !important;
+        border-radius: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        max-height: none !important;
     }
     
     #categoryModal .modal-header {
-        padding: 12px 16px !important;
+        padding: 14px 16px !important;
+        flex-shrink: 0 !important;
+        border-bottom: 1px solid var(--gray-200) !important;
     }
     
     #categoryModal .modal-header h5 {
-        font-size: 0.95rem !important;
+        font-size: 1rem !important;
     }
     
     #categoryModal .modal-body {
+        flex: 1 !important;
+        max-height: none !important;
+        overflow-y: auto !important;
         padding: 12px 16px !important;
-        max-height: calc(100vh - 180px) !important;
     }
     
     #categoryModal .modal-footer {
         padding: 10px 16px !important;
-        flex-direction: column !important;
-        gap: 6px !important;
+        flex-shrink: 0 !important;
+        border-top: 1px solid var(--gray-200) !important;
     }
     
     #categoryModal .modal-footer .btn {
@@ -3042,7 +3055,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     }
     
     #categoryModal .card-body .form-control {
-        font-size: 16px !important;
+        font-size: 12px !important;
         padding: 8px 12px !important;
         border-radius: 8px !important;
     }
@@ -3050,7 +3063,6 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     /* Список категорий */
     #categoryModal .list-group-item {
         padding: 10px 12px !important;
-        flex-wrap: wrap !important;
     }
     
     #categoryModal .list-group-item .d-flex {
@@ -3076,24 +3088,6 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         font-size: 0.65rem !important;
     }
     
-    /* Режим редактирования */
-    #categoryModal .category-edit-mode {
-        width: 100% !important;
-        margin-top: 4px !important;
-    }
-    
-    #categoryModal .category-edit-mode .form-control {
-        width: 100% !important;
-        font-size: 14px !important;
-        padding: 6px 10px !important;
-        margin-bottom: 4px !important;
-    }
-    
-    #categoryModal .category-edit-mode .form-control-sm {
-        width: 100% !important;
-        display: block !important;
-    }
-    
     /* Кнопки в списке категорий */
     #categoryModal .list-group-item .btn-sm {
         padding: 2px 6px !important;
@@ -3103,12 +3097,8 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
 @media (max-width: 480px) {
     #categoryModal .modal-dialog {
-        margin: 4px !important;
-        width: calc(100% - 8px) !important;
-    }
-    
-    #categoryModal .modal-content {
-        border-radius: 12px !important;
+        margin: 0 !important;
+        width: 100% !important;
     }
     
     #categoryModal .modal-header {
@@ -3145,6 +3135,231 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     }
 }
 
+/* ============================================================ */
+/* ========== МОДАЛЬНОЕ ОКНО УСЛУГИ (serviceModal) ========== */
+/* ============================================================ */
+
+/* ---- Десктопная версия ---- */
+#serviceModal .modal-dialog {
+    max-width: 600px;
+    margin: 1.75rem auto;
+}
+
+#serviceModal .modal-content {
+    border-radius: 20px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+#serviceModal .modal-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--gray-200);
+    background: white;
+}
+
+#serviceModal .modal-header h5 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
+#serviceModal .modal-header h5 i {
+    color: var(--primary);
+}
+
+#serviceModal .modal-body {
+    padding: 20px 24px;
+    max-height: calc(90vh - 140px);
+    overflow-y: auto;
+}
+
+#serviceModal .modal-footer {
+    padding: 12px 24px;
+    border-top: 1px solid var(--gray-200);
+    background: var(--gray-50);
+}
+
+/* ---- Поля формы ---- */
+#serviceModal .form-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    margin-bottom: 4px;
+}
+
+#serviceModal .form-control,
+#serviceModal .form-select {
+    border-radius: 10px;
+    border: 1px solid var(--gray-300);
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease;
+    height: 40px;
+}
+
+#serviceModal .form-control:focus,
+#serviceModal .form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+#serviceModal textarea.form-control {
+    height: auto;
+    min-height: 60px;
+    resize: vertical;
+}
+
+#serviceModal .form-check-input:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+#serviceModal .form-check-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+#serviceModal .form-check-label {
+    font-size: 0.85rem;
+    color: var(--gray-700);
+}
+
+/* ---- Кнопки ---- */
+#serviceModal .btn-secondary {
+    background: var(--gray-200);
+    color: var(--gray-700);
+    border: none;
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+#serviceModal .btn-secondary:hover {
+    background: var(--gray-300);
+    color: var(--gray-800);
+}
+
+#serviceModal .btn-pink {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+#serviceModal .btn-pink:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+    color: white;
+}
+
+/* ============================================================ */
+/* ========== МОДАЛЬНОЕ ОКНО УСЛУГИ (МОБИЛЬНАЯ ВЕРСИЯ) ========== */
+/* ============================================================ */
+
+@media (max-width: 768px) {
+    #serviceModal .modal-dialog {
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+    }
+    
+    #serviceModal .modal-content {
+        height: 100% !important;
+        border-radius: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        max-height: none !important;
+    }
+    
+    #serviceModal .modal-header {
+        padding: 14px 16px !important;
+        flex-shrink: 0 !important;
+        border-bottom: 1px solid var(--gray-200) !important;
+    }
+    
+    #serviceModal .modal-header h5 {
+        font-size: 1rem !important;
+    }
+    
+    #serviceModal .modal-body {
+        flex: 1 !important;
+        max-height: none !important;
+        overflow-y: auto !important;
+        padding: 12px 16px !important;
+    }
+    
+    #serviceModal .modal-footer {
+        padding: 10px 16px !important;
+        flex-shrink: 0 !important;
+        border-top: 1px solid var(--gray-200) !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+    }
+    
+    #serviceModal .modal-footer .btn {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+    
+    #serviceModal .form-label {
+        font-size: 0.8rem !important;
+    }
+    
+    #serviceModal .form-control,
+    #serviceModal .form-select {
+        font-size: 16px !important;
+        padding: 8px 12px !important;
+        border-radius: 8px !important;
+        height: 40px !important;
+    }
+    
+    #serviceModal textarea.form-control {
+        min-height: 50px !important;
+    }
+    
+    #serviceModal .row {
+        margin: 0 !important;
+    }
+    
+    #serviceModal .col-md-6 {
+        padding: 0 !important;
+    }
+}
+
+@media (max-width: 480px) {
+    #serviceModal .modal-header {
+        padding: 10px 12px !important;
+    }
+    
+    #serviceModal .modal-header h5 {
+        font-size: 0.85rem !important;
+    }
+    
+    #serviceModal .modal-body {
+        padding: 10px 12px !important;
+    }
+    
+    #serviceModal .form-label {
+        font-size: 0.75rem !important;
+    }
+    
+    #serviceModal .form-control,
+    #serviceModal .form-select {
+        font-size: 14px !important;
+        padding: 6px 10px !important;
+        height: 36px !important;
+    }
+}
 
 /* ============================================================ */
 /* ========== ПУБЛИЧНАЯ ГЛАВНАЯ (ЛЕНДИНГ) ========== */
