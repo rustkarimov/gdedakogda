@@ -3,9 +3,11 @@
 {% block title %}Расписание работы{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="far fa-calendar-alt me-2" style="color: #ff85b3;"></i>Расписание работы</h2>
-</div>
+<div class="schedule-page">
+    <div class="page-header">
+        <h2><i class="far fa-calendar-alt me-2"></i>Расписание работы</h2>
+    </div>
+
 
 <!-- Модальные окна для уведомлений и подтверждений -->
 <div class="modal fade" id="alertModal" tabindex="-1">
@@ -47,12 +49,12 @@
     <div class="col-lg-8">
         <!-- Ваше регулярное расписание -->
         <div class="card">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="far fa-calendar-alt me-2" style="color: #ff85b3;"></i>
+            <div class="card-header">
+                <h5>
+                    <i class="far fa-calendar-alt"></i>
                     Ваше регулярное расписание
                 </h5>
-                <button class="btn btn-sm btn-pink" data-bs-toggle="modal" data-bs-target="#scheduleModal" onclick="openAddModal()">
+                <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#scheduleModal" onclick="openAddModal()">
                     <i class="fas fa-plus me-1"></i>Добавить рабочий день
                 </button>
             </div>
@@ -64,20 +66,20 @@
         </div>
 
         <!-- Дополнительные рабочие дни -->
-        <div class="card mt-4">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="fas fa-calendar-plus me-2" style="color: #ff85b3;"></i>
+        <div class="card">
+            <div class="card-header">
+                <h5>
+                    <i class="fas fa-calendar-plus"></i>
                     Дополнительные рабочие дни
                 </h5>
-                <button class="btn btn-sm btn-pink" data-bs-toggle="modal" data-bs-target="#extraDayModal" onclick="openAddExtraDayModal()">
+                <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#extraDayModal" onclick="openAddExtraDayModal()">
                     <i class="fas fa-plus me-1"></i>Добавить рабочий день
                 </button>
             </div>
             <div class="card-body">
                 <div id="extra-days-container">
                     <div class="text-center">
-                        <div class="spinner-border" style="color: #ff85b3;" role="status">
+                        <div class="spinner-border" style="color: var(--primary);" role="status">
                             <span class="visually-hidden">Загрузка...</span>
                         </div>
                     </div>
@@ -86,20 +88,20 @@
         </div>
 
         <!-- Выходные дни -->
-        <div class="card mt-4">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">
-                    <i class="fas fa-umbrella-beach me-2" style="color: #ff85b3;"></i>
+        <div class="card">
+            <div class="card-header">
+                <h5>
+                    <i class="fas fa-umbrella-beach"></i>
                     Выходные дни
                 </h5>
-                <button class="btn btn-sm btn-pink" data-bs-toggle="modal" data-bs-target="#dayOffModal" onclick="openAddDayOffModal()">
+                <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#dayOffModal" onclick="openAddDayOffModal()">
                     <i class="fas fa-plus me-1"></i>Добавить выходной
                 </button>
             </div>
             <div class="card-body">
                 <div id="days-off-container">
                     <div class="text-center">
-                        <div class="spinner-border" style="color: #ff85b3;" role="status">
+                        <div class="spinner-border" style="color: var(--primary);" role="status">
                             <span class="visually-hidden">Загрузка...</span>
                         </div>
                     </div>
@@ -430,9 +432,14 @@ function renderFutureDays(futureDays) {
 function renderPastDaysContent() {
     const container = document.getElementById('past-days-container');
     if (!container) return;
-    if (allPastDays.length === 0) { container.innerHTML = '<p class="text-muted">Нет прошедших дополнительных дней</p>'; return; }
+    if (allPastDays.length === 0) { 
+        container.innerHTML = '<p class="text-muted">Нет прошедших дополнительных дней</p>'; 
+        return; 
+    }
     let html = '<div class="table-responsive"><table class="table table-sm"><thead><tr><th>Дата</th><th>Время</th></tr></thead><tbody>';
-    allPastDays.forEach(day => { html += `<tr><td>${day.date_display}</td><td>${day.start_time} - ${day.end_time}</td></tr>`; });
+    allPastDays.forEach(day => { 
+        html += `<tr><td data-label="">${day.date_display}</td><td data-label="">${day.start_time} - ${day.end_time}</td></tr>`; 
+    });
     html += '</tbody></table></div>';
     if (pastDaysHasMore) html += '<div class="text-center mt-3"><button class="btn btn-outline-pink" onclick="loadMorePastDays()">Загрузить еще</button></div>';
     container.innerHTML = html;
@@ -549,35 +556,4 @@ document.addEventListener('hidden.bs.modal', function() {
 });
 </script>
 
-<!-- <style>
-.btn-outline-pink { border: 1px solid #ff85b3; color: #ff85b3; background: transparent; }
-.btn-outline-pink:hover { background-color: #ff85b3; color: white; }
-.btn-pink { background-color: #ff85b3; color: white; }
-.btn-pink:hover { background-color: #e06e9e; color: white; }
-.sticky-top { position: sticky; top: 20px; z-index: 1; }
-.btn-secondary { background-color: #6c757d; color: white; border: none; }
-.btn-outline-pink:disabled { opacity: 0.5; cursor: not-allowed; }
-
-/* Решение для вложенных модальных окон */
-.modal-backdrop {
-    visibility: hidden !important;
-}
-
-.modal.show {
-    background-color: rgba(0, 0, 0, 0.5);
-}
-
-.modal-backdrop.show {
-    opacity: 0;
-}
-
-/* Приоритет для всплывающих окон поверх модальных */
-#alertModal, #confirmModal {
-    z-index: 1060 !important;
-}
-
-#alertModal .modal-content, #confirmModal .modal-content {
-    z-index: 1061 !important;
-}
-</style> -->
 {% endblock %}

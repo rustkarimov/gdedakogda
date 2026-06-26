@@ -6,8 +6,8 @@
             <thead>
                 <tr>
                     <th>День недели</th>
-                    <th>Начало работы</th>
-                    <th>Конец работы</th>
+                    <th>Начало</th>
+                    <th>Конец</th>
                     <th>Перерывы</th>
                     <th>Действия</th>
                 </tr>
@@ -15,38 +15,40 @@
             <tbody>
                 {% for schedule in schedules %}
                 <tr id="schedule-row-{{ schedule.id }}">
-                    <td><strong>{{ schedule.get_day_of_week_display }}</strong></td>
-                    <td>{{ schedule.start_time|time:"H:i" }}</td>
-                    <td>{{ schedule.end_time|time:"H:i" }}</td>
-                    <td>
+                    <td data-label=""><strong>{{ schedule.get_day_of_week_display }}</strong></td>
+                    <td data-label="">{{ schedule.start_time|time:"H:i" }}</td>
+                    <td data-label="">{{ schedule.end_time|time:"H:i" }}</td>
+                    <td data-label="">
                         {% for break in schedule.breaks.all %}
-                            <span class="badge bg-warning text-dark mb-1">
+                            <span class="break-badge">
                                 {{ break.start_time|time:"H:i" }} - {{ break.end_time|time:"H:i" }}
                             </span>
                         {% empty %}
                             <span class="text-muted">—</span>
                         {% endfor %}
                     </td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-pink" 
-                                data-id="{{ schedule.id }}"
-                                data-day="{{ schedule.day_of_week }}"
-                                data-day-name="{{ schedule.get_day_of_week_display }}"
-                                data-start="{{ schedule.start_time|time:'H:i' }}"
-                                data-end="{{ schedule.end_time|time:'H:i' }}"
-                                data-breaks='[
-                                    {% for break in schedule.breaks.all %}
-                                        {"start": "{{ break.start_time|time:'H:i' }}", "end": "{{ break.end_time|time:'H:i' }}"}
-                                        {% if not forloop.last %},{% endif %}
-                                    {% endfor %}
-                                ]'
-                                onclick="editSchedule(this)">
-                            <i class="fas fa-edit"></i> Изменить
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" 
-                                onclick="deleteSchedule({{ schedule.id }}, '{{ schedule.get_day_of_week_display }}')">
-                            <i class="fas fa-trash"></i> Удалить
-                        </button>
+                    <td data-label="">
+                        <div class="action-icons">
+                            <button class="btn btn-sm" 
+                                    data-id="{{ schedule.id }}"
+                                    data-day="{{ schedule.day_of_week }}"
+                                    data-day-name="{{ schedule.get_day_of_week_display }}"
+                                    data-start="{{ schedule.start_time|time:'H:i' }}"
+                                    data-end="{{ schedule.end_time|time:'H:i' }}"
+                                    data-breaks='[
+                                        {% for break in schedule.breaks.all %}
+                                            {"start": "{{ break.start_time|time:'H:i' }}", "end": "{{ break.end_time|time:'H:i' }}"}
+                                            {% if not forloop.last %},{% endif %}
+                                        {% endfor %}
+                                    ]'
+                                    onclick="editSchedule(this)" title="Изменить">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm" 
+                                    onclick="deleteSchedule({{ schedule.id }}, '{{ schedule.get_day_of_week_display }}')" title="Удалить">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>
                 {% endfor %}
