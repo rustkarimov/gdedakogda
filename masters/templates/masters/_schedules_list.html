@@ -15,10 +15,10 @@
             <tbody>
                 {% for schedule in schedules %}
                 <tr id="schedule-row-{{ schedule.id }}">
-                    <td data-label=""><strong>{{ schedule.get_day_of_week_display }}</strong></td>
-                    <td data-label="">{{ schedule.start_time|time:"H:i" }}</td>
-                    <td data-label="">{{ schedule.end_time|time:"H:i" }}</td>
-                    <td data-label="">
+                    <td data-label="day"><strong>{{ schedule.get_day_of_week_display }}</strong></td>
+                    <td data-label="start">{{ schedule.start_time|time:"H:i" }}</td>
+                    <td data-label="end">{{ schedule.end_time|time:"H:i" }}</td>
+                    <td data-label="breaks">
                         {% for break in schedule.breaks.all %}
                             <span class="break-badge">
                                 {{ break.start_time|time:"H:i" }} - {{ break.end_time|time:"H:i" }}
@@ -27,7 +27,7 @@
                             <span class="text-muted">—</span>
                         {% endfor %}
                     </td>
-                    <td data-label="">
+                    <td data-label="actions">
                         <div class="action-icons">
                             <button class="btn btn-sm" 
                                     data-id="{{ schedule.id }}"
