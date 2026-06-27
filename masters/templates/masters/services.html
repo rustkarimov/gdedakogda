@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="services-page">
-    <div class="page-header">
+    <!-- <div class="page-header">
         <h2><i class="fas fa-cut me-2"></i>Мои услуги</h2>
         <div class="btn-group">
             <button class="btn btn-outline-pink" data-bs-target="#categoryModal" onclick="openCategoryModal()">
@@ -14,6 +14,21 @@
                 <i class="fas fa-plus me-1"></i>Добавить услугу
             </button>
         </div>
+    </div> -->
+
+    <!-- Заголовок -->
+    <div class="page-header">
+        <h2><i class="fas fa-cut me-2"></i>Мои услуги</h2>
+    </div>
+
+    <!-- Блок с кнопками (отдельно, в одну строку) -->
+    <div class="actions-bar">
+        <button class="btn btn-outline-pink" data-bs-toggle="modal" data-bs-target="#categoryModal" onclick="openCategoryModal()">
+            <i class="fas fa-folder-plus me-1"></i>Добавить категорию
+        </button>
+        <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#serviceModal" onclick="openAddServiceModal()">
+            <i class="fas fa-plus me-1"></i>Добавить услугу
+        </button>
     </div>
 
     <div id="services-container">

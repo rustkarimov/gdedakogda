@@ -220,7 +220,7 @@
                         </div>
                     </div>
                     
-                    <div class="mb-3">
+                    <!-- <div class="mb-3">
                         <label class="form-label">Перерывы</label>
                         <div id="extraDayBreaksContainer">
                             <div class="break-item row mb-2">
@@ -240,7 +240,18 @@
                         <button type="button" class="btn btn-sm btn-outline-pink mt-2" onclick="addExtraDayBreakField()">
                             <i class="fas fa-plus me-1"></i>Добавить перерыв
                         </button>
+                    </div> -->
+
+                    <div class="mb-3">
+                        <label class="form-label">Перерывы</label>
+                        <div id="extraDayBreaksContainer" style="display: none;">
+                            <!-- Перерывы будут добавляться сюда -->
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-pink" onclick="addExtraDayBreakField()">
+                            <i class="fas fa-plus me-1"></i>Добавить перерыв
+                        </button>
                     </div>
+
                 </form>
             </div>
             <div class="modal-footer">
@@ -565,52 +576,168 @@ function renderPastDaysContent() {
 
 function loadMorePastDays() { if (pastDaysHasMore) loadPastDays(pastDaysPage + 1, true); }
 
+// function openAddExtraDayModal() {
+//     document.getElementById('extraDayForm').reset();
+//     document.getElementById('extraDayBreaksContainer').innerHTML = `<div class="break-item row mb-2"><div class="col-md-5"><input type="time" class="form-control break-start" placeholder="Начало"></div><div class="col-md-5"><input type="time" class="form-control break-end" placeholder="Конец"></div><div class="col-md-2"><button type="button" class="btn btn-danger btn-sm remove-break" style="display: none;"><i class="fas fa-trash"></i></button></div></div>`;
+//     document.getElementById('extraDayDate').min = new Date().toISOString().split('T')[0];
+// }
+
+// function addExtraDayBreakField(start = '', end = '') {
+//     const div = document.createElement('div');
+//     div.className = 'break-item row mb-2';
+//     div.innerHTML = `<div class="col-md-5"><input type="time" class="form-control break-start" value="${start}"></div><div class="col-md-5"><input type="time" class="form-control break-end" value="${end}"></div><div class="col-md-2"><button type="button" class="btn btn-danger btn-sm remove-break" onclick="this.closest('.break-item').remove()"><i class="fas fa-trash"></i></button></div>`;
+//     document.getElementById('extraDayBreaksContainer').appendChild(div);
+// }
+
+// function saveExtraDay() {
+//     const date = document.getElementById('extraDayDate').value, start = document.getElementById('extraDayStart').value, end = document.getElementById('extraDayEnd').value;
+//     if (!date || !start || !end) return showAlert('Заполните все обязательные поля', 'Ошибка');
+//     const breaks = [];
+//     document.querySelectorAll('#extraDayBreaksContainer .break-item').forEach(item => {
+//         const s = item.querySelector('.break-start').value, e = item.querySelector('.break-end').value;
+//         if (s && e) breaks.push({ start: s, end: e });
+//     });
+//     const btn = event.target, orig = btn.innerHTML;
+//     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
+//     btn.disabled = true;
+//     fetch('/api/extra-days/add/', {
+//         method: 'POST',
+//         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+//         body: JSON.stringify({ date, start_time: start, end_time: end, breaks })
+//     }).then(r => r.json()).then(data => {
+//         if (data.success) {
+//             bootstrap.Modal.getInstance(document.getElementById('extraDayModal')).hide();
+//             pastDaysPage = 1; allPastDays = []; loadExtraDays();
+//             if (typeof loadCalendar === 'function') loadCalendar();
+//         } else showAlert(data.error || 'Ошибка при сохранении', 'Ошибка');
+//     }).catch(() => showAlert('Произошла ошибка', 'Ошибка')).finally(() => { btn.innerHTML = orig; btn.disabled = false; });
+// }
+
+// function deleteExtraDay(id) {
+//     showConfirm('Удалить этот дополнительный рабочий день?', confirmed => {
+//         if (confirmed) fetch(`/api/extra-days/${id}/delete/`, {
+//             method: 'POST',
+//             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+//         }).then(r => r.json()).then(data => {
+//             if (data.success) { pastDaysPage = 1; allPastDays = []; loadExtraDays(); if (typeof loadCalendar === 'function') loadCalendar(); }
+//             else showAlert(data.error || 'Ошибка при удалении', 'Ошибка');
+//         });
+//     });
+// }
+
 function openAddExtraDayModal() {
     document.getElementById('extraDayForm').reset();
-    document.getElementById('extraDayBreaksContainer').innerHTML = `<div class="break-item row mb-2"><div class="col-md-5"><input type="time" class="form-control break-start" placeholder="Начало"></div><div class="col-md-5"><input type="time" class="form-control break-end" placeholder="Конец"></div><div class="col-md-2"><button type="button" class="btn btn-danger btn-sm remove-break" style="display: none;"><i class="fas fa-trash"></i></button></div></div>`;
     document.getElementById('extraDayDate').min = new Date().toISOString().split('T')[0];
+    
+    // Очищаем и скрываем контейнер перерывов
+    const container = document.getElementById('extraDayBreaksContainer');
+    container.innerHTML = '';
+    container.style.display = 'none';
 }
 
 function addExtraDayBreakField(start = '', end = '') {
+    const container = document.getElementById('extraDayBreaksContainer');
+    
+    // Показываем контейнер, если он скрыт
+    container.style.display = 'block';
+    
     const div = document.createElement('div');
-    div.className = 'break-item row mb-2';
-    div.innerHTML = `<div class="col-md-5"><input type="time" class="form-control break-start" value="${start}"></div><div class="col-md-5"><input type="time" class="form-control break-end" value="${end}"></div><div class="col-md-2"><button type="button" class="btn btn-danger btn-sm remove-break" onclick="this.closest('.break-item').remove()"><i class="fas fa-trash"></i></button></div>`;
-    document.getElementById('extraDayBreaksContainer').appendChild(div);
+    div.className = 'break-item';
+    div.innerHTML = `
+        <div class="col-md-5">
+            <input type="time" class="form-control break-start" value="${start}" placeholder="Начало">
+        </div>
+        <div class="col-md-5">
+            <input type="time" class="form-control break-end" value="${end}" placeholder="Конец">
+        </div>
+        <div class="col-md-2">
+            <button type="button" class="btn btn-danger btn-sm remove-break" onclick="removeExtraDayBreakField(this)">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+    container.appendChild(div);
+}
+
+function removeExtraDayBreakField(button) {
+    const item = button.closest('.break-item');
+    const container = document.getElementById('extraDayBreaksContainer');
+    item.remove();
+    
+    // Если перерывов не осталось — скрываем контейнер
+    if (container.children.length === 0) {
+        container.style.display = 'none';
+    }
 }
 
 function saveExtraDay() {
-    const date = document.getElementById('extraDayDate').value, start = document.getElementById('extraDayStart').value, end = document.getElementById('extraDayEnd').value;
+    const date = document.getElementById('extraDayDate').value;
+    const start = document.getElementById('extraDayStart').value;
+    const end = document.getElementById('extraDayEnd').value;
+    
     if (!date || !start || !end) return showAlert('Заполните все обязательные поля', 'Ошибка');
+    
     const breaks = [];
     document.querySelectorAll('#extraDayBreaksContainer .break-item').forEach(item => {
-        const s = item.querySelector('.break-start').value, e = item.querySelector('.break-end').value;
+        const s = item.querySelector('.break-start').value;
+        const e = item.querySelector('.break-end').value;
         if (s && e) breaks.push({ start: s, end: e });
     });
-    const btn = event.target, orig = btn.innerHTML;
+    
+    const btn = event.target;
+    const orig = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
     btn.disabled = true;
+    
     fetch('/api/extra-days/add/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
         body: JSON.stringify({ date, start_time: start, end_time: end, breaks })
-    }).then(r => r.json()).then(data => {
+    })
+    .then(r => r.json())
+    .then(data => {
         if (data.success) {
             bootstrap.Modal.getInstance(document.getElementById('extraDayModal')).hide();
-            pastDaysPage = 1; allPastDays = []; loadExtraDays();
+            pastDaysPage = 1;
+            allPastDays = [];
+            loadExtraDays();
             if (typeof loadCalendar === 'function') loadCalendar();
-        } else showAlert(data.error || 'Ошибка при сохранении', 'Ошибка');
-    }).catch(() => showAlert('Произошла ошибка', 'Ошибка')).finally(() => { btn.innerHTML = orig; btn.disabled = false; });
+        } else {
+            showAlert(data.error || 'Ошибка при сохранении', 'Ошибка');
+        }
+    })
+    .catch(() => showAlert('Произошла ошибка', 'Ошибка'))
+    .finally(() => {
+        btn.innerHTML = orig;
+        btn.disabled = false;
+    });
 }
 
 function deleteExtraDay(id) {
     showConfirm('Удалить этот дополнительный рабочий день?', confirmed => {
-        if (confirmed) fetch(`/api/extra-days/${id}/delete/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
-        }).then(r => r.json()).then(data => {
-            if (data.success) { pastDaysPage = 1; allPastDays = []; loadExtraDays(); if (typeof loadCalendar === 'function') loadCalendar(); }
-            else showAlert(data.error || 'Ошибка при удалении', 'Ошибка');
-        });
+        if (confirmed) {
+            fetch(`/api/extra-days/${id}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    pastDaysPage = 1;
+                    allPastDays = [];
+                    loadExtraDays();
+                    if (typeof loadCalendar === 'function') loadCalendar();
+                } else {
+                    showAlert(data.error || 'Ошибка при удалении', 'Ошибка');
+                }
+            });
+        }
     });
 }
 

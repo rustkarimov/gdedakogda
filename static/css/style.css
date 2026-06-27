@@ -2376,20 +2376,17 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     }
 }
 
+
+
 /* ============================================================ */
 /* ========== СТРАНИЦА УСЛУГ (services.html) ========== */
 /* ============================================================ */
 
-
 /* ---- Шапка страницы ---- */
-
 .services-page .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
-    gap: 12px;
+ 
+    margin-bottom: 16px;
+
 }
 
 .services-page .page-header h2 {
@@ -2404,13 +2401,15 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     margin-right: 10px;
 }
 
-.services-page .page-header .btn-group {
+/* ---- Блок с кнопками (actions-bar) ---- */
+.services-page .actions-bar {
     display: flex;
-    gap: 8px;
+    gap: 10px;
+    margin-bottom: 20px;
     flex-wrap: wrap;
 }
 
-.services-page .page-header .btn {
+.services-page .actions-bar .btn {
     padding: 8px 20px !important;
     font-size: 0.85rem !important;
     border-radius: 30px !important;
@@ -2418,27 +2417,27 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     transition: all 0.2s ease !important;
 }
 
-.services-page .page-header .btn-outline-pink {
-    border: 1px solid var(--primary);
-    color: var(--primary);
-    background: transparent;
-}
-
-.services-page .page-header .btn-outline-pink:hover {
-    background: var(--primary-gradient);
-    border-color: transparent;
-    color: white;
-}
-
-.services-page .page-header .btn-pink {
+.services-page .actions-bar .btn-pink {
     background: var(--primary-gradient);
     color: white;
     border: none;
 }
 
-.services-page .page-header .btn-pink:hover {
+.services-page .actions-bar .btn-pink:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+    color: white;
+}
+
+.services-page .actions-bar .btn-outline-pink {
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    background: transparent;
+}
+
+.services-page .actions-bar .btn-outline-pink:hover {
+    background: var(--primary-gradient);
+    border-color: transparent;
     color: white;
 }
 
@@ -2647,18 +2646,13 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     margin-bottom: 16px;
 }
 
-
-
-/* ---- Компактный режим для мобильных ---- */
+/* ---- Мобильная версия ---- */
 @media (max-width: 768px) {
     .services-page {
         margin: 0 10px;
     }
     
     .services-page .page-header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
         margin-bottom: 16px;
     }
     
@@ -2667,19 +2661,18 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         text-align: left;
     }
     
-    .services-page .page-header .btn-group {
-        width: 100%;
+    /* Кнопки в столбик на мобильных */
+    .services-page .actions-bar {
         flex-direction: column;
-        gap: 6px;
+        gap: 8px;
+        margin-bottom: 16px;
     }
     
-    .services-page .page-header .btn-group .btn {
+    .services-page .actions-bar .btn {
         width: 100%;
-        text-align: center;
         justify-content: center;
-        font-size: 0.8rem;
-        padding: 8px 16px;
-        border-radius: 30px;
+        font-size: 0.8rem !important;
+        padding: 8px 16px !important;
     }
     
     .services-page .category-header {
@@ -2778,12 +2771,10 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         font-size: 0.6rem;
         padding: 2px 4px;
     }
-    
-    .services-page .page-header .btn-group .btn {
-        font-size: 0.7rem;
-        padding: 6px 12px;
-    }
 }
+
+
+
 
 /* ============================================================ */
 /* ========== МОДАЛЬНОЕ ОКНО КАТЕГОРИЙ ========== */
@@ -3368,12 +3359,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
 /* ---- Шапка страницы ---- */
 .schedule-page .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     margin-bottom: 24px;
-    flex-wrap: wrap;
-    gap: 12px;
 }
 
 .schedule-page .page-header h2 {
@@ -3654,11 +3640,10 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 /* ============================================================ */
 
 @media (max-width: 768px) {
+
     .schedule-page .page-header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
         margin-bottom: 16px;
+        margin-left: 10px;
     }
     
     .schedule-page .page-header h2 {
@@ -3666,14 +3651,14 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         text-align: left;
     }
     
-    .schedule-page .page-header .btn {
+    /* .schedule-page .page-header .btn {
         width: 100%;
         text-align: center;
         justify-content: center;
         font-size: 0.8rem;
         padding: 8px 16px;
         border-radius: 30px;
-    }
+    } */
     
     .schedule-page .card {
         border-radius: 12px;
@@ -3852,10 +3837,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 }
 
 @media (max-width: 480px) {
-    .schedule-page .page-header h2 {
-        font-size: 1rem;
-    }
-    
+        
     .schedule-page .page-header .btn {
         font-size: 0.7rem;
         padding: 6px 12px;
@@ -3890,15 +3872,6 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         font-size: 0.75rem !important;
     }
 }
-
-    .schedule-page #days-off-container .table tbody td[data-label="reason"]:before {
-        content: "Причина";
-        font-weight: 500;
-        color: var(--gray-500);
-        margin-right: 8px;
-        display: inline-block;
-        flex-shrink: 0;
-    }
 
 
 /* ============================================================ */
@@ -3973,6 +3946,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     flex-direction: column;
     gap: 4px;
     margin-bottom: 8px;
+    width: 100%;
 }
 
 /* Скрытое состояние контейнера */
@@ -3983,10 +3957,12 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
 #scheduleModal .break-item {
     display: flex;
+    flex-wrap: nowrap;
     gap: 8px;
     align-items: center;
     padding: 8px 0;
     border-bottom: 1px solid var(--gray-100);
+    width: 100%;
 }
 
 #scheduleModal .break-item:last-child {
@@ -4000,7 +3976,8 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
 #scheduleModal .break-item .col-md-5,
 #scheduleModal .break-item .col-5 {
-    flex: 1;
+    flex: 1 1 0;
+    min-width: 0;
     padding: 0 !important;
 }
 
@@ -4033,7 +4010,25 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     color: var(--danger) !important;
 }
 
-/* ---- Кнопка "Добавить перерыв" ---- */
+/* ---- Блок перерывов: кнопка всегда под заголовком ---- */
+#scheduleModal .mb-3:has(.btn-outline-pink) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+}
+
+/* Отступы для кнопки "Добавить перерыв" */
+#breaksContainer[style*="display: none"] + .btn-outline-pink,
+#extraDayBreaksContainer[style*="display: none"] + .btn-outline-pink {
+    margin-top: 4px;
+}
+
+#breaksContainer:not([style*="display: none"]) + .btn-outline-pink,
+#extraDayBreaksContainer:not([style*="display: none"]) + .btn-outline-pink {
+    margin-top: 8px;
+}
+
 #scheduleModal .btn-outline-pink {
     border: 1px solid var(--primary);
     color: var(--primary);
@@ -4239,6 +4234,559 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         font-size: 13px !important;
     }
 }
+
+
+/* ============================================================ */
+/* ========== МОДАЛЬНОЕ ОКНО ДОПОЛНИТЕЛЬНОГО РАБОЧЕГО ДНЯ (extraDayModal) ========== */
+/* ============================================================ */
+
+/* ---- Десктопная версия ---- */
+#extraDayModal .modal-dialog {
+    max-width: 600px;
+    margin: 1.75rem auto;
+}
+
+#extraDayModal .modal-content {
+    border-radius: 20px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+#extraDayModal .modal-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--gray-200);
+    background: white;
+}
+
+#extraDayModal .modal-header h5 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
+#extraDayModal .modal-body {
+    padding: 20px 24px;
+    max-height: calc(90vh - 140px);
+    overflow-y: auto;
+}
+
+#extraDayModal .modal-footer {
+    padding: 12px 24px;
+    border-top: 1px solid var(--gray-200);
+    background: var(--gray-50);
+}
+
+/* ---- Поля формы ---- */
+#extraDayModal .form-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    margin-bottom: 4px;
+}
+
+#extraDayModal .form-control,
+#extraDayModal .form-select {
+    border-radius: 10px;
+    border: 1px solid var(--gray-300);
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease;
+    height: 40px;
+}
+
+#extraDayModal .form-control:focus,
+#extraDayModal .form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+/* ---- Перерывы с разделителями ---- */
+#extraDayModal #extraDayBreaksContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 8px;
+    width: 100%;
+}
+
+/* Скрытое состояние контейнера */
+#extraDayModal #extraDayBreaksContainer[style*="display: none"] {
+    margin-bottom: 0;
+}
+
+#extraDayModal .break-item {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--gray-100);
+    width: 100%;
+}
+
+#extraDayModal .break-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+#extraDayModal .break-item:first-child {
+    padding-top: 0;
+}
+
+#extraDayModal .break-item .col-md-5,
+#extraDayModal .break-item .col-5 {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0 !important;
+}
+
+#extraDayModal .break-item .col-md-2,
+#extraDayModal .break-item .col-2 {
+    flex: 0 0 40px;
+    padding: 0 !important;
+    text-align: center;
+}
+
+#extraDayModal .break-item .form-control {
+    height: 38px;
+    font-size: 0.85rem;
+    width: 100%;
+}
+
+#extraDayModal .break-item .btn-danger {
+    background: transparent !important;
+    color: var(--gray-500) !important;
+    border: none !important;
+    padding: 4px 8px !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+    font-size: 0.8rem !important;
+    width: 100%;
+}
+
+#extraDayModal .break-item .btn-danger:hover {
+    background: #fef2f2 !important;
+    color: var(--danger) !important;
+}
+
+/* ---- Блок перерывов: кнопка всегда под заголовком ---- */
+#extraDayModal .mb-3:has(.btn-outline-pink) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+}
+
+/* Отступы для кнопки "Добавить перерыв" */
+#extraDayModal #extraDayBreaksContainer[style*="display: none"] + .btn-outline-pink {
+    margin-top: 4px;
+}
+
+#extraDayModal #extraDayBreaksContainer:not([style*="display: none"]) + .btn-outline-pink {
+    margin-top: 8px;
+}
+
+#extraDayModal .btn-outline-pink {
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    background: transparent;
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+}
+
+#extraDayModal .btn-outline-pink:hover {
+    background: var(--primary-gradient);
+    border-color: transparent;
+    color: white;
+}
+
+/* ---- Кнопки в футере ---- */
+#extraDayModal .btn-secondary {
+    background: var(--gray-200);
+    color: var(--gray-700);
+    border: none;
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+#extraDayModal .btn-secondary:hover {
+    background: var(--gray-300);
+    color: var(--gray-800);
+}
+
+#extraDayModal .btn-pink {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+#extraDayModal .btn-pink:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+    color: white;
+}
+
+/* ============================================================ */
+/* ========== МОДАЛЬНОЕ ОКНО ДОПОЛНИТЕЛЬНОГО РАБОЧЕГО ДНЯ (МОБИЛЬНАЯ ВЕРСИЯ) ========== */
+/* ============================================================ */
+
+@media (max-width: 768px) {
+    #extraDayModal .modal-dialog {
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+    }
+    
+    #extraDayModal .modal-content {
+        height: 100% !important;
+        border-radius: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        max-height: none !important;
+    }
+    
+    #extraDayModal .modal-header {
+        padding: 14px 16px !important;
+        flex-shrink: 0 !important;
+        border-bottom: 1px solid var(--gray-200) !important;
+    }
+    
+    #extraDayModal .modal-header h5 {
+        font-size: 1rem !important;
+    }
+    
+    #extraDayModal .modal-body {
+        flex: 1 !important;
+        max-height: none !important;
+        overflow-y: auto !important;
+        padding: 12px 16px !important;
+    }
+    
+    #extraDayModal .modal-footer {
+        padding: 10px 16px !important;
+        flex-shrink: 0 !important;
+        border-top: 1px solid var(--gray-200) !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+    }
+    
+    #extraDayModal .modal-footer .btn {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+    
+    #extraDayModal .form-label {
+        font-size: 0.8rem !important;
+    }
+    
+    #extraDayModal .form-control,
+    #extraDayModal .form-select {
+        font-size: 16px !important;
+        padding: 8px 12px !important;
+        border-radius: 8px !important;
+        height: 40px !important;
+    }
+    
+    #extraDayModal .row {
+        margin: 0 !important;
+    }
+    
+    #extraDayModal .col-md-6 {
+        padding: 0 !important;
+        margin-bottom: 10px !important;
+    }
+    
+    #extraDayModal .col-md-6:last-child {
+        margin-bottom: 0 !important;
+    }
+    
+    /* Перерывы на мобильных */
+    #extraDayModal .break-item {
+        padding: 6px 0;
+        gap: 6px;
+        flex-wrap: nowrap;
+    }
+    
+    #extraDayModal .break-item .col-md-5,
+    #extraDayModal .break-item .col-5 {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    #extraDayModal .break-item .col-md-2,
+    #extraDayModal .break-item .col-2 {
+        flex: 0 0 32px;
+    }
+    
+    #extraDayModal .break-item .form-control {
+        font-size: 15px !important;
+        height: 38px !important;
+        padding: 6px 8px !important;
+    }
+    
+    #extraDayModal .break-item .btn-danger {
+        padding: 4px 4px !important;
+        font-size: 0.7rem !important;
+    }
+    
+    #extraDayModal #extraDayBreaksContainer {
+        gap: 2px;
+    }
+    
+    /* Скрытое состояние на мобильных */
+    #extraDayModal #extraDayBreaksContainer[style*="display: none"] {
+        margin-bottom: 0;
+    }
+    
+    #extraDayModal .btn-outline-pink {
+        width: 100% !important;
+        justify-content: center !important;
+        font-size: 0.8rem !important;
+        padding: 6px 12px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    #extraDayModal .modal-header {
+        padding: 10px 12px !important;
+    }
+    
+    #extraDayModal .modal-header h5 {
+        font-size: 0.85rem !important;
+    }
+    
+    #extraDayModal .modal-body {
+        padding: 10px 12px !important;
+    }
+    
+    #extraDayModal .form-label {
+        font-size: 0.75rem !important;
+    }
+    
+    #extraDayModal .form-control,
+    #extraDayModal .form-select {
+        font-size: 14px !important;
+        padding: 6px 10px !important;
+        height: 36px !important;
+    }
+    
+    #extraDayModal .break-item .form-control {
+        height: 34px !important;
+        font-size: 13px !important;
+    }
+}
+
+
+/* ============================================================ */
+/* ========== МОДАЛЬНОЕ ОКНО ВЫХОДНОГО ДНЯ (dayOffModal) ========== */
+/* ============================================================ */
+
+/* ---- Десктопная версия ---- */
+#dayOffModal .modal-dialog {
+    max-width: 500px;
+    margin: 1.75rem auto;
+}
+
+#dayOffModal .modal-content {
+    border-radius: 20px;
+    overflow: hidden;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+#dayOffModal .modal-header {
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--gray-200);
+    background: white;
+}
+
+#dayOffModal .modal-header h5 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--gray-800);
+}
+
+#dayOffModal .modal-header h5 i {
+    color: var(--primary);
+}
+
+#dayOffModal .modal-body {
+    padding: 20px 24px;
+    max-height: calc(90vh - 140px);
+    overflow-y: auto;
+}
+
+#dayOffModal .modal-footer {
+    padding: 12px 24px;
+    border-top: 1px solid var(--gray-200);
+    background: var(--gray-50);
+}
+
+/* ---- Поля формы ---- */
+#dayOffModal .form-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    margin-bottom: 4px;
+}
+
+#dayOffModal .form-control {
+    border-radius: 10px;
+    border: 1px solid var(--gray-300);
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease;
+    height: 40px;
+}
+
+#dayOffModal .form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+/* ---- Кнопки в футере ---- */
+#dayOffModal .btn-secondary {
+    background: var(--gray-200);
+    color: var(--gray-700);
+    border: none;
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+#dayOffModal .btn-secondary:hover {
+    background: var(--gray-300);
+    color: var(--gray-800);
+}
+
+#dayOffModal .btn-pink {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+#dayOffModal .btn-pink:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+    color: white;
+}
+
+/* ============================================================ */
+/* ========== МОДАЛЬНОЕ ОКНО ВЫХОДНОГО ДНЯ (МОБИЛЬНАЯ ВЕРСИЯ) ========== */
+/* ============================================================ */
+
+@media (max-width: 768px) {
+    #dayOffModal .modal-dialog {
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+    }
+    
+    #dayOffModal .modal-content {
+        height: 100% !important;
+        border-radius: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        max-height: none !important;
+    }
+    
+    #dayOffModal .modal-header {
+        padding: 14px 16px !important;
+        flex-shrink: 0 !important;
+        border-bottom: 1px solid var(--gray-200) !important;
+    }
+    
+    #dayOffModal .modal-header h5 {
+        font-size: 1rem !important;
+    }
+    
+    #dayOffModal .modal-body {
+        flex: 1 !important;
+        max-height: none !important;
+        overflow-y: auto !important;
+        padding: 12px 16px !important;
+    }
+    
+    #dayOffModal .modal-footer {
+        padding: 10px 16px !important;
+        flex-shrink: 0 !important;
+        border-top: 1px solid var(--gray-200) !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+    }
+    
+    #dayOffModal .modal-footer .btn {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+    
+    #dayOffModal .form-label {
+        font-size: 0.8rem !important;
+    }
+    
+    #dayOffModal .form-control {
+        font-size: 16px !important;
+        padding: 8px 12px !important;
+        border-radius: 8px !important;
+        height: 40px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    #dayOffModal .modal-header {
+        padding: 10px 12px !important;
+    }
+    
+    #dayOffModal .modal-header h5 {
+        font-size: 0.85rem !important;
+    }
+    
+    #dayOffModal .modal-body {
+        padding: 10px 12px !important;
+    }
+    
+    #dayOffModal .form-label {
+        font-size: 0.75rem !important;
+    }
+    
+    #dayOffModal .form-control {
+        font-size: 14px !important;
+        padding: 6px 10px !important;
+        height: 36px !important;
+    }
+}
+
+
+
+
+
+
+
 /* ============================================================ */
 /* ========== ПУБЛИЧНАЯ ГЛАВНАЯ (ЛЕНДИНГ) ========== */
 /* ============================================================ */
