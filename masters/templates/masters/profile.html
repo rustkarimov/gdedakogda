@@ -3,82 +3,94 @@
 {% block title %}Профиль{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8 mx-auto">
-        <div class="card">
-            <div class="card-header bg-white">
-                <h4 class="mb-0"><i class="fas fa-user-edit me-2" style="color: #ff85b3;"></i>Редактирование профиля</h4>
-            </div>
-            <div class="card-body">
-                <!-- Аватар -->
-                <div class="text-center mb-4">
-                    <div class="avatar-preview mb-3">
-                        {% if master.avatar %}
-                            <img src="{{ master.avatar.url }}" alt="Аватар" id="avatar-img" class="rounded-circle" width="120" height="120" style="object-fit: cover;">
-                        {% else %}
-                            <div class="avatar-placeholder-lg rounded-circle bg-gradient d-inline-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
-                                <span class="display-4">{{ master.first_name|first|default:master.user.phone|first|upper }}</span>
-                            </div>
-                        {% endif %}
-                    </div>
-                    <div class="avatar-upload">
-                        <label class="btn btn-outline-pink btn-sm">
-                            <i class="fas fa-camera me-1"></i>Загрузить фото
-                            <input type="file" id="avatar-input" accept="image/*" style="display: none;">
-                        </label>
-                        <small class="text-muted d-block mt-2">Поддерживаются любые форматы изображений. Фото будет сжато до WebP.</small>
-                    </div>
-                    <div id="avatar-upload-progress" class="mt-2" style="display: none;">
-                        <div class="spinner-border spinner-border-sm" style="color: #ff85b3;"></div>
-                        <span class="ms-2">Загрузка и сжатие...</span>
-                    </div>
-                </div>
-                
-                <form method="post">
-                    {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="phone" class="form-label">Телефон</label>
-                        <input type="tel" class="form-control" id="phone" 
-                            value="{{ master.user.phone }}" 
-                            readonly disabled
-                            style="background-color: #e9ecef;">
-                        <small class="text-muted">Телефон используется для входа и не может быть изменён. При необходимости — обратитесь в поддержку.</small>
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="first_name" class="form-label">Имя</label>
-                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ master.first_name }}">
+<div class="profile-page">
+    <!-- Заголовок -->
+    <div class="page-header">
+        <h2><i class="fas fa-user-edit me-2"></i>Профиль</h2>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <!-- <div class="card-header">
+                    <h5><i class="fas fa-user-circle me-2"></i>Редактирование профиля</h5>
+                </div> -->
+                <div class="card-body">
+                    <!-- Аватар -->
+                    <div class="avatar-section text-center mb-4">
+                        <div class="avatar-preview mb-3">
+                            {% if master.avatar %}
+                                <img src="{{ master.avatar.url }}" alt="Аватар" id="avatar-img" class="avatar-image">
+                            {% else %}
+                                <div class="avatar-placeholder-lg">
+                                    {{ master.first_name|first|default:master.user.phone|first|upper }}
+                                </div>
+                            {% endif %}
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="last_name" class="form-label">Фамилия</label>
-                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ master.last_name }}">
+                        <div class="avatar-upload">
+                            <label class="btn btn-outline-pink btn-sm">
+                                <i class="fas fa-camera me-1"></i>Загрузить фото
+                                <input type="file" id="avatar-input" accept="image/*" style="display: none;">
+                            </label>
+                            <small class="text-muted d-block mt-2">Поддерживаются любые форматы</small>
                         </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="login" class="form-label">Логин (для красивой ссылки)</label>
-                        <input type="text" class="form-control" id="login" name="login" value="{{ master.login|default:'' }}">
-                        <small class="text-muted">
-                            Ваша ссылка: {{ request.scheme }}://{{ request.get_host }}/<span id="login-preview">{{ master.public_slug }}</span>/
-                        </small>
+                        <div id="avatar-upload-progress" class="mt-2" style="display: none;">
+                            <div class="spinner-border spinner-border-sm" style="color: var(--primary);"></div>
+                            <span class="ms-2">Загрузка и сжатие...</span>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="address" class="form-label">Адрес</label>
-                        <input type="text" class="form-control" id="address" name="address" 
-                            value="{{ master.address|default:'' }}" 
-                            placeholder="Например: Москва, ул. Тверская 15">
-                        <small class="text-muted">Ваш адрес для клиентов</small>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="bio" class="form-label">О себе</label>
-                        <textarea class="form-control" id="bio" name="bio" rows="4">{{ master.bio }}</textarea>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-pink">Сохранить изменения</button>
-                </form>
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Телефон</label>
+                            <input type="tel" class="form-control" id="phone" 
+                                   value="{{ master.user.phone }}" 
+                                   readonly disabled
+                                   style="background-color: #f3f4f6;">
+                            <small class="text-muted">Телефон используется для входа и не может быть изменён. При необходимости — обратитесь в поддержку.</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="first_name" class="form-label">Имя</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" value="{{ master.first_name }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="last_name" class="form-label">Фамилия</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" value="{{ master.last_name }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="login" class="form-label">Логин (для красивой ссылки)</label>
+                            <input type="text" class="form-control" id="login" name="login" value="{{ master.login|default:'' }}">
+                            <small class="text-muted">
+                                Ваша ссылка: <span id="login-preview">{{ request.scheme }}://{{ request.get_host }}/{{ master.public_slug }}/</span>
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Адрес</label>
+                            <input type="text" class="form-control" id="address" name="address" 
+                                   value="{{ master.address|default:'' }}" 
+                                   placeholder="Например: Москва, ул. Тверская 15">
+                            <small class="text-muted">Ваш адрес для клиентов</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">О себе</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="4">{{ master.bio }}</textarea>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-pink">
+                                <i class="fas fa-save me-1"></i>Сохранить изменения
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -90,7 +102,6 @@ document.getElementById('avatar-input')?.addEventListener('change', function(e) 
     const file = e.target.files[0];
     if (!file) return;
     
-    // Проверяем, что это изображение
     if (!file.type.startsWith('image/')) {
         alert('Пожалуйста, выберите изображение');
         return;
@@ -115,20 +126,21 @@ document.getElementById('avatar-input')?.addEventListener('change', function(e) 
         if (data.success) {
             // Обновляем аватар на странице
             const avatarContainer = document.querySelector('.avatar-preview');
-            avatarContainer.innerHTML = `<img src="${data.avatar_url}?t=${Date.now()}" alt="Аватар" class="rounded-circle" width="120" height="120" style="object-fit: cover;">`;
+            avatarContainer.innerHTML = `<img src="${data.avatar_url}?t=${Date.now()}" alt="Аватар" class="avatar-image">`;
+            
             // Обновляем аватар в шапке (если на той же странице)
             const headerAvatar = document.querySelector('.user-avatar img');
             if (headerAvatar) {
                 headerAvatar.src = `${data.avatar_url}?t=${Date.now()}`;
             }
-            alert('Аватар успешно загружен!');
+            showAlert('Аватар успешно загружен!', 'Готово');
         } else {
-            alert(data.error || 'Ошибка при загрузке');
+            showAlert(data.error || 'Ошибка при загрузке', 'Ошибка');
         }
     })
     .catch(error => {
         progressDiv.style.display = 'none';
-        alert('Произошла ошибка при загрузке');
+        showAlert('Произошла ошибка при загрузке', 'Ошибка');
     });
 });
 
@@ -137,26 +149,45 @@ document.getElementById('login')?.addEventListener('input', function() {
     const preview = document.getElementById('login-preview');
     const value = this.value.trim();
     if (preview) {
-        preview.textContent = value || 'id{{ master.id }}';
+        const baseUrl = '{{ request.scheme }}://{{ request.get_host }}/';
+        if (value) {
+            preview.textContent = baseUrl + value + '/';
+        } else {
+            preview.textContent = baseUrl + 'id{{ master.id }}/';
+        }
     }
 });
-</script>
 
-<!-- <style>
-.avatar-placeholder-lg {
-    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
-    color: white;
-    font-size: 3rem;
-    font-weight: 600;
+// Функция для уведомлений (если не определена в base)
+function showAlert(message, title = 'Уведомление') {
+    let modalElement = document.getElementById('alertModal');
+    
+    if (!modalElement) {
+        const modalHtml = `
+            <div class="modal fade" id="alertModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="alertModalTitle">Уведомление</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p id="alertModalMessage"></p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        modalElement = document.getElementById('alertModal');
+    }
+    
+    document.getElementById('alertModalTitle').innerText = title;
+    document.getElementById('alertModalMessage').innerHTML = message;
+    new bootstrap.Modal(modalElement).show();
 }
-.btn-outline-pink {
-    border: 1px solid #ff85b3;
-    color: #ff85b3;
-    background: transparent;
-}
-.btn-outline-pink:hover {
-    background-color: #ff85b3;
-    color: white;
-}
-</style> -->
+</script>
 {% endblock %}

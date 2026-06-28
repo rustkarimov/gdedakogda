@@ -436,7 +436,7 @@ def profile(request):
         user.last_name = master.last_name
         user.save()
         
-        messages.success(request, 'Профиль обновлен!')
+        # messages.success(request, 'Профиль обновлен!')
         return redirect('profile')
     
     return render(request, 'masters/profile.html', {'master': master})
@@ -1421,10 +1421,10 @@ def clients_statistics(request):
     """Статистика клиентов мастера + чёрный список"""
     master = request.user.master
     
-    # Берём ВСЕ записи (не только confirmed)
-    bookings = Booking.objects.filter(
-        master=master
-    ).select_related('service')
+    # bookings = Booking.objects.filter(
+    #     master=master
+    # ).select_related('service')
+    bookings = Booking.objects.filter(master=master, status='confirmed').select_related('service')
     
     from collections import defaultdict
     import re
