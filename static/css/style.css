@@ -5099,6 +5099,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 }
 
 /* ---- Модальное окно деталей клиента ---- */
+/* ---- Модальное окно деталей клиента ---- */
 #clientDetailsModal .modal-dialog {
     max-width: 700px;
 }
@@ -5134,12 +5135,27 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     background: var(--gray-50);
 }
 
+/* ---- Правая колонка с услугами ---- */
+#clientDetailsModal .col-md-6 {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+#clientDetailsModal .col-md-6 .detail-item {
+    width: 100%;
+    align-items: flex-start;
+}
+
+/* ---- Детали ---- */
 #clientDetailsModal .detail-item {
     display: flex;
-    align-items: baseline;
-    gap: 8px;
-    padding: 6px 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 8px 0;
     border-bottom: 1px solid var(--gray-100);
+    width: 100%;
 }
 
 #clientDetailsModal .detail-item:last-child {
@@ -5148,18 +5164,23 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
 #clientDetailsModal .detail-label {
     font-weight: 500;
-    color: var(--gray-600);
-    min-width: 100px;
+    color: var(--gray-500);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 #clientDetailsModal .detail-value {
     color: var(--gray-800);
+    font-size: 0.95rem;
 }
 
+/* ---- Список всех имён ---- */
 #clientDetailsModal .detail-list {
     list-style: none;
     padding: 0;
-    margin: 4px 0 0 0;
+    margin: 0;
+    width: 100%;
 }
 
 #clientDetailsModal .detail-list li {
@@ -5168,10 +5189,12 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     font-size: 0.9rem;
 }
 
+/* ---- Услуги клиента (правая колонка) ---- */
 #clientDetailsModal .services-list {
     list-style: none;
     padding: 0;
-    margin: 8px 0 0 0;
+    margin: 0;
+    width: 100%;
 }
 
 #clientDetailsModal .services-list .service-item {
@@ -5183,12 +5206,14 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     border-radius: 8px;
     margin-bottom: 4px;
     font-size: 0.9rem;
+    width: 100%;
 }
 
 #clientDetailsModal .services-list .service-item:last-child {
     margin-bottom: 0;
 }
 
+/* ---- Кнопки в футере ---- */
 #clientDetailsModal .btn-secondary {
     background: var(--gray-200);
     color: var(--gray-700);
@@ -5205,10 +5230,11 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     color: var(--gray-800);
 }
 
-#clientDetailsModal .btn-danger {
-    background: var(--danger);
-    color: white;
-    border: none;
+/* Кнопка "В чёрный список" — неброская */
+#clientDetailsModal .btn-outline-danger {
+    border: 1px solid var(--gray-300);
+    color: var(--gray-600);
+    background: transparent;
     padding: 8px 20px;
     border-radius: 30px;
     font-weight: 500;
@@ -5216,11 +5242,313 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     transition: all 0.2s ease;
 }
 
-#clientDetailsModal .btn-danger:hover {
-    background: #dc2626;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.35);
+#clientDetailsModal .btn-outline-danger:hover {
+    background: #fef2f2;
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+/* ---- Мобильная версия ---- */
+@media (max-width: 768px) {
+
+    /* ---- Чёрный список на мобильных ---- */
+/* ---- Чёрный список на мобильных ---- */
+.statistics-page #blacklist-table thead {
+    display: none;
+}
+
+.statistics-page #blacklist-table tbody tr {
+    display: block;
+    background: white;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border: 1px solid var(--gray-200);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+.statistics-page #blacklist-table tbody td {
+    display: flex !important;
+    justify-content: flex-start !important;
+    align-items: center;
+    padding: 4px 0 !important;
+    border: none !important;
+    font-size: 0.8rem;
+    gap: 8px;
+    width: 100% !important;
+}
+
+/* Строка 1: Имя */
+.statistics-page #blacklist-table tbody td:nth-child(1) {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--gray-800);
+    padding: 4px 0 !important;
+}
+
+.statistics-page #blacklist-table tbody td:nth-child(1):before {
+    content: "Имя:";
+    font-weight: 500;
+    color: var(--gray-500);
+    flex-shrink: 0;
+    min-width: 60px;
+}
+
+/* Строка 2: Телефон */
+.statistics-page #blacklist-table tbody td:nth-child(2) {
+    font-size: 0.85rem;
+    color: var(--gray-700);
+    padding: 4px 0 !important;
+}
+
+.statistics-page #blacklist-table tbody td:nth-child(2):before {
+    content: "Телефон:";
+    font-weight: 500;
+    color: var(--gray-500);
+    flex-shrink: 0;
+    min-width: 60px;
+}
+
+/* Строка 3: Причина */
+.statistics-page #blacklist-table tbody td:nth-child(3) {
+    font-size: 0.85rem;
+    color: var(--gray-700);
+    padding: 4px 0 !important;
+}
+
+.statistics-page #blacklist-table tbody td:nth-child(3):before {
+    content: "Причина:";
+    font-weight: 500;
+    color: var(--gray-500);
+    flex-shrink: 0;
+    min-width: 60px;
+}
+
+/* Строка 4: Дата добавления */
+.statistics-page #blacklist-table tbody td:nth-child(4) {
+    font-size: 0.75rem;
+    color: var(--gray-500);
+    padding: 4px 0 !important;
+}
+
+.statistics-page #blacklist-table tbody td:nth-child(4):before {
+    content: "Добавлен:";
+    font-weight: 500;
+    color: var(--gray-500);
+    flex-shrink: 0;
+    min-width: 60px;
+}
+
+/* Строка 5: Действия (кнопка удалить) */
+.statistics-page #blacklist-table tbody td:last-child {
+    border-top: 1px solid var(--gray-200) !important;
+    padding-top: 10px !important;
+    margin-top: 6px !important;
+    justify-content: flex-start !important;
+    display: flex !important;
+}
+
+.statistics-page #blacklist-table tbody td:last-child:before {
+    display: none !important;
+}
+
+.statistics-page #blacklist-table .action-icons {
+    display: flex !important;
+    gap: 6px;
+    align-items: center;
+}
+
+.statistics-page #blacklist-table .action-icons .btn {
+    background: transparent !important;
+    border: none !important;
+    padding: 4px 8px !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+    display: inline-flex !important;
+}
+
+.statistics-page #blacklist-table .action-icons .btn i {
+    color: #6b7280 !important;
+    font-size: 0.85rem !important;
+}
+
+.statistics-page #blacklist-table .action-icons .btn:hover {
+    background: #f3f4f6 !important;
+}
+
+.statistics-page #blacklist-table .action-icons .btn:hover i {
+    color: #374151 !important;
+}
+
+.statistics-page #blacklist-table .action-icons .btn:last-child:hover {
+    background: #fef2f2 !important;
+}
+
+.statistics-page #blacklist-table .action-icons .btn:last-child:hover i {
+    color: #dc2626 !important;
+}
+
+    #clientDetailsModal .modal-dialog {
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+    }
+    
+    #clientDetailsModal .modal-content {
+        height: 100% !important;
+        border-radius: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        max-height: none !important;
+    }
+    
+    #clientDetailsModal .modal-header {
+        padding: 14px 16px !important;
+        flex-shrink: 0 !important;
+        border-bottom: 1px solid var(--gray-200) !important;
+    }
+    
+    #clientDetailsModal .modal-header h5 {
+        font-size: 1rem !important;
+    }
+    
+    #clientDetailsModal .modal-body {
+        flex: 1 !important;
+        max-height: none !important;
+        overflow-y: auto !important;
+        padding: 12px 16px !important;
+    }
+    
+    #clientDetailsModal .modal-footer {
+        padding: 10px 16px !important;
+        flex-shrink: 0 !important;
+        border-top: 1px solid var(--gray-200) !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+    }
+    
+    #clientDetailsModal .modal-footer .btn {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+    
+    #clientDetailsModal .col-md-6 {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+    
+    #clientDetailsModal .detail-item {
+        padding: 6px 0;
+    }
+    
+    #clientDetailsModal .detail-label {
+        font-size: 0.7rem;
+    }
+    
+    #clientDetailsModal .detail-value {
+        font-size: 0.85rem;
+    }
+    
+    #clientDetailsModal .services-list .service-item {
+        font-size: 0.8rem;
+        padding: 4px 10px;
+    }
+
+}
+
+@media (max-width: 480px) {
+    #clientDetailsModal .modal-header {
+        padding: 10px 12px !important;
+    }
+    
+    #clientDetailsModal .modal-header h5 {
+        font-size: 0.85rem !important;
+    }
+    
+    #clientDetailsModal .modal-body {
+        padding: 10px 12px !important;
+    }
+}
+
+/* ---- Десктоп: показываем иконку в столбце "Действия", скрываем в строке с именем ---- */
+.statistics-page .table tbody td:nth-child(2) .action-icons-mobile {
+    display: none !important;
+}
+
+.statistics-page .table tbody td:last-child .action-icons-desktop {
+    display: flex !important;
+    gap: 6px;
+    align-items: center;
+}
+
+/* ---- Футер карточки с пагинацией (как на главной) ---- */
+/* ---- Футер карточки с пагинацией (как на главной) ---- */
+.statistics-page .card-footer {
+    border-top: none !important;
+    padding-top: 8px !important;
+    padding-bottom: 16px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.statistics-page .card-footer .btn-outline-primary {
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    background: transparent;
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    order: 1;
+}
+
+.statistics-page .card-footer .btn-outline-primary:hover {
+    background: var(--primary-gradient);
+    border-color: transparent;
     color: white;
+}
+
+.statistics-page .card-footer .btn-outline-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.statistics-page .card-footer #clients-total {
+    order: 2;
+    font-size: 0.85rem;
+    color: var(--gray-500);
+}
+
+
+/* ============================================================ */
+/* ========== СТРАНИЦА СТАТИСТИКИ (МОБИЛЬНАЯ ВЕРСИЯ) ========== */
+/* ============================================================ */
+
+@media (max-width: 768px) {
+    .statistics-page {
+        margin: 0 10px;
+    }
+
+    .statistics-page .card-footer {
+        flex-direction: column !important;
+        gap: 10px !important;
+        align-items: stretch !important;
+        padding-top: 8px !important;
+    }
+    
+    .statistics-page .card-footer .btn-outline-primary {
+        width: 100% !important;
+        justify-content: center !important;
+    }
 }
 
 /* ============================================================ */
@@ -5262,15 +5590,16 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         max-width: 100%;
     }
     
-    /* Таблица в карточки на мобильных */
+    /* ---- Таблица в карточки на мобильных (как в "Расписании") ---- */
+    /* ---- Таблица в карточки на мобильных (как в "Расписании") ---- */
     .statistics-page .table {
         font-size: 0.8rem;
     }
-    
+
     .statistics-page .table thead {
         display: none;
     }
-    
+
     .statistics-page .table tbody tr {
         display: block;
         background: white;
@@ -5280,41 +5609,125 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         border: 1px solid var(--gray-200);
         box-shadow: 0 1px 4px rgba(0,0,0,0.04);
     }
-    
+
     .statistics-page .table tbody td {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 4px 0 !important;
+        padding: 3px 0 !important;
         border: none !important;
         font-size: 0.8rem;
     }
-    
-    /* Строка 1: Имя клиента */
+
+    /* Строка 1: Имя клиента + иконка */
     .statistics-page .table tbody td:nth-child(2) {
         font-weight: 600;
         font-size: 0.9rem;
-        padding-bottom: 6px !important;
-        border-bottom: 1px solid var(--gray-100) !important;
+        color: var(--gray-800);
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding-bottom: 2px !important;
+    }
+
+        /* Показываем иконку в строке с именем, скрываем в столбце "Действия" */
+    .statistics-page .table tbody td:nth-child(2) .action-icons-mobile {
+        display: inline-flex !important;
+        margin-left: auto;
     }
     
-    .statistics-page .table tbody td:nth-child(1),
-    .statistics-page .table tbody td:nth-child(3),
+    .statistics-page .table tbody td:nth-child(2) .action-icons-mobile .btn {
+        background: transparent !important;
+        border: none !important;
+        padding: 2px 6px !important;
+        border-radius: 6px !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    .statistics-page .table tbody td:nth-child(2) .action-icons-mobile .btn i {
+        color: #6b7280 !important;
+        font-size: 0.9rem !important;
+    }
+    
+    .statistics-page .table tbody td:nth-child(2) .action-icons-mobile .btn:hover {
+        background: #f3f4f6 !important;
+    }
+    
+    .statistics-page .table tbody td:nth-child(2) .action-icons-mobile .btn:hover i {
+        color: #374151 !important;
+    }
+    
+    .statistics-page .table tbody td:last-child .action-icons-desktop {
+        display: none !important;
+    }
+
+    /* Строка 2: Телефон */
+    .statistics-page .table tbody td:nth-child(3) {
+        display: flex !important;
+        justify-content: flex-start !important;
+        font-size: 0.85rem;
+        color: var(--gray-600);
+        padding: 2px 0 !important;
+    }
+
+    .statistics-page .table tbody td:nth-child(3):before {
+        content: "📞 ";
+        font-weight: 400;
+        color: var(--gray-500);
+    }
+
+    /* Строка 3: Визиты */
     .statistics-page .table tbody td:nth-child(4) {
+        display: flex !important;
+        justify-content: flex-start !important;
+        gap: 8px !important;
+        font-size: 0.85rem;
+        color: var(--gray-700);
+        padding-top: 2px !important;
+    }
+
+    .statistics-page .table tbody td:nth-child(4):before {
+        content: "Визитов:";
+        font-weight: 500;
+        color: var(--gray-500);
+    }
+
+    .statistics-page .table tbody td:nth-child(4) .badge {
+        font-size: 0.7rem;
+        padding: 1px 10px;
+    }
+
+    /* Скрываем номер строки и ячейку с действиями (она теперь в строке с именем) */
+    .statistics-page .table tbody td:nth-child(1),
+    .statistics-page .table tbody td:last-child {
         display: none !important;
     }
     
-    /* Ячейка с действиями */
-    .statistics-page .table tbody td:last-child {
-        border-top: 1px solid var(--gray-200) !important;
-        padding-top: 8px !important;
-        margin-top: 4px !important;
-        justify-content: flex-start !important;
+    .statistics-page .action-icons {
+        display: flex;
+        gap: 6px;
+        align-items: center;
     }
     
-    .statistics-page .table tbody td:last-child .btn {
-        width: 100%;
-        justify-content: center;
+    .statistics-page .action-icons .btn {
+        background: transparent !important;
+        border: none !important;
+        padding: 4px 8px !important;
+        border-radius: 6px !important;
+        transition: all 0.2s ease !important;
+    }
+    
+    .statistics-page .action-icons .btn i {
+        color: #6b7280 !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .statistics-page .action-icons .btn:hover {
+        background: #f3f4f6 !important;
+    }
+    
+    .statistics-page .action-icons .btn:hover i {
+        color: #374151 !important;
     }
     
     /* Модальные окна на мобильных */
@@ -5410,7 +5823,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         text-align: left;
         margin-left: 10px;
     }
-
+    
     .statistics-page .stats-grid {
         grid-template-columns: repeat(3, 1fr);
         gap: 6px;
@@ -5438,6 +5851,23 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     
     .statistics-page .table tbody td:nth-child(2) {
         font-size: 0.8rem;
+    }
+    
+    .statistics-page .table tbody td:nth-child(4) {
+        font-size: 0.7rem;
+    }
+    
+    .statistics-page .table tbody td:nth-child(4) .badge {
+        font-size: 0.6rem;
+        padding: 1px 8px;
+    }
+    
+    .statistics-page .action-icons .btn {
+        padding: 2px 6px !important;
+    }
+    
+    .statistics-page .action-icons .btn i {
+        font-size: 0.75rem !important;
     }
     
     #blacklistModal .modal-header h5,

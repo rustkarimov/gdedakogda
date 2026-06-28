@@ -1421,10 +1421,9 @@ def clients_statistics(request):
     """Статистика клиентов мастера + чёрный список"""
     master = request.user.master
     
-    # Получаем все записи мастера
+    # Берём ВСЕ записи (не только confirmed)
     bookings = Booking.objects.filter(
-        master=master,
-        status='confirmed'
+        master=master
     ).select_related('service')
     
     from collections import defaultdict
@@ -1487,10 +1486,17 @@ def clients_statistics(request):
         else:
             client_name = f"{names_list[0]} (+{len(names_list)-1})"
         
+        # Форматируем телефон для отображения
+        phone_raw = data['phone']
+        if len(phone_raw) == 11:
+            formatted_phone = f"{phone_raw[0]} {phone_raw[1:4]} {phone_raw[4:7]}-{phone_raw[7:9]}-{phone_raw[9:11]}"
+        else:
+            formatted_phone = phone_raw
+        
         clients_list.append({
             'key': client_key,
             'name': client_name,
-            'phone': data['phone'],
+            'phone': formatted_phone,
             'total_visits': data['total_visits'],
             'first_visit': data['first_visit'],
             'last_visit': data['last_visit'],
@@ -1499,31 +1505,144 @@ def clients_statistics(request):
             'is_blacklisted': client_key in blacklisted_phones
         })
     
+    # Сортируем по количеству визитов (по убыванию)
     clients_list.sort(key=lambda x: x['total_visits'], reverse=True)
+    
+    # Пагинация
+    page = int(request.GET.get('page', 1))
+    limit = 10
+    offset = (page - 1) * limit
+    
+    total = len(clients_list)
+    has_more = offset + limit < total
+    clients_page = clients_list[offset:offset + limit]
     
     # Чёрный список
     blacklisted_clients = BlacklistedClient.objects.filter(master=master).order_by('-created_at')
     
     context = {
-        'clients': clients_list,
-        'total_clients': len(clients_list),
+        'clients': clients_page,
+        'total_clients': total,
         'total_bookings': bookings.count(),
-        'avg_visits_per_client': round(bookings.count() / len(clients_list), 1) if clients_list else 0,
+        'avg_visits_per_client': round(bookings.count() / total, 1) if total else 0,
         'master': master,
         'blacklisted_clients': blacklisted_clients,
+        'page': page,
+        'has_more': has_more,
     }
     
     return render(request, 'masters/clients_statistics.html', context)
 
+
+# @login_required
+# def get_clients_statistics_api(request):
+#     """API для получения статистики клиентов с пагинацией"""
+#     master = request.user.master
+    
+#     bookings = Booking.objects.filter(
+#         master=master,
+#         status='confirmed'
+#     ).select_related('service')
+    
+#     from collections import defaultdict
+#     import re
+#     from cryptography.fernet import Fernet, InvalidToken
+    
+#     key = master.get_encryption_key()
+    
+#     clients_data = defaultdict(lambda: {
+#         'names': set(),
+#         'phone': '',
+#         'total_visits': 0,
+#         'services': defaultdict(int),
+#         'last_visit': None,
+#         'first_visit': None
+#     })
+    
+#     for booking in bookings:
+#         # Расшифровка телефона
+#         phone = ''
+#         if key:
+#             try:
+#                 f = Fernet(key)
+#                 decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
+#                 phone = decrypted
+#             except (InvalidToken, Exception):
+#                 try:
+#                     phone = booking.encrypted_phone.decode('utf-8')
+#                 except:
+#                     phone = str(booking.encrypted_phone)
+#         else:
+#             try:
+#                 phone = booking.encrypted_phone.decode('utf-8')
+#             except:
+#                 phone = str(booking.encrypted_phone)
+        
+#         phone_cleaned = re.sub(r'\D', '', phone)
+#         if len(phone_cleaned) == 11:
+#             formatted_phone = f"{phone_cleaned[0]} {phone_cleaned[1:4]} {phone_cleaned[4:7]}-{phone_cleaned[7:9]}-{phone_cleaned[9:11]}"
+#         else:
+#             formatted_phone = phone
+        
+#         client_key = phone_cleaned
+        
+#         clients_data[client_key]['names'].add(booking.client_name)
+#         clients_data[client_key]['phone'] = formatted_phone
+#         clients_data[client_key]['total_visits'] += 1
+#         clients_data[client_key]['services'][booking.service.name] += 1
+        
+#         if clients_data[client_key]['first_visit'] is None or booking.date < clients_data[client_key]['first_visit']:
+#             clients_data[client_key]['first_visit'] = booking.date
+#         if clients_data[client_key]['last_visit'] is None or booking.date > clients_data[client_key]['last_visit']:
+#             clients_data[client_key]['last_visit'] = booking.date
+    
+#     clients_list = []
+#     for client_key, data in clients_data.items():
+#         most_popular_service = max(data['services'].items(), key=lambda x: x[1]) if data['services'] else ('Нет', 0)
+        
+#         names_list = list(data['names'])
+#         if len(names_list) == 1:
+#             client_name = names_list[0]
+#         else:
+#             client_name = f"{names_list[0]} (+{len(names_list)-1})"
+        
+#         clients_list.append({
+#             'name': client_name,
+#             'phone': data['phone'],
+#             'total_visits': data['total_visits'],
+#             'most_popular_service': most_popular_service[0],
+#             'most_popular_service_count': most_popular_service[1],
+#             'first_visit': data['first_visit'].strftime('%d.%m.%Y') if data['first_visit'] else None,
+#             'last_visit': data['last_visit'].strftime('%d.%m.%Y') if data['last_visit'] else None,
+#             'services': dict(data['services'])
+#         })
+    
+#     clients_list.sort(key=lambda x: x['total_visits'], reverse=True)
+    
+#     # Пагинация
+#     page = int(request.GET.get('page', 1))
+#     limit = int(request.GET.get('limit', 20))
+#     offset = (page - 1) * limit
+    
+#     total = len(clients_list)
+#     has_more = offset + limit < total
+#     clients_page = clients_list[offset:offset + limit]
+    
+#     return JsonResponse({
+#         'clients': clients_page,
+#         'total': total,
+#         'page': page,
+#         'has_more': has_more
+#     })
 
 @login_required
 def get_clients_statistics_api(request):
     """API для получения статистики клиентов с пагинацией"""
     master = request.user.master
     
+    # Берём ВСЕ записи (не только confirmed)
     bookings = Booking.objects.filter(
-        master=master,
-        status='confirmed'
+        master=master
     ).select_related('service')
     
     from collections import defaultdict
@@ -1578,6 +1697,9 @@ def get_clients_statistics_api(request):
         if clients_data[client_key]['last_visit'] is None or booking.date > clients_data[client_key]['last_visit']:
             clients_data[client_key]['last_visit'] = booking.date
     
+    # Получаем список заблокированных телефонов
+    blacklisted_phones = set(BlacklistedClient.objects.filter(master=master).values_list('phone', flat=True))
+    
     clients_list = []
     for client_key, data in clients_data.items():
         most_popular_service = max(data['services'].items(), key=lambda x: x[1]) if data['services'] else ('Нет', 0)
@@ -1589,6 +1711,7 @@ def get_clients_statistics_api(request):
             client_name = f"{names_list[0]} (+{len(names_list)-1})"
         
         clients_list.append({
+            'key': client_key,
             'name': client_name,
             'phone': data['phone'],
             'total_visits': data['total_visits'],
@@ -1596,14 +1719,16 @@ def get_clients_statistics_api(request):
             'most_popular_service_count': most_popular_service[1],
             'first_visit': data['first_visit'].strftime('%d.%m.%Y') if data['first_visit'] else None,
             'last_visit': data['last_visit'].strftime('%d.%m.%Y') if data['last_visit'] else None,
-            'services': dict(data['services'])
+            'services': dict(data['services']),
+            'all_names': list(data['names']),
+            'is_blacklisted': client_key in blacklisted_phones
         })
     
     clients_list.sort(key=lambda x: x['total_visits'], reverse=True)
     
     # Пагинация
     page = int(request.GET.get('page', 1))
-    limit = int(request.GET.get('limit', 20))
+    limit = int(request.GET.get('limit', 10))
     offset = (page - 1) * limit
     
     total = len(clients_list)
@@ -1617,7 +1742,120 @@ def get_clients_statistics_api(request):
         'has_more': has_more
     })
 
-
+@login_required
+def search_clients_api(request):
+    """API для поиска клиентов по имени или телефону"""
+    master = request.user.master
+    query = request.GET.get('q', '').strip()
+    
+    if not query:
+        return JsonResponse({'clients': [], 'total': 0})
+    
+    # Получаем все записи мастера
+    bookings = Booking.objects.filter(master=master).select_related('service')
+    
+    from collections import defaultdict
+    import re
+    from cryptography.fernet import Fernet, InvalidToken
+    
+    key = master.get_encryption_key()
+    
+    # Группируем по клиентам
+    clients_data = defaultdict(lambda: {
+        'names': set(),
+        'phone': '',
+        'total_visits': 0,
+        'services': defaultdict(int),
+        'last_visit': None,
+        'first_visit': None
+    })
+    
+    for booking in bookings:
+        # Расшифровываем телефон
+        phone = ''
+        if key:
+            try:
+                f = Fernet(key)
+                decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
+                phone = decrypted
+            except (InvalidToken, Exception):
+                try:
+                    phone = booking.encrypted_phone.decode('utf-8')
+                except:
+                    phone = str(booking.encrypted_phone)
+        else:
+            try:
+                phone = booking.encrypted_phone.decode('utf-8')
+            except:
+                phone = str(booking.encrypted_phone)
+        
+        phone_cleaned = re.sub(r'\D', '', phone)
+        client_key = phone_cleaned
+        
+        clients_data[client_key]['names'].add(booking.client_name)
+        clients_data[client_key]['phone'] = phone_cleaned
+        clients_data[client_key]['total_visits'] += 1
+        clients_data[client_key]['services'][booking.service.name] += 1
+        
+        if clients_data[client_key]['first_visit'] is None or booking.date < clients_data[client_key]['first_visit']:
+            clients_data[client_key]['first_visit'] = booking.date
+        if clients_data[client_key]['last_visit'] is None or booking.date > clients_data[client_key]['last_visit']:
+            clients_data[client_key]['last_visit'] = booking.date
+    
+    # Фильтруем по запросу
+    search_term = query.lower()
+    results = []
+    
+    for client_key, data in clients_data.items():
+        # Форматируем телефон для отображения
+        phone_raw = data['phone']
+        if len(phone_raw) == 11:
+            formatted_phone = f"{phone_raw[0]} {phone_raw[1:4]} {phone_raw[4:7]}-{phone_raw[7:9]}-{phone_raw[9:11]}"
+        else:
+            formatted_phone = phone_raw
+        
+        # Проверяем совпадения
+        names_list = list(data['names'])
+        main_name = names_list[0] if names_list else ''
+        all_names_str = ' '.join(names_list).lower()
+        phone_search = phone_raw.replace(phone_raw[0], '', 1)  # убираем первую цифру для поиска
+        
+        if (search_term in main_name.lower() or 
+            search_term in all_names_str or 
+            search_term in phone_raw or 
+            search_term in phone_search):
+            
+            if len(names_list) == 1:
+                client_name = names_list[0]
+            else:
+                client_name = f"{names_list[0]} (+{len(names_list)-1})"
+            
+            # Получаем список заблокированных телефонов
+            blacklisted_phones = set(BlacklistedClient.objects.filter(master=master).values_list('phone', flat=True))
+            
+            results.append({
+                'key': client_key,
+                'name': client_name,
+                'phone': formatted_phone,
+                'total_visits': data['total_visits'],
+                'first_visit': data['first_visit'].strftime('%d.%m.%Y') if data['first_visit'] else None,
+                'last_visit': data['last_visit'].strftime('%d.%m.%Y') if data['last_visit'] else None,
+                'services': dict(data['services']),
+                'all_names': list(data['names']),
+                'is_blacklisted': client_key in blacklisted_phones
+            })
+    
+    # Сортируем по количеству визитов
+    results.sort(key=lambda x: x['total_visits'], reverse=True)
+    
+    # Ограничиваем результат (максимум 50)
+    results = results[:50]
+    
+    return JsonResponse({
+        'clients': results,
+        'total': len(results),
+        'query': query
+    })
 
 @login_required
 def get_decrypted_phone(request, booking_id):

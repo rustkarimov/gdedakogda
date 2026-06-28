@@ -76,6 +76,7 @@ urlpatterns = [
     path('clients-statistics/', views.clients_statistics, name='clients_statistics'),
     path('api/clients-statistics/', views.get_clients_statistics_api, name='api_clients_statistics'),
     path('api/get-decrypted-phone/<int:booking_id>/', views.get_decrypted_phone, name='api_decrypted_phone'),
+    path('api/clients/search/', views.search_clients_api, name='api_search_clients'),
 
     # Публичная страница мастера
     path('id<int:master_id>/', views.master_by_id, name='master_by_id'),
