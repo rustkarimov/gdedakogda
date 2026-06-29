@@ -11,6 +11,49 @@
     </a>
 </div> -->
 
+
+<!-- Календарь -->
+<div class="card mb-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="far fa-calendar-alt me-2" style="color: var(--primary);"></i>Календарь</h5>
+    </div>
+    <div class="card-body">
+        <div class="text-center mb-3">
+            <button class="btn btn-sm btn-outline-primary" onclick="changeMonth(-1)">←</button>
+            <span class="mx-3 fw-bold" id="current-month"></span>
+            <button class="btn btn-sm btn-outline-primary" onclick="changeMonth(1)">→</button>
+        </div>
+        <div id="calendar-grid"></div>
+        
+
+        <!-- <div class="legend-container">
+            <button class="legend-toggle" id="legendToggle" onclick="toggleLegend()">
+                <i class="fas fa-info-circle" id="legendIcon"></i>
+            </button>
+            <div class="legend-content" id="legendContent" style="display: none;">
+                <div class="legend-items">
+                    <div class="legend-item">
+                        <span class="legend-dot working-dot"></span>
+                        Рабочий день
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-badge booking-badge">3</span>
+                        Записи
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-icon">💤</span>
+                        Перерыв
+                    </div>
+                </div>
+            </div>
+        </div> -->
+
+
+    </div>
+</div>
+
+
+
 <!-- Ближайшие записи -->
 <div class="card mb-4">
     <div class="card-header bg-white">
@@ -40,22 +83,7 @@
     </div>
 </div>
 
-<!-- Календарь -->
-<div class="card mb-4">
-    <div class="card-header bg-white"><h5 class="mb-0"><i class="far fa-calendar-alt me-2" style="color: var(--primary);"></i>Календарь</h5></div>
-    <div class="card-body">
-        <div class="text-center mb-3">
-            <button class="btn btn-sm btn-outline-primary" onclick="changeMonth(-1)">←</button>
-            <span class="mx-3 fw-bold" id="current-month"></span>
-            <button class="btn btn-sm btn-outline-primary" onclick="changeMonth(1)">→</button>
-        </div>
-        <div id="calendar-grid"></div>
-        <div class="mt-2 small text-muted text-center">
-            <span class="badge bg-success me-2">Рабочий день</span>
-            <span class="badge bg-secondary me-2">Выходной</span>
-        </div>
-    </div>
-</div>
+
 
 
 
@@ -117,12 +145,18 @@
     </div>
 </div>
 
+
+<!-- МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ -->
+<!-- МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ -->
 <!-- МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ -->
 <div class="modal fade" id="confirmModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="confirmModalTitle">Подтверждение</h5>
+                <h5 class="modal-title" id="confirmModalTitle">
+                    <i class="fas fa-exclamation-circle me-2" style="color: var(--primary);"></i>
+                    Подтверждение
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -130,7 +164,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="confirmModalCancel">Отмена</button>
-                <button type="button" class="btn btn-primary" id="confirmModalOk">Да</button>
+                <button type="button" class="btn btn-pink" id="confirmModalOk">Да</button>
             </div>
         </div>
     </div>
@@ -141,14 +175,17 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="alertModalTitle">Уведомление</h5>
+                <h5 class="modal-title" id="alertModalTitle">
+                    <i class="fas fa-info-circle me-2" style="color: var(--primary);"></i>
+                    Уведомление
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
                 <p id="alertModalMessage"></p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                <button type="button" class="btn btn-pink" data-bs-dismiss="modal">OK</button>
             </div>
         </div>
     </div>
@@ -159,7 +196,11 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="dayModalTitle">Редактирование дня</h5>
+                <h5 class="modal-title" id="dayModalTitle">
+                    <i class="far fa-calendar-alt me-2" style="color: var(--primary);"></i>
+                    Редактирование
+                </h5>
+
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -169,12 +210,12 @@
                 <div id="viewDayPanel">
                     <p class="text-muted" id="dayModalDate"></p>
                     <div class="alert alert-light" id="currentStatusAlert">
-                        <i class="fas fa-info-circle me-2"></i>
+                      
                         <span id="currentStatusText">Загрузка...</span>
                     </div>
 
                     <div id="workingDayActions" class="d-grid gap-2 mb-3" style="display: none;">
-                        <button class="btn btn-outline-primary" onclick="showEditForm()">
+                        <button class="btn btn-outline-pink" onclick="showEditForm()">
                             <i class="fas fa-edit me-2"></i>Изменить время и перерывы
                         </button>
                         <button class="btn btn-outline-danger" onclick="makeDayOff()">
@@ -207,18 +248,18 @@
                         <div class="mb-3">
                             <label class="form-label">Перерывы</label>
                             <div id="extraBreaksContainer"></div>
-                            <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addExtraBreakField()">
+                            <button type="button" class="btn btn-sm btn-outline-pink mt-2" onclick="addExtraBreakField()">
                                 <i class="fas fa-plus me-1"></i>Добавить перерыв
                             </button>
                         </div>
-                        <button class="btn btn-primary w-100 mt-3" id="saveDayBtn" onclick="saveDayChanges()">
+                        <button class="btn btn-pink w-100 mt-3" id="saveDayBtn" onclick="saveDayChanges()">
                             <i class="fas fa-save me-2"></i>Сохранить изменения
                         </button>
                     </div>
 
                     <div id="addBookingButtonContainer" class="d-grid gap-2 mb-3">
-                        <button class="btn btn-primary" onclick="showAddBookingPanel()">
-                            <i class="fas fa-pen-alt me-2"></i>Добавить запись
+                        <button class="btn btn-pink" onclick="showAddBookingPanel()">
+                            <i class="fas fa-pen me-2"></i>Добавить запись
                         </button>
                     </div>
 
@@ -232,63 +273,62 @@
                 </div>
 
                 <!-- ПАНЕЛЬ ДОБАВЛЕНИЯ ЗАПИСИ -->
-                <!-- ПАНЕЛЬ ДОБАВЛЕНИЯ ЗАПИСИ -->
-<div id="addBookingPanel" style="display: none;">
-    <button class="btn btn-sm btn-outline-secondary mb-3" onclick="backToDayView()">
-        <i class="fas fa-arrow-left me-2"></i>Назад к дню
-    </button>
-    <h6 class="mb-3">Добавление записи</h6>
-    
-    <!-- Блок выбора услуг -->
-    <div class="mb-3">
-        <label class="form-label">Услуги (можно выбрать несколько)</label>
-        <div id="add_services_list" class="row">
-            <div class="col-12 text-center">
-                <div class="spinner-border spinner-border-sm" style="color: #7c3aed;"></div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Блок корзины -->
-    <div class="services-cart" id="add_services_cart" style="display: none;">
-        <div class="alert alert-light p-2 mb-2">
-            <strong><i class="fas fa-shopping-cart me-1"></i>Выбранные услуги:</strong>
-            <div id="add_selected_services_list" class="mt-2"></div>
-        </div>
-    </div>
-    
-    <div id="add_dates_container" style="display: none;" class="mb-3">
-        <label class="form-label">Дата</label>
-        <div id="add_dates_list" class="row"></div>
-    </div>
-    
-    <div id="add_times_container" style="display: none;" class="mb-3">
-        <label class="form-label">Время</label>
-        <div id="add_times_list" class="row"></div>
-    </div>
-    
-    <form id="addBookingForm">
-        <div class="mb-3">
-            <label class="form-label">Имя клиента</label>
-            <input type="text" class="form-control" id="add_client_name" required>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Телефон</label>
-            <input type="tel" class="form-control" id="add_client_phone" placeholder="7 999 123-45-67" required>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Комментарий</label>
-            <textarea class="form-control" id="add_comment" rows="2"></textarea>
-        </div>
-        <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" id="add_force_booking">
-            <label class="form-check-label" for="add_force_booking">Записать принудительно</label>
-        </div>
-    </form>
-    <button class="btn btn-primary w-100 mt-3" onclick="saveMultipleBooking()">
-        <i class="fas fa-save me-2"></i>Добавить запись
-    </button>
-</div>
+                <div id="addBookingPanel" style="display: none;">
+                    <button class="btn btn-sm btn-outline-secondary mb-3" onclick="backToDayView()">
+                        <i class="fas fa-arrow-left me-2"></i>Назад к дню
+                    </button>
+                    <h6 class="mb-3">Добавление записи</h6>
+                    
+                    <!-- Блок выбора услуг -->
+                    <div class="mb-3">
+                        <label class="form-label">Услуги (можно выбрать несколько)</label>
+                        <div id="add_services_list" class="row">
+                            <div class="col-12 text-center">
+                                <div class="spinner-border spinner-border-sm" style="color: #7c3aed;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Блок корзины -->
+                    <div class="services-cart" id="add_services_cart" style="display: none;">
+                        <div class="alert alert-light p-2 mb-2">
+                            <strong><i class="fas fa-shopping-cart me-1"></i>Выбранные услуги:</strong>
+                            <div id="add_selected_services_list" class="mt-2"></div>
+                        </div>
+                    </div>
+                    
+                    <div id="add_dates_container" style="display: none;" class="mb-3">
+                        <label class="form-label">Дата</label>
+                        <div id="add_dates_list" class="row"></div>
+                    </div>
+                    
+                    <div id="add_times_container" style="display: none;" class="mb-3">
+                        <label class="form-label">Время</label>
+                        <div id="add_times_list" class="row"></div>
+                    </div>
+                    
+                    <form id="addBookingForm">
+                        <div class="mb-3">
+                            <label class="form-label">Имя клиента</label>
+                            <input type="text" class="form-control" id="add_client_name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Телефон</label>
+                            <input type="tel" class="form-control" id="add_client_phone" placeholder="7 999 123-45-67" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Комментарий</label>
+                            <textarea class="form-control" id="add_comment" rows="2"></textarea>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="add_force_booking">
+                            <label class="form-check-label" for="add_force_booking">Записать принудительно</label>
+                        </div>
+                    </form>
+                    <button class="btn btn-pink w-100 mt-3" onclick="saveMultipleBooking()">
+                        <i class="fas fa-save me-2"></i>Добавить запись
+                    </button>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
@@ -302,7 +342,10 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Редактирование записи</h5>
+                <h5 class="modal-title">
+                    <i class="fas fa-edit me-2" style="color: var(--primary);"></i>
+                    Редактирование записи
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -349,13 +392,11 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <button type="button" class="btn btn-primary" onclick="saveEditedBooking()">Сохранить</button>
+                <button type="button" class="btn btn-pink" onclick="saveEditedBooking()">Сохранить</button>
             </div>
         </div>
     </div>
 </div>
-
-
 
 <!-- МОДАЛЬНОЕ ОКНО ПОДРОБНОСТЕЙ ЗАПИСИ -->
 <div class="modal fade" id="bookingDetailsModal" tabindex="-1">
@@ -363,14 +404,14 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <i class="fas fa-info-circle me-2" style="color: #ff85b3;"></i>
+                    <i class="fas fa-info-circle me-2" style="color: var(--primary);"></i>
                     Подробности записи
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="bookingDetailsContent">
                 <div class="text-center py-3">
-                    <div class="spinner-border" style="color: #ff85b3;"></div>
+                    <div class="spinner-border" style="color: var(--primary);"></div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -598,16 +639,18 @@ function renderCalendar(data, countsData, year, month) {
         const isToday = currentDate.toDateString() === today.toDateString();
         const todayClass = isToday ? 'today' : '';
 
-        // ← ИЗМЕНИТЬ HTML, ДОБАВИТЬ ИКОНКУ ПЕРЕРЫВА
+        // Показываем иконки ТОЛЬКО если день не прошедший
+        const showIcons = !isPast;
+
         html += `<div class="calendar-date ${workingClass} ${todayClass}" onclick="openDayModal('${dateStr}')">
-                    ${d}
+                    <span class="date-number">${d}</span>
                     <div class="calendar-time">${statusText}</div>
                     <div class="calendar-icons">
-                        ${bookingCount > 0 ? `<span class="booking-badge">${bookingCount}</span>` : ''}
-                        ${hasBreaks ? `<span class="break-badge" title="В этот день есть перерывы">⏸️</span>` : ''}
+                        ${showIcons && bookingCount > 0 ? `<span class="booking-badge">${bookingCount}</span>` : ''}
+                        ${showIcons && hasBreaks ? `<span class="break-badge" title="В этот день есть перерывы">💤</span>` : ''}
                     </div>
                 </div>`;
-    }
+            }
     html += '</div>';
     document.getElementById('calendar-grid').innerHTML = html;
 }
@@ -621,11 +664,13 @@ function openDayModal(dateStr) {
     currentSelectedDate = dateStr;
     const dateObj = new Date(dateStr);
     const monthNames = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-    document.getElementById('dayModalDate').innerHTML = `${dateObj.getDate()} ${monthNames[dateObj.getMonth()]} ${dateObj.getFullYear()}`;
+    const weekdays = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
+    // Добавляем день недели в скобках
+    document.getElementById('dayModalDate').innerHTML = `${dateObj.getDate()} ${monthNames[dateObj.getMonth()]} (${weekdays[dateObj.getDay()]})`;
 
     document.getElementById('viewDayPanel').style.display = 'block';
     document.getElementById('addBookingPanel').style.display = 'none';
-    document.getElementById('dayModalTitle').innerText = 'Редактирование дня';
+    document.getElementById('dayModalTitle').innerHTML = '<i class="far fa-calendar-alt me-2" style="color: var(--primary);"></i> Редактирование дня';
     
     document.getElementById('editFormBlock').style.display = 'none';
     document.getElementById('workingDayActions').style.display = 'none';
@@ -648,26 +693,26 @@ function openDayModal(dateStr) {
             currentDayData = data;
             let statusText = '';
             
-            // Добавляем информацию о перерывах
+            // Перерывы — без иконки
             let breaksText = '';
             if (data.breaks && data.breaks.length > 0) {
                 const breaksStr = data.breaks.map(b => `${b.start} - ${b.end}`).join(', ');
-                breaksText = `<br><span class="text-warning">⚠️ Перерывы: ${breaksStr}</span>`;
+                breaksText = `<br><span class="break-info">Перерыв: ${breaksStr}</span>`;
             }
 
             if (data.is_day_off === true || (data.has_schedule === false && data.is_extra === false)) {
                 if (data.is_day_off) {
                     statusText = 'Выходной день';
                 } else {
-                    statusText = 'Нерабочий день (нет расписания)';
+                    statusText = 'Нерабочий день';
                 }
                 document.getElementById('currentStatusText').innerHTML = statusText + breaksText;
                 if (!isPast) document.getElementById('dayOffActions').style.display = 'block';
             } else {
-                // Упрощённое отображение: просто "Рабочий день: 09:00 - 18:00"
+                // Рабочий день — "Работаю: 09:00 - 18:00"
                 const workStart = data.schedule_start || data.extra_start || '--:--';
                 const workEnd = data.schedule_end || data.extra_end || '--:--';
-                statusText = `Рабочий день: ${workStart} - ${workEnd}`;
+                statusText = `Работаю: ${workStart} - ${workEnd}`;
                 document.getElementById('currentStatusText').innerHTML = statusText + breaksText;
                 if (!isPast) document.getElementById('workingDayActions').style.display = 'block';
             }
@@ -1258,6 +1303,7 @@ function saveMultipleBooking() {
 }
 
 
+
 // ============================================================
 // ПАНЕЛЬ ДОБАВЛЕНИЯ ЗАПИСИ
 // ============================================================
@@ -1269,7 +1315,8 @@ let editCurrentSlug = "{{ master.public_slug }}";
 function showAddBookingPanel() {
     document.getElementById('viewDayPanel').style.display = 'none';
     document.getElementById('addBookingPanel').style.display = 'block';
-    document.getElementById('dayModalTitle').innerText = 'Добавление записи';
+    // document.getElementById('dayModalTitle').innerText = 'Добавление записи';
+    document.getElementById('dayModalTitle').innerHTML = '<i class="fas fa-plus me-2" style="color: var(--primary);"></i> Добавление записи';
     
     // Очищаем предыдущие выборы
     masterSelectedDate = null;
@@ -1315,7 +1362,8 @@ function highlightCurrentDate() {
 function backToDayView() {
     document.getElementById('viewDayPanel').style.display = 'block';
     document.getElementById('addBookingPanel').style.display = 'none';
-    document.getElementById('dayModalTitle').innerText = 'Редактирование дня';
+    // document.getElementById('dayModalTitle').innerText = 'Редактирование дня';
+    document.getElementById('dayModalTitle').innerHTML = '<i class="far fa-calendar-alt me-2" style="color: var(--primary);"></i> Редактирование дня';
     
     addSelectedServiceId = null;
     addSelectedDate = currentSelectedDate;
@@ -1916,6 +1964,31 @@ function deleteBooking(bookingId, clientName, time) {
     });
 }
 
+
+// ============================================================
+// ЛЕГЕНДА КАЛЕНДАРЯ
+// ============================================================
+
+function toggleLegend() {
+    const content = document.getElementById('legendContent');
+    const toggle = document.getElementById('legendToggle');
+    const icon = document.getElementById('legendIcon');
+    
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        toggle.classList.add('active');
+        icon.className = 'fas fa-times';
+        // Сбрасываем анимацию, чтобы она воспроизводилась заново
+        content.style.animation = 'none';
+        setTimeout(() => {
+            content.style.animation = 'fadeIn 0.2s ease';
+        }, 10);
+    } else {
+        content.style.display = 'none';
+        toggle.classList.remove('active');
+        icon.className = 'fas fa-info-circle';
+    }
+}
 
 // ============================================================
 // БЛИЖАЙШИЕ ЗАПИСИ (с выбором лимита 5/10/15)

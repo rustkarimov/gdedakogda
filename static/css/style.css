@@ -1317,13 +1317,18 @@ body {
     opacity: 0.7;
 }
 
+.calendar-date .date-number {
+        font-weight: 600;
+        color: black;
+    }
+
 .calendar-date.past {
-    opacity: 0.5;
+    opacity: 0.4;
 }
 
 .calendar-date.today {
-    border: 2px solid var(--primary);
-    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.3);
+    border: none;
+    box-shadow: none;
 }
 
 .calendar-time {
@@ -1347,8 +1352,8 @@ body {
 }
 
 .booking-badge {
-    background-color: var(--primary);
-    color: #fff;
+    /* background-color: #7ab5f7;
+    color: #fff; */
     font-size: 0.7rem;
     font-weight: 700;
     min-width: 18px;
@@ -1358,12 +1363,29 @@ body {
     align-items: center;
     justify-content: center;
     padding: 0 4px;
+
+    background: var(--primary) !important;  /* #7c3aed */
+    color: white !important;
 }
 
-.break-badge {
+/* .break-badge {
     font-size: 0.7rem;
     font-weight: 700;
     cursor: help;
+} */
+
+.break-badge {
+    font-size: 0.8rem !important;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: #f4d298;
+    color: white;
+    padding: 1px;
 }
 
 /* Записи */
@@ -1773,12 +1795,308 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 }
 
 
+/* ============================================================ */
+/* ========== МОДАЛЬНЫЕ ОКНА КАЛЕНДАРЯ ========== */
+/* ============================================================ */
 
-    /* ===== МОДАЛЬНОЕ ОКНО КАЛЕНДАРЯ (dayModal) ===== */
-    
-    /* Окно на всю ширину */
-        /* Окно на всю ширину */
-    #dayModal .modal-dialog {
+#dayModalDate {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin-bottom: 12px;
+    padding: 0;
+}
+
+#currentStatusText {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+#currentStatusText .break-info {
+    display: inline-block;
+    margin-top: 4px;
+    font-weight: 400;
+    color: #16a34a;
+}
+
+#currentStatusAlert {
+    border-radius: 12px;
+    padding: 12px 16px;
+    border: 1px solid var(--gray-200);
+    background: var(--gray-50);
+}
+
+#currentStatusAlert i {
+    color: var(--primary);
+}
+
+
+#dayModal .modal-content,
+#editBookingModal .modal-content,
+#bookingDetailsModal .modal-content {
+    border-radius: 16px;
+    border: 1px solid var(--gray-200);
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+#dayModal .modal-header,
+#editBookingModal .modal-header,
+#bookingDetailsModal .modal-header {
+    padding: 16px 20px;
+    background: white;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+#dayModal .modal-header h5,
+#editBookingModal .modal-header h5,
+#bookingDetailsModal .modal-header h5 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    margin: 0;
+}
+
+#dayModal .modal-header h5 i,
+#editBookingModal .modal-header h5 i,
+#bookingDetailsModal .modal-header h5 i {
+    /* color: var(--primary); */
+    margin-right: 8px;
+}
+
+#dayModal .modal-body,
+#editBookingModal .modal-body,
+#bookingDetailsModal .modal-body {
+    padding: 20px;
+}
+
+#dayModal .modal-footer,
+#editBookingModal .modal-footer,
+#bookingDetailsModal .modal-footer {
+    padding: 12px 20px;
+    background: var(--gray-50);
+    border-top: 1px solid var(--gray-200);
+    border-radius: 0 0 16px 16px;
+}
+
+/* ---- Кнопки как на других страницах ---- */
+#dayModal .btn-pink,
+#editBookingModal .btn-pink,
+#bookingDetailsModal .btn-pink {
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+#dayModal .btn-pink:hover,
+#editBookingModal .btn-pink:hover,
+#bookingDetailsModal .btn-pink:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+    color: white;
+}
+
+#dayModal .btn-outline-pink,
+#editBookingModal .btn-outline-pink,
+#bookingDetailsModal .btn-outline-pink {
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    background: transparent;
+    padding: 8px 24px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+#dayModal .btn-outline-pink:hover,
+#editBookingModal .btn-outline-pink:hover,
+#bookingDetailsModal .btn-outline-pink:hover {
+    background: var(--primary-gradient);
+    border-color: transparent;
+    color: white;
+}
+
+#dayModal .btn-secondary,
+#editBookingModal .btn-secondary,
+#bookingDetailsModal .btn-secondary {
+    background: var(--gray-200);
+    color: var(--gray-700);
+    border: none;
+    padding: 8px 24px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+#dayModal .btn-secondary:hover,
+#editBookingModal .btn-secondary:hover,
+#bookingDetailsModal .btn-secondary:hover {
+    background: var(--gray-300);
+    color: var(--gray-800);
+}
+
+#dayModal .btn-outline-danger,
+#editBookingModal .btn-outline-danger,
+#bookingDetailsModal .btn-outline-danger {
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    background: transparent;
+    padding: 8px 24px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+#dayModal .btn-outline-danger:hover,
+#editBookingModal .btn-outline-danger:hover,
+#bookingDetailsModal .btn-outline-danger:hover {
+    background: var(--danger);
+    color: white;
+}
+
+/* ---- Поля форм как на других страницах ---- */
+#dayModal .form-label,
+#editBookingModal .form-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    margin-bottom: 4px;
+}
+
+#dayModal .form-control,
+#editBookingModal .form-control,
+#dayModal .form-select,
+#editBookingModal .form-select {
+    border-radius: 10px;
+    border: 1px solid var(--gray-300);
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease;
+    height: 40px;
+}
+
+#dayModal .form-control:focus,
+#editBookingModal .form-control:focus,
+#dayModal .form-select:focus,
+#editBookingModal .form-select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+/* ---- Карточки услуг/дат/времени как на других страницах ---- */
+#dayModal .service-card,
+#dayModal .date-card,
+#dayModal .slot-card {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    background: white;
+}
+
+#dayModal .service-card:hover,
+#dayModal .date-card:hover,
+#dayModal .slot-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+#dayModal .border-pink {
+    border: 2px solid var(--primary) !important;
+    background-color: var(--primary-light) !important;
+}
+
+/* ---- Таблица записей как на других страницах ---- */
+#dayBookingsContainer .table {
+    font-size: 0.9rem;
+    margin-bottom: 0;
+}
+
+#dayBookingsContainer .table thead th {
+    font-weight: 600;
+    color: var(--gray-600);
+    border-bottom: 2px solid var(--gray-200);
+    padding: 8px 12px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    background: var(--gray-50);
+}
+
+#dayBookingsContainer .table tbody td {
+    padding: 10px 12px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--gray-100);
+}
+
+#dayBookingsContainer .table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+#dayBookingsContainer .btn-sm {
+    padding: 4px 12px;
+    font-size: 0.75rem;
+    border-radius: 20px;
+}
+
+/* ---- Корзина как на других страницах ---- */
+#dayModal .services-cart .alert {
+    border-radius: 12px;
+    border: 1px solid var(--gray-200);
+    background: var(--gray-50);
+}
+
+/* ---- Детали записи ---- */
+#bookingDetailsModal .detail-item {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--gray-100);
+}
+
+#bookingDetailsModal .detail-item:last-child {
+    border-bottom: none;
+}
+
+#bookingDetailsModal .detail-label {
+    font-weight: 500;
+    color: var(--gray-500);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+#bookingDetailsModal .detail-value {
+    color: var(--gray-800);
+    font-size: 0.95rem;
+    margin-top: 2px;
+}
+
+/* ============================================================ */
+/* ========== МОДАЛЬНЫЕ ОКНА КАЛЕНДАРЯ (МОБИЛЬНАЯ ВЕРСИЯ) ========== */
+/* ============================================================ */
+
+@media (max-width: 768px) {
+    #dayModalDate {
+        font-size: 1.1rem;
+    }
+
+    #currentStatusText {
+        font-size: 0.9rem;
+    }
+
+    #currentStatusText .break-info {
+        font-size: 0.85rem;
+    }
+    #dayModal .modal-dialog,
+    #editBookingModal .modal-dialog,
+    #bookingDetailsModal .modal-dialog {
         margin: 0 !important;
         max-width: 100% !important;
         width: 100% !important;
@@ -1786,135 +2104,67 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         display: flex !important;
         align-items: stretch !important;
     }
-    
-    #dayModal .modal-content {
+
+    #dayModal .modal-content,
+    #editBookingModal .modal-content,
+    #bookingDetailsModal .modal-content {
         height: 100% !important;
         border-radius: 0 !important;
         display: flex !important;
         flex-direction: column !important;
+        max-height: none !important;
     }
-    
-    #dayModal .modal-body {
+
+    #dayModal .modal-header,
+    #editBookingModal .modal-header,
+    #bookingDetailsModal .modal-header {
+        padding: 14px 16px !important;
+        flex-shrink: 0 !important;
+        border-bottom: 1px solid var(--gray-200) !important;
+        border-radius: 0 !important;
+    }
+
+    #dayModal .modal-body,
+    #editBookingModal .modal-body,
+    #bookingDetailsModal .modal-body {
         flex: 1 !important;
+        max-height: none !important;
         overflow-y: auto !important;
         padding: 16px !important;
     }
-    
-    /* Все кнопки в модальном окне — одинаковые, компактные */
-    #dayModal .btn,
-    #dayModal .btn-outline-primary,
-    #dayModal .btn-outline-danger,
-    #dayModal .btn-outline-success,
-    #dayModal .btn-primary {
+
+    #dayModal .modal-footer,
+    #editBookingModal .modal-footer,
+    #bookingDetailsModal .modal-footer {
+        padding: 10px 16px !important;
+        flex-shrink: 0 !important;
+        border-top: 1px solid var(--gray-200) !important;
+        border-radius: 0 !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+    }
+
+    #dayModal .modal-footer .btn,
+    #editBookingModal .modal-footer .btn,
+    #bookingDetailsModal .modal-footer .btn {
         width: 100% !important;
-        padding: 10px 12px !important;
-        font-size: 0.85rem !important;
-        border-radius: 30px !important;
-        margin-bottom: 8px !important;
-        display: flex !important;
-        align-items: center !important;
         justify-content: center !important;
-        gap: 8px !important;
     }
-    
-    /* Убираем последний margin у последней кнопки */
-    #dayModal .btn:last-child {
-        margin-bottom: 0 !important;
+}
+
+@media (max-width: 480px) {
+    #dayModalDate {
+        font-size: 0.95rem;
     }
-    
-    /* Группы кнопок */
-    #dayModal .d-grid {
-        gap: 8px !important;
+
+    #currentStatusText {
+        font-size: 0.8rem;
     }
-    
-    /* Кнопка "Добавить запись" */
-    #addBookingButtonContainer .btn {
-        background: var(--primary-gradient) !important;
-        color: white !important;
-        border: none !important;
+
+    #currentStatusText .break-info {
+        font-size: 0.75rem;
     }
-    
-    /* Кнопка "Сделать выходным" */
-    #workingDayActions .btn-outline-danger {
-        border: 1px solid var(--danger) !important;
-        color: var(--danger) !important;
-        background: transparent !important;
-    }
-    
-    #workingDayActions .btn-outline-danger:hover {
-        background: var(--danger) !important;
-        color: white !important;
-    }
-    
-    /* Кнопка "Сделать рабочим днём" */
-    #dayOffActions .btn-outline-success {
-        border: 1px solid var(--success) !important;
-        color: var(--success) !important;
-        background: transparent !important;
-    }
-    
-    #dayOffActions .btn-outline-success:hover {
-        background: var(--success) !important;
-        color: white !important;
-    }
-    
-    /* Таблица записей в карточки */
-    #dayBookingsContainer .table-responsive {
-        overflow-x: visible !important;
-    }
-    
-    #dayBookingsContainer table,
-    #dayBookingsContainer thead,
-    #dayBookingsContainer tbody,
-    #dayBookingsContainer tr,
-    #dayBookingsContainer td,
-    #dayBookingsContainer th {
-        display: block !important;
-    }
-    
-    #dayBookingsContainer thead {
-        display: none !important;
-    }
-    
-    #dayBookingsContainer tr {
-        background: white;
-        border-radius: 16px !important;
-        margin-bottom: 12px !important;
-        padding: 12px !important;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        border: 1px solid var(--gray-200);
-    }
-    
-    #dayBookingsContainer td {
-        display: flex !important;
-        justify-content: space-between !important;
-        align-items: center !important;
-        padding: 6px 0 !important;
-        border: none !important;
-        font-size: 0.85rem !important;
-    }
-    
-    #dayBookingsContainer td:before {
-        content: attr(data-label);
-        font-weight: 600;
-        color: var(--gray-600);
-        margin-right: 12px;
-        min-width: 70px;
-    }
-    
-    /* Кнопки в таблице записей дня */
-    #dayBookingsContainer .btn-sm {
-        width: auto !important;
-        display: inline-flex !important;
-        padding: 4px 10px !important;
-        font-size: 0.7rem !important;
-        margin: 0 2px !important;
-    }
-    
-    #dayBookingsContainer .btn-sm i {
-        font-size: 0.7rem !important;
-        margin-right: 4px !important;
-    }
+}
 
 
 
@@ -2003,58 +2253,173 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 }
 
 /* ============================================================ */
-/* ========== МОБИЛЬНЫЙ КАЛЕНДАРЬ ========== */
+/* ========== МОБИЛЬНЫЙ КАЛЕНДАРЬ (МИНИМАЛИСТИЧНЫЙ) ========== */
 /* ============================================================ */
 
 @media (max-width: 768px) {
-    .calendar-weekdays {
-        gap: 4px;
-    }
-    
-    .calendar-weekday {
-        font-size: 0.7rem;
-        padding: 6px 2px;
-    }
-    
-    .calendar-dates {
-        gap: 4px;
-    }
-    
+    /* ---- Обнуляем десктопные стили ---- */
     .calendar-date {
-        padding: 6px 2px;
-        min-height: 55px;
-        font-size: 0.8rem;
-        padding-bottom: 20px;
+        position: relative !important;
+        background: transparent !important;
+        border: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        min-height: 32px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        width: 100%;
+        aspect-ratio: 1 / 1;
     }
     
-    .calendar-time {
-        font-size: 0.55rem;
-        margin-top: 2px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
+    /* ---- Цифра (всегда видна, по центру) ---- */
+    .calendar-date .date-number {
+        font-size: 0.7rem;
+        font-weight: 500;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        transition: all 0.15s ease;
+        color: black;
+        background: transparent;
+        margin: 0 auto;
     }
     
+    /* ---- Рабочий день: цифра в зелёном кружке ---- */
+    .calendar-date.working .date-number {
+
+        background: #ede9fe !important;
+        color: #000000 !important;
+    }
+    
+    /* ---- Нерабочий день: просто цифра без кружка ---- */
+    .calendar-date.non-working .date-number {
+        background-color: transparent !important;
+        /* color: var(--gray-400) !important; */
+        color: black;
+    }
+    
+    /* ---- Прошедшие дни ---- */
+    .calendar-date.past .date-number {
+        opacity: 0.8;
+    }
+    
+    /* ---- Сегодня: фиолетовый кружок ---- */
+    .calendar-date.today .date-number {
+        background: #d4edda !important;  /* зелёный фон как у рабочих дней */
+        color: #155724 !important;       /* тёмно-зелёный текст как у рабочих дней */
+        background: #ede9fe !important;
+        color: #000000 !important;
+        font-weight: 600;
+        box-shadow: 0 0 0 1px var(--primary) !important;  /* фиолетовое кольцо */
+        /* убираем box-shadow от фиолета */
+    }
+    
+    /* ---- Иконки (под цифрой) ---- */
     .calendar-icons {
-        position: absolute;
-        bottom: 4px;
-        top: auto;
-        right: 4px;
-        flex-direction: row;
-        gap: 4px;
+        position: relative !important;
+        top: auto !important;
+        right: auto !important;
+        display: flex !important;
+        gap: 2px;
+        align-items: center;
+        justify-content: center;
+        margin-top: 2px;
+        min-height: 12px;
+        flex-direction: row !important;
     }
     
     .booking-badge {
-        font-size: 0.6rem;
-        min-width: 16px;
-        height: 16px;
+        font-size: 0.4rem !important;
+        min-width: 12px !important;
+        height: 12px !important;
+        border-radius: 50% !important;
+        padding: 0 2px !important;
+        /* background: var(--primary); */
+        color: white;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
     }
     
+    /* .break-badge {
+        font-size: 0.45rem !important;
+        color: #f59e0b;
+        line-height: 1;
+    } */
+
     .break-badge {
-        font-size: 0.6rem;
+        font-size: 0.45rem !important;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        /* background-color: #f59e0b; */
+        color: white;
+        font-size: 0.5rem !important;
+        padding: 1px;
     }
     
+    /* ---- Сегодня: иконки белые ---- */
+    .calendar-date.today .calendar-icons .booking-badge {
+        background-color: #7ab5f7;
+        color: rgb(0, 0, 0) !important;
+
+        background: var(--primary) !important;  /* #7c3aed */
+        color: white !important;
+    }
+    
+    .calendar-date.today .calendar-icons .break-badge {
+        color: white !important;
+    }
+    
+    /* ---- Скрываем время ---- */
+    .calendar-time {
+        display: none !important;
+    }
+    
+    /* ---- Сетка ---- */
+    .calendar-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 3px;
+        margin-bottom: 6px;
+        text-align: center;
+    }
+    
+    .calendar-weekday {
+        font-weight: 500;
+        font-size: 0.6rem;
+        padding: 4px 0;
+        color: var(--gray-400);
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        background-color: transparent !important;
+        border-radius: 0 !important;
+    }
+    
+    .calendar-dates {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 6px;
+    }
+    
+ 
+    
+    /* ---- Сайдбар и другие общие стили ---- */
     .sidebar {
         position: fixed;
         left: -280px;
@@ -2090,21 +2455,237 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
 @media (max-width: 480px) {
     .calendar-weekday {
-        font-size: 0.65rem;
-        padding: 4px 1px;
+        font-size: 0.5rem !important;
+        padding: 3px 0 !important;
     }
     
-    .calendar-date {
-        min-height: 48px;
-        font-size: 0.75rem;
+    .calendar-dates {
+        gap: 6px !important;
+        row-gap: 16px !important;
     }
     
-    .calendar-time {
-        display: none;
+    .calendar-date .date-number {
+        font-size: 0.65rem !important;
+    }
+    
+    .booking-badge {
+        font-size: 0.35rem !important;
+        min-width: 10px !important;
+        height: 10px !important;
+    }
+    
+    .break-badge {
+        font-size: 0.4rem !important;
+    }
+    
+    .calendar-icons {
+        min-height: 10px !important;
+        gap: 1px !important;
+        margin-top: 1px !important;
     }
 }
 
 
+
+/* ============================================================ */
+/* ========== ЛЕГЕНДА КАЛЕНДАРЯ ========== */
+/* ============================================================ */
+
+/* .legend-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+    justify-content: center;
+    position: relative;
+}
+
+.legend-toggle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: none;
+    background: var(--gray-200);
+    color: var(--gray-600);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.legend-toggle:hover {
+    background: var(--gray-300);
+    color: var(--gray-800);
+}
+
+.legend-toggle.active {
+    background: var(--gray-200);  
+    color: var(--gray-600);
+}
+
+.legend-toggle.active:hover {
+    background: var(--gray-300);
+    color: var(--gray-800);
+}
+
+.legend-content {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 10px 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    animation: fadeIn 0.2s ease;
+}
+
+
+.legend-items {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    color: var(--gray-700);
+    white-space: nowrap;
+}
+
+.legend-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.legend-dot.working-dot {
+    background: #ede9fe;
+    border: 1px solid var(--primary);
+}
+
+.legend-badge {
+    font-size: 0.6rem !important;
+    font-weight: 700;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary) !important;
+    color: white !important;
+    padding: 0 4px;
+    flex-shrink: 0;
+}
+
+.legend-icon {
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: #f4d298;
+    border-radius: 50%;
+    flex-shrink: 0;
+} */
+
+/* ============================================================ */
+/* ========== ЛЕГЕНДА (МОБИЛЬНАЯ ВЕРСИЯ) ========== */
+/* ============================================================ */
+
+@media (max-width: 768px) {
+    .legend-container {
+        margin-top: 8px;
+        gap: 8px;
+    }
+
+    .legend-toggle {
+        width: 24px;
+        height: 24px;
+        font-size: 0.7rem;
+    }
+
+    .legend-content {
+        padding: 8px 12px;
+        border-radius: 10px;
+    }
+
+    .legend-items {
+        gap: 10px;
+    }
+
+    .legend-item {
+        font-size: 0.7rem;
+        gap: 4px;
+    }
+
+    .legend-dot {
+        width: 16px;
+        height: 16px;
+    }
+
+    .legend-badge {
+        font-size: 0.5rem !important;
+        min-width: 14px;
+        height: 14px;
+    }
+
+    .legend-icon {
+        width: 16px;
+        height: 16px;
+        font-size: 0.6rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .legend-container {
+        margin-top: 20px;
+    }
+
+    .legend-toggle {
+        width: 20px;
+        height: 20px;
+        font-size: 0.6rem;
+    }
+
+    .legend-content {
+        padding: 6px 10px;
+    }
+
+    .legend-items {
+        gap: 6px;
+    }
+
+    .legend-item {
+        font-size: 0.6rem;
+        gap: 3px;
+    }
+
+    .legend-dot {
+        width: 14px;
+        height: 14px;
+    }
+
+    .legend-badge {
+        font-size: 0.4rem !important;
+        min-width: 12px;
+        height: 12px;
+    }
+
+    .legend-icon {
+        width: 14px;
+        height: 14px;
+        font-size: 0.5rem;
+    }
+}
 
 /* ============================================================ */
 /* ========== СТРАНИЦА ДОБАВЛЕНИЯ ЗАПИСИ (add_manual_booking) ========== */
@@ -2232,6 +2813,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     .add-booking-page .card-body {
         padding: 10px !important;
     }
+    
     
     /* Услуги - компактные карточки */
     .add-booking-page .service-card .card-body {
