@@ -218,7 +218,7 @@
                         <button class="btn btn-outline-pink" onclick="showEditForm()">
                             <i class="fas fa-edit me-2"></i>Изменить время и перерывы
                         </button>
-                        <button class="btn btn-outline-danger" onclick="makeDayOff()">
+                        <button class="btn btn-outline-soft-blue" onclick="makeDayOff()">
                             <i class="fas fa-calendar-times me-2"></i>Сделать выходным
                         </button>
                     </div>
@@ -733,15 +733,17 @@ function renderDayBookings(bookings) {
         html += `<tr>
                     <td data-label="Время">${b.time}</td>
                     <td data-label="Клиент">${escapeHtml(b.client_name)}</td>
-                    <td data-label="Услуга">${escapeHtml(b.service_name)}</td>
+                    <td data-label="Услуга">${b.category_name ? escapeHtml(b.category_name + '. ') : ''}${escapeHtml(b.service_name)}</td>
                     <td data-label="Телефон">${b.phone || '—'}</td>
                     <td data-label="Действия">
-                        <button class="btn btn-sm btn-outline-primary" onclick="editBookingInModal(${b.id})" title="Редактировать">
-                            <i class="fas fa-edit"></i> Редактировать
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteBooking(${b.id}, '${escapeHtml(b.client_name)}', '${b.time}')" title="Удалить">
-                            <i class="fas fa-trash"></i> Удалить
-                        </button>
+                        <div class="action-icons">
+                            <button class="btn btn-sm" onclick="editBookingInModal(${b.id})" title="Редактировать">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm" onclick="deleteBooking(${b.id}, '${escapeHtml(b.client_name)}', '${b.time}')" title="Удалить">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </td>
                 </tr>`;
     });

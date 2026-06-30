@@ -1061,6 +1061,7 @@ def get_bookings_by_date(request):
             'time': booking.time.strftime('%H:%M'),
             'client_name': booking.client_name,
             'service_name': booking.service.name,
+            'category_name': booking.service.category.name if booking.service.category else None,
             'service_duration': booking.service.duration,  # ← ДОБАВЬТЕ ЭТУ СТРОКУ
             'phone': formatted_phone
         })

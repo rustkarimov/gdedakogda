@@ -1902,6 +1902,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 }
 
 #dayModal .btn-outline-pink,
+#makeDayOff .btn-outline-danger,
 #editBookingModal .btn-outline-pink,
 #bookingDetailsModal .btn-outline-pink {
     border: 1px solid var(--primary);
@@ -1960,6 +1961,23 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 #bookingDetailsModal .btn-outline-danger:hover {
     background: var(--danger);
     color: white;
+}
+
+/* ---- Кнопка "Сделать выходным" (бледно-синяя) ---- */
+.btn-outline-soft-blue {
+    border: 1px solid #0f4daf;
+    color: #0f4daf;
+    background: transparent;
+    padding: 8px 24px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.btn-outline-soft-blue:hover {
+    background: #bfdbfe;
+    color: #021035;
 }
 
 /* ---- Поля форм как на других страницах ---- */
@@ -2047,6 +2065,42 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     border-radius: 20px;
 }
 
+/* ---- Иконки действий в модалке ---- */
+#dayBookingsContainer .action-icons {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+#dayBookingsContainer .action-icons .btn {
+    background: transparent !important;
+    border: none !important;
+    padding: 4px 8px !important;
+    border-radius: 6px !important;
+    transition: all 0.2s ease !important;
+}
+
+#dayBookingsContainer .action-icons .btn i {
+    color: #6b7280 !important;
+    font-size: 0.85rem !important;
+}
+
+#dayBookingsContainer .action-icons .btn:hover {
+    background: #f3f4f6 !important;
+}
+
+#dayBookingsContainer .action-icons .btn:hover i {
+    color: #374151 !important;
+}
+
+#dayBookingsContainer .action-icons .btn:last-child:hover {
+    background: #fef2f2 !important;
+}
+
+#dayBookingsContainer .action-icons .btn:last-child:hover i {
+    color: #dc2626 !important;
+}
+
 /* ---- Корзина как на других страницах ---- */
 #dayModal .services-cart .alert {
     border-radius: 12px;
@@ -2094,6 +2148,18 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     #currentStatusText .break-info {
         font-size: 0.85rem;
     }
+
+    #dayModal #workingDayActions {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 12px !important;
+    }
+
+    #dayModal #workingDayActions .btn {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+
     #dayModal .modal-dialog,
     #editBookingModal .modal-dialog,
     #bookingDetailsModal .modal-dialog {
@@ -2113,6 +2179,17 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         display: flex !important;
         flex-direction: column !important;
         max-height: none !important;
+    }
+
+    #dayModal .btn,
+    #dayModal .btn-outline-pink,
+    #dayModal .btn-outline-danger,
+    #dayModal .btn-outline-success,
+    #dayModal .btn-pink {
+        width: 100% !important;
+        padding: 8px 10px !important;
+        font-size: 0.85rem !important;
+        border-radius: 30px !important;
     }
 
     #dayModal .modal-header,
@@ -2149,6 +2226,65 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     #bookingDetailsModal .modal-footer .btn {
         width: 100% !important;
         justify-content: center !important;
+    }
+
+        #dayBookingsContainer .table thead {
+        display: none;
+    }
+
+    #dayBookingsContainer .table tbody tr {
+        display: block;
+        background: white;
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        border: 1px solid var(--gray-200);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+
+    #dayBookingsContainer .table tbody td {
+        display: flex !important;
+        justify-content: flex-start !important;
+        align-items: center !important;
+        padding: 3px 0 !important;
+        border: none !important;
+        font-size: 0.8rem;
+        gap: 4px;
+        width: 100% !important;
+    }
+
+    /* Скрываем labels */
+    #dayBookingsContainer .table tbody td:before {
+        display: none !important;
+    }
+
+    /* Время — делаем жирным */
+    #dayBookingsContainer .table tbody td:first-child {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--gray-800);
+    }
+
+    /* Телефон — серым */
+    #dayBookingsContainer .table tbody td:nth-child(4) {
+        color: var(--gray-500);
+        font-size: 0.75rem;
+    }
+
+    /* Действия — отдельная строка */
+    #dayBookingsContainer .table tbody td:last-child {
+        border-top: 1px solid var(--gray-200);
+        padding-top: 6px !important;
+        margin-top: 4px;
+        flex-wrap: wrap;
+        gap: 4px;
+        justify-content: flex-start !important;
+    }
+
+    #dayBookingsContainer .table tbody td:last-child .action-icons {
+        display: flex !important;
+        gap: 4px;
+        align-items: center;
     }
 }
 
