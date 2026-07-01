@@ -185,12 +185,13 @@
                 <p id="alertModalMessage"></p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-pink" data-bs-dismiss="modal">OK</button>
+                <button type="button" class="btn btn-primary data-bs-dismiss="modal">OK</button>
             </div>
         </div>
     </div>
 </div>
 
+<!-- МОДАЛЬНОЕ ОКНО ДНЯ -->
 <!-- МОДАЛЬНОЕ ОКНО ДНЯ -->
 <!-- МОДАЛЬНОЕ ОКНО ДНЯ -->
 <div class="modal fade day-modal-fixed" id="dayModal" tabindex="-1">
@@ -209,52 +210,60 @@
                 <!-- ПАНЕЛЬ ПРОСМОТРА ДНЯ -->
                 <div id="viewDayPanel">
                     <p class="text-muted" id="dayModalDate"></p>
-                    <div class="alert alert-light" id="currentStatusAlert">
-                        <span id="currentStatusText">Загрузка...</span>
-                    </div>
 
-                    <div id="workingDayActions" class="d-grid gap-2 mb-3" style="display: none;">
-                        <button class="btn btn-outline-pink" onclick="showEditForm()">
-                            <i class="fas fa-edit me-2"></i>Изменить время
-                        </button>
-                        <button class="btn btn-outline-soft-blue" onclick="makeDayOff()">
-                            <i class="fas fa-calendar-times me-2"></i>Сделать выходным
-                        </button>
-                    </div>
-
-                    <div id="dayOffActions" class="d-grid gap-2 mb-3" style="display: none;">
-                        <button class="btn btn-outline-success" onclick="makeWorkingFromDayOff()">
-                            <i class="fas fa-calendar-check me-2"></i>Сделать рабочим днём
-                        </button>
-                    </div>
-
-                    <div id="editFormBlock" style="display: none;">
-                        <hr>
-                        <h6 class="mb-3">Настройка времени</h6>
-                        <div class="row mb-3">
-                            <div class="col-6">
-                                <label class="form-label">Начало работы</label>
-                                <input type="time" class="form-control" id="extraStartTime">
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label">Конец работы</label>
-                                <input type="time" class="form-control" id="extraEndTime">
-                            </div>
+                    <!-- СТРОКА: РАБОЧЕЕ ВРЕМЯ -->
+                    <!-- СТРОКА: РАБОЧЕЕ ВРЕМЯ -->
+                    <div class="d-flex align-items-center justify-content-between mb-2" id="workTimeRow">
+                        <div>
+                            <span id="workTimeLabel">
+                                <i class="fas fa-clock me-2" style="color: var(--primary);"></i>
+                                Работаю: <span id="workTimeDisplay">--:-- - --:--</span>
+                            </span>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Перерывы</label>
-                            <div id="extraBreaksContainer"></div>
-                            <button type="button" class="btn btn-sm btn-outline-pink mt-2" onclick="addExtraBreakField()">
-                                <i class="fas fa-plus me-1"></i>Добавить перерыв
+                        <div>
+                            <button class="btn btn-sm" id="editWorkTimeBtn" onclick="editWorkTime()" title="Изменить время">
+                                <i class="fas fa-edit"></i>
                             </button>
                         </div>
-                        <button class="btn btn-pink w-100 mt-3" id="saveDayBtn" onclick="saveDayChanges()">
-                            <i class="fas fa-save me-2"></i>Сохранить изменения
-                        </button>
+                    </div>
+                    <!-- РЕДАКТИРОВАНИЕ РАБОЧЕГО ВРЕМЕНИ (скрыто) -->
+                    <div id="editWorkTimeBlock" style="display: none;" class="mb-2">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span><i class="fas fa-clock me-2" style="color: var(--primary);"></i>Работаю:</span>
+                            <input type="time" class="form-control form-control-sm" id="editWorkStart" style="width: 100px;">
+                            <span>—</span>
+                            <input type="time" class="form-control form-control-sm" id="editWorkEnd" style="width: 100px;">
+                            <button class="btn btn-sm btn-success" onclick="saveWorkTime()">
+                                <i class="fas fa-save"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="cancelEditWorkTime()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- КНОПКА "ДОБАВИТЬ ЗАПИСЬ" — ВЫНЕСЕНА НАРУЖУ -->
-                    <div id="addBookingButtonContainer" class="d-grid gap-2 mt-3">
+                    <!-- СТРОКИ: ПЕРЕРЫВЫ -->
+                    <div id="breaksContainer">
+                        <!-- Перерывы будут вставляться сюда через JS -->
+                    </div>
+                    <!-- КНОПКА ДОБАВИТЬ ПЕРЕРЫВ (всегда видна) -->
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <!-- <button class="btn btn-sm btn-outline-pink" onclick="addNewBreak()">
+                            <i class="fas fa-plus me-1"></i>Добавить перерыв
+                        </button> -->
+                        
+                    </div>
+
+                    <!-- КНОПКИ УПРАВЛЕНИЯ ДНЁМ -->
+                    <div id="dayActionsContainer" class="d-flex gap-2 mb-3 flex-wrap">
+                        <button class="btn btn-outline-soft-blue" id="makeDayOffBtn" onclick="makeDayOff()" style="display: none;">
+                            <i class="fas fa-calendar-times me-2"></i>Сделать выходным
+                        </button>
+                        <div id="dayOffActions" style="display: none;">
+                            <button class="btn btn-outline-success" onclick="makeWorkingFromDayOff()">
+                                <i class="fas fa-calendar-check me-2"></i>Сделать рабочим днём
+                            </button>
+                        </div>
                         <button class="btn btn-pink" onclick="showAddBookingPanel()">
                             <i class="fas fa-pen me-2"></i>Добавить запись
                         </button>
@@ -269,14 +278,13 @@
                     </div>
                 </div>
 
-                <!-- ПАНЕЛЬ ДОБАВЛЕНИЯ ЗАПИСИ (без изменений) -->
+                <!-- ПАНЕЛЬ ДОБАВЛЕНИЯ ЗАПИСИ -->
                 <div id="addBookingPanel" style="display: none;">
                     <button class="btn btn-sm btn-outline-secondary mb-3" onclick="backToDayView()">
                         <i class="fas fa-arrow-left me-2"></i>Назад к дню
                     </button>
                     <h6 class="mb-3">Добавление записи</h6>
                     
-                    <!-- Блок выбора услуг -->
                     <div class="mb-3">
                         <label class="form-label">Услуги (можно выбрать несколько)</label>
                         <div id="add_services_list" class="row">
@@ -286,7 +294,6 @@
                         </div>
                     </div>
                     
-                    <!-- Блок корзины -->
                     <div class="services-cart" id="add_services_cart" style="display: none;">
                         <div class="alert alert-light p-2 mb-2">
                             <strong><i class="fas fa-shopping-cart me-1"></i>Выбранные услуги:</strong>
@@ -668,12 +675,9 @@ function openDayModal(dateStr) {
     document.getElementById('addBookingPanel').style.display = 'none';
     document.getElementById('dayModalTitle').innerHTML = '<i class="far fa-calendar-alt me-2" style="color: var(--primary);"></i> Редактирование дня';
     
-    document.getElementById('editFormBlock').style.display = 'none';
-    document.getElementById('workingDayActions').style.display = 'none';
-    document.getElementById('dayOffActions').style.display = 'none';
-    document.getElementById('addBookingButtonContainer').style.display = 'block';
+    // Сбрасываем режим редактирования
+    cancelEditWorkTime();
     document.getElementById('dayBookingsContainer').innerHTML = '<div class="text-center py-2"><div class="spinner-border spinner-border-sm" style="color: #7c3aed;"></div></div>';
-    document.getElementById('currentStatusText').innerHTML = 'Загрузка...';
 
     fetch(`/api/bookings/by-date/?date=${dateStr}`)
         .then(r => r.json())
@@ -687,49 +691,34 @@ function openDayModal(dateStr) {
         .then(r => r.json())
         .then(data => {
             currentDayData = data;
-            let statusText = '';
             
-            let breaksText = '';
-            if (data.breaks && data.breaks.length > 0) {
-                const breaksStr = data.breaks.map(b => `${b.start} - ${b.end}`).join(', ');
-                breaksText = `<br><span class="break-info">Перерыв: ${breaksStr}</span>`;
-            }
-
-            if (data.is_day_off === true || (data.has_schedule === false && data.is_extra === false)) {
-                if (data.is_day_off) {
-                    statusText = 'Выходной день';
-                } else {
-                    statusText = 'Нерабочий день';
-                }
-                document.getElementById('currentStatusText').innerHTML = statusText + breaksText;
-                if (!isPast) document.getElementById('dayOffActions').style.display = 'block';
-            } else {
-                const workStart = data.schedule_start || data.extra_start || '--:--';
-                const workEnd = data.schedule_end || data.extra_end || '--:--';
-                statusText = `Работаю: ${workStart} - ${workEnd}`;
-                document.getElementById('currentStatusText').innerHTML = statusText + breaksText;
-                if (!isPast) document.getElementById('workingDayActions').style.display = 'block';
-            }
+            // Обновляем отображение рабочего времени
+            let workStart = data.extra_start || data.schedule_start || '--:--';
+            let workEnd = data.extra_end || data.schedule_end || '--:--';
+            document.getElementById('workTimeDisplay').textContent = workStart + ' - ' + workEnd;
+            
+            // Обновляем отображение перерывов
+            renderBreaks(data.breaks || []);
+            
+            // Обновляем кнопки
+            updateDayActions();
         });
 
     const modalElement = document.getElementById('dayModal');
     const modal = new bootstrap.Modal(modalElement);
     modal.show();
     
-    // Фиксируем высоту модального окна для десктопа
+    // Фиксируем высоту
     setTimeout(() => {
         const dialog = modalElement.querySelector('.modal-dialog');
         const body = modalElement.querySelector('.modal-body');
         
         if (dialog && window.innerWidth > 768) {
-            // Сохраняем текущую высоту
             const currentHeight = dialog.offsetHeight;
             if (currentHeight > 0) {
                 dialog.style.height = currentHeight + 'px';
                 dialog.style.maxHeight = currentHeight + 'px';
             }
-            
-            // Добавляем прокрутку для тела
             if (body) {
                 body.style.overflowY = 'auto';
                 body.style.maxHeight = (currentHeight - 140) + 'px';
@@ -783,99 +772,7 @@ function addExtraBreakField(s = '', e = '') {
     c.appendChild(d);
 }
 
-function showEditForm() {
-    // Находим кнопку "Изменить время"
-    const editBtn = document.querySelector('#workingDayActions .btn-outline-pink');
-    if (editBtn) {
-        // Меняем текст на "Назад к дню"
-        editBtn.innerHTML = '<i class="fas fa-arrow-left me-2"></i>Назад к дню';
-        // Меняем действие
-        editBtn.onclick = backToDayViewFromEdit;
-        // Убираем класс, если нужно (опционально)
-        editBtn.classList.remove('btn-outline-pink');
-        editBtn.classList.add('btn-outline-secondary');
-    }
-    
-    // Показываем блок редактирования
-    document.getElementById('editFormBlock').style.display = 'block';
-    
-    // Заполняем поля
-    document.getElementById('extraStartTime').value = currentDayData.extra_start || currentDayData.schedule_start || '09:00';
-    document.getElementById('extraEndTime').value = currentDayData.extra_end || currentDayData.schedule_end || '18:00';
-    
-    // Очищаем и загружаем перерывы
-    document.getElementById('extraBreaksContainer').innerHTML = '';
-    if (currentDayData.breaks && currentDayData.breaks.length > 0) {
-        currentDayData.breaks.forEach(b => {
-            addExtraBreakField(b.start, b.end);
-        });
-    } else {
-        addExtraBreakField();
-    }
-}
 
-function backToDayViewFromEdit() {
-    // Скрываем блок редактирования
-    document.getElementById('editFormBlock').style.display = 'none';
-    
-    // Восстанавливаем кнопку "Изменить время"
-    const editBtn = document.querySelector('#workingDayActions .btn-outline-secondary');
-    if (editBtn) {
-        // Возвращаем текст
-        editBtn.innerHTML = '<i class="fas fa-edit me-2"></i>Изменить время';
-        // Возвращаем действие
-        editBtn.onclick = showEditForm;
-        // Возвращаем класс
-        editBtn.classList.remove('btn-outline-secondary');
-        editBtn.classList.add('btn-outline-pink');
-    }
-    
-    // Перезагружаем данные дня
-    fetch(`/api/day-status/?date=${currentSelectedDate}`)
-        .then(r => r.json())
-        .then(data => {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const isPast = new Date(currentSelectedDate) < today;
-            
-            let statusText = '';
-            let breaksText = '';
-            if (data.breaks && data.breaks.length > 0) {
-                const breaksStr = data.breaks.map(b => `${b.start} - ${b.end}`).join(', ');
-                breaksText = `<br><span class="break-info">Перерыв: ${breaksStr}</span>`;
-            }
-            
-            document.getElementById('workingDayActions').style.display = 'none';
-            document.getElementById('dayOffActions').style.display = 'none';
-            
-            if (data.is_day_off === true || (data.has_schedule === false && data.is_extra === false)) {
-                if (data.is_day_off) {
-                    statusText = 'Выходной день';
-                } else {
-                    statusText = 'Нерабочий день';
-                }
-                document.getElementById('currentStatusText').innerHTML = statusText + breaksText;
-                if (!isPast) document.getElementById('dayOffActions').style.display = 'block';
-            } else {
-                const workStart = data.schedule_start || data.extra_start || '--:--';
-                const workEnd = data.schedule_end || data.extra_end || '--:--';
-                statusText = `Работаю: ${workStart} - ${workEnd}`;
-                document.getElementById('currentStatusText').innerHTML = statusText + breaksText;
-                if (!isPast) document.getElementById('workingDayActions').style.display = 'block';
-            }
-            
-            fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
-                .then(r => r.json())
-                .then(bookingsData => renderDayBookings(bookingsData.bookings));
-        });
-    
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const isPast = new Date(currentSelectedDate) < today;
-    if (!isPast) {
-        document.getElementById('addBookingButtonContainer').style.display = 'block';
-    }
-}
 
 function makeDayOff() {
     showConfirm('Сделать этот день выходным?', (confirmed) => {
@@ -900,156 +797,156 @@ function makeWorkingFromDayOff() {
     document.getElementById('currentStatusText').innerHTML = 'Настройка рабочего дня';
 }
 
-function saveDayChanges() {
-    const s = document.getElementById('extraStartTime').value;
-    const e = document.getElementById('extraEndTime').value;
-    if (!s || !e) { showAlert('Заполните время', 'Ошибка'); return; }
+// function saveDayChanges() {
+//     const s = document.getElementById('extraStartTime').value;
+//     const e = document.getElementById('extraEndTime').value;
+//     if (!s || !e) { showAlert('Заполните время', 'Ошибка'); return; }
     
-    // ========== НОВАЯ ПРОВЕРКА: время начала не может быть позже времени окончания ==========
-    if (s >= e) {
-        showAlert('Время начала не может быть позже или равно времени окончания', 'Ошибка');
-        return;
-    }
-    // ===================================================
+//     // ========== НОВАЯ ПРОВЕРКА: время начала не может быть позже времени окончания ==========
+//     if (s >= e) {
+//         showAlert('Время начала не может быть позже или равно времени окончания', 'Ошибка');
+//         return;
+//     }
+//     // ===================================================
     
-    const breaks = [];
-    let breaksValid = true;
-    let breaksError = '';
+//     const breaks = [];
+//     let breaksValid = true;
+//     let breaksError = '';
     
-    document.querySelectorAll('#extraBreaksContainer .break-item').forEach(item => {
-        const start = item.querySelector('.break-start').value;
-        const end = item.querySelector('.break-end').value;
-        if (start && end) {
-            // ========== ПРОВЕРКА ДЛЯ КАЖДОГО ПЕРЕРЫВА ==========
-            if (start >= end) {
-                breaksValid = false;
-                breaksError = `Перерыв ${start}-${end}: время начала не может быть позже времени окончания`;
-                return;
-            }
-            // Проверка: перерыв должен быть в рамках рабочего дня
-            if (start < s || end > e) {
-                breaksValid = false;
-                breaksError = `Перерыв ${start}-${end} выходит за пределы рабочего дня (${s}-${e})`;
-                return;
-            }
-            // Проверка: перерывы не должны пересекаться между собой
-            breaks.push({ start: start, end: end });
-        }
-    });
+//     document.querySelectorAll('#extraBreaksContainer .break-item').forEach(item => {
+//         const start = item.querySelector('.break-start').value;
+//         const end = item.querySelector('.break-end').value;
+//         if (start && end) {
+//             // ========== ПРОВЕРКА ДЛЯ КАЖДОГО ПЕРЕРЫВА ==========
+//             if (start >= end) {
+//                 breaksValid = false;
+//                 breaksError = `Перерыв ${start}-${end}: время начала не может быть позже времени окончания`;
+//                 return;
+//             }
+//             // Проверка: перерыв должен быть в рамках рабочего дня
+//             if (start < s || end > e) {
+//                 breaksValid = false;
+//                 breaksError = `Перерыв ${start}-${end} выходит за пределы рабочего дня (${s}-${e})`;
+//                 return;
+//             }
+//             // Проверка: перерывы не должны пересекаться между собой
+//             breaks.push({ start: start, end: end });
+//         }
+//     });
     
-    if (!breaksValid) {
-        showAlert(breaksError, 'Ошибка');
-        return;
-    }
+//     if (!breaksValid) {
+//         showAlert(breaksError, 'Ошибка');
+//         return;
+//     }
     
-    // ========== ПРОВЕРКА ПЕРЕСЕЧЕНИЯ ПЕРЕРЫВОВ МЕЖДУ СОБОЙ ==========
-    for (let i = 0; i < breaks.length; i++) {
-        for (let j = i + 1; j < breaks.length; j++) {
-            const break1 = breaks[i];
-            const break2 = breaks[j];
+//     // ========== ПРОВЕРКА ПЕРЕСЕЧЕНИЯ ПЕРЕРЫВОВ МЕЖДУ СОБОЙ ==========
+//     for (let i = 0; i < breaks.length; i++) {
+//         for (let j = i + 1; j < breaks.length; j++) {
+//             const break1 = breaks[i];
+//             const break2 = breaks[j];
             
-            // Проверяем пересечение
-            if (break1.start < break2.end && break2.start < break1.end) {
-                showAlert(`Перерывы ${break1.start}-${break1.end} и ${break2.start}-${break2.end} пересекаются`, 'Ошибка');
-                return;
-            }
-        }
-    }
-    // ============================================================
+//             // Проверяем пересечение
+//             if (break1.start < break2.end && break2.start < break1.end) {
+//                 showAlert(`Перерывы ${break1.start}-${break1.end} и ${break2.start}-${break2.end} пересекаются`, 'Ошибка');
+//                 return;
+//             }
+//         }
+//     }
+//     // ============================================================
     
-    // ========== ПРОВЕРКА ПЕРЕСЕЧЕНИЯ С СУЩЕСТВУЮЩИМИ ЗАПИСЯМИ ==========
-    fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
-        .then(response => response.json())
-        .then(bookingsData => {
-            const bookings = bookingsData.bookings || [];
+//     // ========== ПРОВЕРКА ПЕРЕСЕЧЕНИЯ С СУЩЕСТВУЮЩИМИ ЗАПИСЯМИ ==========
+//     fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
+//         .then(response => response.json())
+//         .then(bookingsData => {
+//             const bookings = bookingsData.bookings || [];
             
-            function timeToMinutes(timeStr) {
-                const [hours, minutes] = timeStr.split(':');
-                return parseInt(hours) * 60 + parseInt(minutes);
-            }
+//             function timeToMinutes(timeStr) {
+//                 const [hours, minutes] = timeStr.split(':');
+//                 return parseInt(hours) * 60 + parseInt(minutes);
+//             }
             
-            function isOverlap(breakStart, breakEnd, bookingStart, bookingDuration) {
-                const breakStartMin = timeToMinutes(breakStart);
-                const breakEndMin = timeToMinutes(breakEnd);
-                const bookingStartMin = timeToMinutes(bookingStart);
-                const bookingEndMin = bookingStartMin + bookingDuration;
+//             function isOverlap(breakStart, breakEnd, bookingStart, bookingDuration) {
+//                 const breakStartMin = timeToMinutes(breakStart);
+//                 const breakEndMin = timeToMinutes(breakEnd);
+//                 const bookingStartMin = timeToMinutes(bookingStart);
+//                 const bookingEndMin = bookingStartMin + bookingDuration;
                 
-                return (breakStartMin < bookingEndMin && breakEndMin > bookingStartMin);
-            }
+//                 return (breakStartMin < bookingEndMin && breakEndMin > bookingStartMin);
+//             }
             
-            let hasConflict = false;
-            let conflictMessage = '';
+//             let hasConflict = false;
+//             let conflictMessage = '';
             
-            for (const breakItem of breaks) {
-                for (const booking of bookings) {
-                    const bookingDuration = booking.service_duration || 30;
-                    if (isOverlap(breakItem.start, breakItem.end, booking.time, bookingDuration)) {
-                        hasConflict = true;
-                        conflictMessage = `Перерыв ${breakItem.start}-${breakItem.end} пересекается с записью клиента "${booking.client_name}" (${booking.time})`;
-                        break;
-                    }
-                }
-                if (hasConflict) break;
-            }
+//             for (const breakItem of breaks) {
+//                 for (const booking of bookings) {
+//                     const bookingDuration = booking.service_duration || 30;
+//                     if (isOverlap(breakItem.start, breakItem.end, booking.time, bookingDuration)) {
+//                         hasConflict = true;
+//                         conflictMessage = `Перерыв ${breakItem.start}-${breakItem.end} пересекается с записью клиента "${booking.client_name}" (${booking.time})`;
+//                         break;
+//                     }
+//                 }
+//                 if (hasConflict) break;
+//             }
             
-            if (hasConflict) {
-                showAlert(conflictMessage, 'Ошибка');
-                return;
-            }
+//             if (hasConflict) {
+//                 showAlert(conflictMessage, 'Ошибка');
+//                 return;
+//             }
             
-            proceedWithSave();
-        })
-        .catch(error => {
-            console.error('Ошибка проверки записей:', error);
-            proceedWithSave();
-        });
+//             proceedWithSave();
+//         })
+//         .catch(error => {
+//             console.error('Ошибка проверки записей:', error);
+//             proceedWithSave();
+//         });
     
-    function proceedWithSave() {
-        const btn = document.getElementById('saveDayBtn');
-        const orig = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
-        btn.disabled = true;
+//     function proceedWithSave() {
+//         const btn = document.getElementById('saveDayBtn');
+//         const orig = btn.innerHTML;
+//         btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
+//         btn.disabled = true;
         
-        fetch('/api/extra-days/delete-by-date/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
-            body: JSON.stringify({ date: currentSelectedDate })
-        })
-        .then(() => fetch('/api/days-off/delete-by-date/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
-            body: JSON.stringify({ date: currentSelectedDate })
-        }))
-        .then(() => fetch('/api/extra-days/add/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
-            body: JSON.stringify({
-                date: currentSelectedDate,
-                start_time: s,
-                end_time: e,
-                breaks: breaks
-            })
-        }))
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                bootstrap.Modal.getInstance(document.getElementById('dayModal')).hide();
-                loadCalendar();
-                showAlert('✅ Изменения сохранены!', 'Готово');
-            } else {
-                showAlert(data.error || 'Ошибка', 'Ошибка');
-            }
-        })
-        .catch(err => {
-            console.error('Ошибка:', err);
-            showAlert('Произошла ошибка', 'Ошибка');
-        })
-        .finally(() => {
-            btn.innerHTML = orig;
-            btn.disabled = false;
-        });
-    }
-}
+//         fetch('/api/extra-days/delete-by-date/', {
+//             method: 'POST',
+//             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+//             body: JSON.stringify({ date: currentSelectedDate })
+//         })
+//         .then(() => fetch('/api/days-off/delete-by-date/', {
+//             method: 'POST',
+//             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+//             body: JSON.stringify({ date: currentSelectedDate })
+//         }))
+//         .then(() => fetch('/api/extra-days/add/', {
+//             method: 'POST',
+//             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+//             body: JSON.stringify({
+//                 date: currentSelectedDate,
+//                 start_time: s,
+//                 end_time: e,
+//                 breaks: breaks
+//             })
+//         }))
+//         .then(r => r.json())
+//         .then(data => {
+//             if (data.success) {
+//                 bootstrap.Modal.getInstance(document.getElementById('dayModal')).hide();
+//                 loadCalendar();
+//                 showAlert('Изменения сохранены!', 'Готово');
+//             } else {
+//                 showAlert(data.error || 'Ошибка', 'Ошибка');
+//             }
+//         })
+//         .catch(err => {
+//             console.error('Ошибка:', err);
+//             showAlert('Произошла ошибка', 'Ошибка');
+//         })
+//         .finally(() => {
+//             btn.innerHTML = orig;
+//             btn.disabled = false;
+//         });
+//     }
+// }
 
 
 // ============================================================
@@ -2629,7 +2526,612 @@ document.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('beforeunload', () => {
     stopAutoRefresh();
 });
+
+
+
+// ============================================================
+// УПРАВЛЕНИЕ РАБОЧИМ ВРЕМЕНЕМ (INLINE EDIT)
+// ============================================================
+
+function editWorkTime() {
+    const display = document.getElementById('workTimeDisplay');
+    const row = document.getElementById('workTimeRow');
+    const editBlock = document.getElementById('editWorkTimeBlock');
+    const btn = document.getElementById('editWorkTimeBtn');
+    
+    // Прячем отображение и кнопку
+    display.style.display = 'none';
+    btn.style.display = 'none';
+    
+    // Показываем поля редактирования
+    editBlock.style.display = 'block';
+    
+    // Заполняем поля текущими значениями
+    const currentText = display.textContent;
+    const parts = currentText.split(' - ');
+    if (parts.length === 2) {
+        document.getElementById('editWorkStart').value = parts[0].trim();
+        document.getElementById('editWorkEnd').value = parts[1].trim();
+    }
+}
+
+function cancelEditWorkTime() {
+    const display = document.getElementById('workTimeDisplay');
+    const row = document.getElementById('workTimeRow');
+    const editBlock = document.getElementById('editWorkTimeBlock');
+    const btn = document.getElementById('editWorkTimeBtn');
+    
+    // Возвращаем отображение и кнопку
+    display.style.display = 'inline';
+    btn.style.display = 'inline-block';
+    editBlock.style.display = 'none';
+}
+
+function saveWorkTime() {
+    const start = document.getElementById('editWorkStart').value;
+    const end = document.getElementById('editWorkEnd').value;
+    
+    if (!start || !end) {
+        showAlert('Заполните время начала и окончания', 'Ошибка');
+        return;
+    }
+    
+    if (start >= end) {
+        showAlert('Время начала не может быть позже или равно времени окончания', 'Ошибка');
+        return;
+    }
+    
+    const btn = event.target.closest('button');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    btn.disabled = true;
+    
+    fetch('/api/extra-days/delete-by-date/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ date: currentSelectedDate })
+    })
+    .then(() => fetch('/api/days-off/delete-by-date/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ date: currentSelectedDate })
+    }))
+    .then(() => fetch('/api/extra-days/add/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            date: currentSelectedDate,
+            start_time: start,
+            end_time: end,
+            breaks: getCurrentBreaksData()
+        })
+    }))
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            // Обновляем отображение
+            document.getElementById('workTimeDisplay').textContent = start + ' - ' + end;
+            
+            // Обновляем currentDayData
+            if (currentDayData) {
+                currentDayData.extra_start = start;
+                currentDayData.extra_end = end;
+                currentDayData.is_extra = true;
+                currentDayData.is_day_off = false;
+            }
+            
+            // Обновляем кнопки
+            updateDayActions();
+            
+            // Выходим из режима редактирования
+            cancelEditWorkTime();
+            
+            // Показываем уведомление
+            showToast('✅ Время обновлено', 'success');
+            
+            // Перезагружаем календарь
+            loadCalendar();
+        } else {
+            showAlert(data.error || 'Ошибка при сохранении', 'Ошибка');
+        }
+    })
+    .catch(err => {
+        console.error('Ошибка:', err);
+        showAlert('Произошла ошибка', 'Ошибка');
+    })
+    .finally(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
+
+// ============================================================
+// УПРАВЛЕНИЕ ПЕРЕРЫВАМИ
+// ============================================================
+
+// ============================================================
+// УПРАВЛЕНИЕ ПЕРЕРЫВАМИ (ПОЛНОСТЬЮ)
+// ============================================================
+
+function getCurrentBreaksData() {
+    const breaks = [];
+    document.querySelectorAll('#breaksContainer .break-item').forEach(item => {
+        // Проверяем, есть ли поля ввода
+        const startInput = item.querySelector('.break-start');
+        const endInput = item.querySelector('.break-end');
+        
+        // Если поля есть и они видимы — берём значения из них
+        if (startInput && endInput && startInput.value && endInput.value) {
+            breaks.push({ start: startInput.value, end: endInput.value });
+        } else {
+            // Если полей нет — берём из отображения
+            const display = item.querySelector('.break-display');
+            if (display) {
+                const parts = display.textContent.split(' - ');
+                if (parts.length === 2 && parts[0].trim() && parts[1].trim()) {
+                    breaks.push({ start: parts[0].trim(), end: parts[1].trim() });
+                }
+            }
+        }
+    });
+    return breaks;
+}
+
+function renderBreaks(breaks) {
+    const container = document.getElementById('breaksContainer');
+    container.innerHTML = '';
+    
+    // Если нет перерывов — показываем "Перерыв: —" + ✏️
+    if (!breaks || breaks.length === 0) {
+        const item = document.createElement('div');
+        item.className = 'break-item d-flex align-items-center gap-2 mb-1 flex-wrap';
+        item.innerHTML = `
+            <span class="break-view-mode d-flex align-items-center gap-1">
+                <i class="fas fa-coffee me-1" style="color: #f59e0b;"></i>
+                <span class="fw-bold me-1">Перерыв:</span>
+                <span class="break-display text-muted">—</span>
+            </span>
+            <span class="break-edit-mode d-flex align-items-center gap-1" style="display: none;">
+                <i class="fas fa-coffee me-1" style="color: #f59e0b;"></i>
+                <span class="fw-bold me-1">Перерыв:</span>
+                <input type="time" class="form-control form-control-sm break-start" style="width: 90px;">
+                <span>—</span>
+                <input type="time" class="form-control form-control-sm break-end" style="width: 90px;">
+                <button class="btn btn-sm btn-success save-break-btn" onclick="saveNewBreak(this, 0)">
+                    <i class="fas fa-save"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary cancel-break-btn" onclick="cancelEditBreak(this, 0)">
+                    <i class="fas fa-times"></i>
+                </button>
+            </span>
+            <button class="btn btn-sm edit-break-btn" onclick="editEmptyBreak(this, 0)" title="Добавить перерыв" style="color: var(--gray-600); padding: 0 4px;">
+                <i class="fas fa-edit"></i>
+            </button>
+        `;
+        container.appendChild(item);
+        return;
+    }
+    
+    // Если есть перерывы — показываем каждый
+    breaks.forEach((b, index) => {
+        const isLast = (index === breaks.length - 1);
+        const item = document.createElement('div');
+        item.className = 'break-item d-flex align-items-center gap-2 mb-1 flex-wrap';
+        item.dataset.index = index;
+        
+        // Заголовок "Перерыв:" показываем ТОЛЬКО у первого перерыва
+        const showHeader = (index === 0);
+        
+        item.innerHTML = `
+            <!-- Режим просмотра -->
+            <span class="break-view-mode d-flex align-items-center gap-1">
+                ${showHeader ? '<i class="fas fa-coffee me-1" style="color: #f59e0b;"></i><span class="fw-bold me-1">Перерыв:</span>' : ''}
+                <span class="break-display">${b.start} - ${b.end}</span>
+            </span>
+            <!-- Режим редактирования (скрыт по умолчанию) -->
+            <span class="break-edit-mode d-flex align-items-center gap-1" style="display: none;">
+                ${showHeader ? '<i class="fas fa-coffee me-1" style="color: #f59e0b;"></i><span class="fw-bold me-1">Перерыв:</span>' : ''}
+                <input type="time" class="form-control form-control-sm break-start" value="${b.start}" style="width: 90px;">
+                <span>—</span>
+                <input type="time" class="form-control form-control-sm break-end" value="${b.end}" style="width: 90px;">
+                <button class="btn btn-sm btn-success save-break-btn" onclick="saveBreak(this, ${index})">
+                    <i class="fas fa-save"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary cancel-break-btn" onclick="cancelEditBreak(this, ${index})">
+                    <i class="fas fa-times"></i>
+                </button>
+            </span>
+            <!-- Кнопка редактирования -->
+            <button class="btn btn-sm edit-break-btn" onclick="editBreak(this, ${index})" title="Изменить перерыв" style="color: var(--gray-600); padding: 0 4px;">
+                <i class="fas fa-edit"></i>
+            </button>
+            <!-- Кнопка удаления -->
+            <button class="btn btn-sm delete-break-btn" onclick="deleteBreak(${index})" title="Удалить перерыв" style="color: var(--gray-600); padding: 0 4px;">
+                <i class="fas fa-trash"></i>
+            </button>
+            <!-- Кнопка "+" (только у последнего) -->
+            ${isLast ? `
+                <button class="btn btn-sm add-break-btn" onclick="addNewBreak()" title="Добавить перерыв" style="color: var(--gray-600); padding: 0 4px;">
+                    <i class="fas fa-plus"></i>
+                </button>
+            ` : ''}
+        `;
+        container.appendChild(item);
+    });
+}
+
+function editBreak(btn, index) {
+    const item = btn.closest('.break-item');
+    const viewMode = item.querySelector('.break-view-mode');
+    const editMode = item.querySelector('.break-edit-mode');
+    const editBtn = item.querySelector('.edit-break-btn');
+    const deleteBtn = item.querySelector('.delete-break-btn');
+    const addBtn = item.querySelector('.add-break-btn');
+    
+    // Скрываем режим просмотра
+    viewMode.style.display = 'none';
+    
+    // Показываем режим редактирования (в ТОЙ ЖЕ строке)
+    editMode.style.display = 'inline-flex';
+    
+    // Скрываем кнопки управления
+    editBtn.style.display = 'none';
+    if (deleteBtn) deleteBtn.style.display = 'none';
+    if (addBtn) addBtn.style.display = 'none';
+}
+
+function cancelEditBreak(btn, index) {
+    const item = btn.closest('.break-item');
+    const viewMode = item.querySelector('.break-view-mode');
+    const editMode = item.querySelector('.break-edit-mode');
+    const editBtn = item.querySelector('.edit-break-btn');
+    const deleteBtn = item.querySelector('.delete-break-btn');
+    const addBtn = item.querySelector('.add-break-btn');
+    
+    // Показываем режим просмотра
+    viewMode.style.display = 'inline-flex';
+    
+    // Скрываем режим редактирования
+    editMode.style.display = 'none';
+    
+    // Показываем кнопки управления
+    editBtn.style.display = 'inline-block';
+    if (deleteBtn) deleteBtn.style.display = 'inline-block';
+    if (addBtn) addBtn.style.display = 'inline-block';
+    
+    // Восстанавливаем значения из viewMode (отмена изменений)
+    const displaySpan = viewMode.querySelector('.break-display');
+    if (displaySpan) {
+        const parts = displaySpan.textContent.split(' - ');
+        if (parts.length === 2) {
+            const startInput = item.querySelector('.break-start');
+            const endInput = item.querySelector('.break-end');
+            if (startInput) startInput.value = parts[0].trim();
+            if (endInput) endInput.value = parts[1].trim();
+        }
+    }
+}
+
+function editEmptyBreak(btn, index) {
+    const item = btn.closest('.break-item');
+    const viewMode = item.querySelector('.break-view-mode');
+    const editMode = item.querySelector('.break-edit-mode');
+    const editBtn = item.querySelector('.edit-break-btn');
+    
+    // Скрываем режим просмотра
+    viewMode.style.display = 'none';
+    
+    // Показываем режим редактирования (в ТОЙ ЖЕ строке)
+    editMode.style.display = 'inline-flex';
+    
+    // Скрываем кнопку редактирования
+    editBtn.style.display = 'none';
+}
+
+function saveNewBreak(btn, index) {
+    saveBreak(btn, index);
+}
+
+function saveBreak(btn, index) {
+    const item = btn.closest('.break-item');
+    const start = item.querySelector('.break-start').value;
+    const end = item.querySelector('.break-end').value;
+    
+    if (!start || !end) {
+        showAlert('Заполните время перерыва', 'Ошибка');
+        return;
+    }
+    
+    if (start >= end) {
+        showAlert('Время начала не может быть позже времени окончания', 'Ошибка');
+        return;
+    }
+    
+    const workDisplay = document.getElementById('workTimeDisplay').textContent;
+    const parts = workDisplay.split(' - ');
+    const workStart = parts[0].trim();
+    const workEnd = parts[1].trim();
+    
+    if (start < workStart || end > workEnd) {
+        showAlert('Перерыв должен быть в рамках рабочего дня (' + workStart + ' - ' + workEnd + ')', 'Ошибка');
+        return;
+    }
+    
+    const allBreaks = getCurrentBreaksData();
+    
+    if (allBreaks.length === 0 && index === 0) {
+        allBreaks.push({ start: start, end: end });
+    } else {
+        allBreaks[index] = { start: start, end: end };
+    }
+    
+    for (let i = 0; i < allBreaks.length; i++) {
+        for (let j = i + 1; j < allBreaks.length; j++) {
+            if (allBreaks[i].start < allBreaks[j].end && allBreaks[j].start < allBreaks[i].end) {
+                showAlert('Перерывы пересекаются между собой', 'Ошибка');
+                return;
+            }
+        }
+    }
+    
+    saveAllBreaks(allBreaks);
+}
+
+function deleteBreak(index) {
+    showConfirm('Удалить этот перерыв?', (confirmed) => {
+        if (confirmed) {
+            const allBreaks = getCurrentBreaksData();
+            allBreaks.splice(index, 1);
+            saveAllBreaks(allBreaks);
+        }
+    });
+}
+
+function addNewBreak() {
+    const allBreaks = getCurrentBreaksData();
+    
+    const workDisplay = document.getElementById('workTimeDisplay').textContent;
+    const parts = workDisplay.split(' - ');
+    const workStart = parts[0].trim();
+    const workEnd = parts[1].trim();
+    
+    let suggestedStart = workStart;
+    let suggestedEnd = workEnd;
+    
+    if (allBreaks.length > 0) {
+        const lastBreak = allBreaks[allBreaks.length - 1];
+        suggestedStart = lastBreak.end;
+        const [hours, minutes] = suggestedStart.split(':');
+        let endMinutes = parseInt(minutes) + 30;
+        let endHours = parseInt(hours);
+        if (endMinutes >= 60) {
+            endMinutes -= 60;
+            endHours += 1;
+        }
+        suggestedEnd = String(endHours).padStart(2, '0') + ':' + String(endMinutes).padStart(2, '0');
+    }
+    
+    allBreaks.push({ start: suggestedStart, end: suggestedEnd });
+    saveAllBreaks(allBreaks);
+}
+
+function saveAllBreaks(breaks) {
+    for (const b of breaks) {
+        if (b.start >= b.end) {
+            showAlert('Время начала перерыва не может быть позже времени окончания', 'Ошибка');
+            return;
+        }
+    }
+    
+    for (let i = 0; i < breaks.length; i++) {
+        for (let j = i + 1; j < breaks.length; j++) {
+            if (breaks[i].start < breaks[j].end && breaks[j].start < breaks[i].end) {
+                showAlert('Перерывы пересекаются между собой', 'Ошибка');
+                return;
+            }
+        }
+    }
+    
+    const workDisplay = document.getElementById('workTimeDisplay').textContent;
+    const parts = workDisplay.split(' - ');
+    const workStart = parts[0].trim();
+    const workEnd = parts[1].trim();
+    
+    for (const b of breaks) {
+        if (b.start < workStart || b.end > workEnd) {
+            showAlert('Перерыв должен быть в рамках рабочего дня', 'Ошибка');
+            return;
+        }
+    }
+    
+    // Сохраняем на сервер
+    const btn = document.querySelector('#breaksContainer .save-break-btn');
+    if (btn) {
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btn.disabled = true;
+    }
+    
+    fetch('/api/extra-days/delete-by-date/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ date: currentSelectedDate })
+    })
+    .then(() => fetch('/api/days-off/delete-by-date/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ date: currentSelectedDate })
+    }))
+    .then(() => fetch('/api/extra-days/add/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            date: currentSelectedDate,
+            start_time: workStart,
+            end_time: workEnd,
+            breaks: breaks
+        })
+    }))
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            renderBreaks(breaks);
+            showToast('✅ Перерывы обновлены', 'success');
+            loadCalendar();
+        } else {
+            showAlert(data.error || 'Ошибка при сохранении', 'Ошибка');
+        }
+    })
+    .catch(err => {
+        console.error('Ошибка:', err);
+        showAlert('Произошла ошибка', 'Ошибка');
+    })
+    .finally(() => {
+        if (btn) {
+            btn.innerHTML = '<i class="fas fa-save"></i>';
+            btn.disabled = false;
+        }
+    });
+}
+
+// ============================================================
+// ОБНОВЛЕНИЕ КНОПОК УПРАВЛЕНИЯ ДНЁМ
+// ============================================================
+
+function updateDayActions() {
+    const isWorking = currentDayData && !currentDayData.is_day_off && 
+                     (currentDayData.has_schedule || currentDayData.is_extra);
+    const isDayOff = currentDayData && currentDayData.is_day_off;
+    
+    document.getElementById('makeDayOffBtn').style.display = (isWorking && !isDayOff) ? 'inline-block' : 'none';
+    document.getElementById('dayOffActions').style.display = isDayOff ? 'block' : 'none';
+    
+    // Если день нерабочий (нет расписания и нет доп. дня и нет выходного)
+    if (!isWorking && !isDayOff) {
+        document.getElementById('makeDayOffBtn').style.display = 'none';
+        document.getElementById('dayOffActions').style.display = 'none';
+    }
+}
+
+// ============================================================
+// ПЕРЕХОД ИЗ ВЫХОДНОГО В РАБОЧИЙ ДЕНЬ
+// ============================================================
+
+function makeWorkingFromDayOff() {
+    // Просто открываем редактирование рабочего времени
+    // Изначально предлагаем 09:00 - 18:00
+    document.getElementById('workTimeDisplay').textContent = '09:00 - 18:00';
+    document.getElementById('dayOffActions').style.display = 'none';
+    editWorkTime();
+}
 </script>
 
+
+<style>
+    /* ============================================================ */
+/* ========== ПЕРЕРЫВЫ В МОДАЛЬНОМ ОКНЕ ДНЯ ========== */
+/* ============================================================ */
+
+#breaksContainer .break-item {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+    margin-bottom: 4px !important;
+    width: 100% !important;
+}
+
+#breaksContainer .break-item .break-view-mode,
+#breaksContainer .break-item .break-edit-mode {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+#breaksContainer .break-item .btn {
+    padding: 0 4px !important;
+    font-size: 0.85rem !important;
+    color: var(--gray-600) !important;
+    background: transparent !important;
+    border: none !important;
+    min-width: auto !important;
+    width: auto !important;
+    height: auto !important;
+    line-height: 1 !important;
+}
+
+#breaksContainer .break-item .btn-success {
+    color: #28a745 !important;
+}
+
+#breaksContainer .break-item .btn-success:hover {
+    color: #1e7e34 !important;
+}
+
+#breaksContainer .break-item .btn-outline-secondary {
+    color: var(--gray-600) !important;
+}
+
+#breaksContainer .break-item .btn-outline-secondary:hover {
+    color: var(--gray-800) !important;
+}
+
+#breaksContainer .break-item .edit-break-btn,
+#breaksContainer .break-item .delete-break-btn,
+#breaksContainer .break-item .add-break-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+#breaksContainer .break-item .edit-break-btn i,
+#breaksContainer .break-item .delete-break-btn i,
+#breaksContainer .break-item .add-break-btn i,
+#breaksContainer .break-item .btn i {
+    font-size: 0.85rem !important;
+}
+
+/* Для мобильной версии */
+@media (max-width: 768px) {
+    #breaksContainer .break-item {
+        flex-wrap: wrap !important;
+        gap: 4px !important;
+        padding: 4px 0 !important;
+    }
+    
+    #breaksContainer .break-item .break-view-mode,
+    #breaksContainer .break-item .break-edit-mode {
+        flex-wrap: wrap !important;
+    }
+    
+    #breaksContainer .break-item .form-control-sm {
+        width: 70px !important;
+        font-size: 0.7rem !important;
+        padding: 2px 6px !important;
+        height: 28px !important;
+    }
+    
+    #breaksContainer .break-item .btn i {
+        font-size: 0.75rem !important;
+    }
+}
+</style>
 
 {% endblock %}
