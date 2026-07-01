@@ -192,7 +192,8 @@
 </div>
 
 <!-- МОДАЛЬНОЕ ОКНО ДНЯ -->
-<div class="modal fade" id="dayModal" tabindex="-1">
+<!-- МОДАЛЬНОЕ ОКНО ДНЯ -->
+<div class="modal fade day-modal-fixed" id="dayModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -200,7 +201,6 @@
                     <i class="far fa-calendar-alt me-2" style="color: var(--primary);"></i>
                     Редактирование
                 </h5>
-
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -210,13 +210,12 @@
                 <div id="viewDayPanel">
                     <p class="text-muted" id="dayModalDate"></p>
                     <div class="alert alert-light" id="currentStatusAlert">
-                      
                         <span id="currentStatusText">Загрузка...</span>
                     </div>
 
                     <div id="workingDayActions" class="d-grid gap-2 mb-3" style="display: none;">
                         <button class="btn btn-outline-pink" onclick="showEditForm()">
-                            <i class="fas fa-edit me-2"></i>Изменить время и перерывы
+                            <i class="fas fa-edit me-2"></i>Изменить время
                         </button>
                         <button class="btn btn-outline-soft-blue" onclick="makeDayOff()">
                             <i class="fas fa-calendar-times me-2"></i>Сделать выходным
@@ -230,9 +229,6 @@
                     </div>
 
                     <div id="editFormBlock" style="display: none;">
-                        <button class="btn btn-sm btn-outline-secondary mb-3" onclick="backToDayViewFromEdit()">
-                            <i class="fas fa-arrow-left me-2"></i>Назад к дню
-                        </button>
                         <hr>
                         <h6 class="mb-3">Настройка времени</h6>
                         <div class="row mb-3">
@@ -257,7 +253,8 @@
                         </button>
                     </div>
 
-                    <div id="addBookingButtonContainer" class="d-grid gap-2 mb-3">
+                    <!-- КНОПКА "ДОБАВИТЬ ЗАПИСЬ" — ВЫНЕСЕНА НАРУЖУ -->
+                    <div id="addBookingButtonContainer" class="d-grid gap-2 mt-3">
                         <button class="btn btn-pink" onclick="showAddBookingPanel()">
                             <i class="fas fa-pen me-2"></i>Добавить запись
                         </button>
@@ -272,7 +269,7 @@
                     </div>
                 </div>
 
-                <!-- ПАНЕЛЬ ДОБАВЛЕНИЯ ЗАПИСИ -->
+                <!-- ПАНЕЛЬ ДОБАВЛЕНИЯ ЗАПИСИ (без изменений) -->
                 <div id="addBookingPanel" style="display: none;">
                     <button class="btn btn-sm btn-outline-secondary mb-3" onclick="backToDayView()">
                         <i class="fas fa-arrow-left me-2"></i>Назад к дню
@@ -665,7 +662,6 @@ function openDayModal(dateStr) {
     const dateObj = new Date(dateStr);
     const monthNames = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
     const weekdays = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
-    // Добавляем день недели в скобках
     document.getElementById('dayModalDate').innerHTML = `${dateObj.getDate()} ${monthNames[dateObj.getMonth()]} (${weekdays[dateObj.getDay()]})`;
 
     document.getElementById('viewDayPanel').style.display = 'block';
@@ -693,7 +689,6 @@ function openDayModal(dateStr) {
             currentDayData = data;
             let statusText = '';
             
-            // Перерывы — без иконки
             let breaksText = '';
             if (data.breaks && data.breaks.length > 0) {
                 const breaksStr = data.breaks.map(b => `${b.start} - ${b.end}`).join(', ');
@@ -709,7 +704,6 @@ function openDayModal(dateStr) {
                 document.getElementById('currentStatusText').innerHTML = statusText + breaksText;
                 if (!isPast) document.getElementById('dayOffActions').style.display = 'block';
             } else {
-                // Рабочий день — "Работаю: 09:00 - 18:00"
                 const workStart = data.schedule_start || data.extra_start || '--:--';
                 const workEnd = data.schedule_end || data.extra_end || '--:--';
                 statusText = `Работаю: ${workStart} - ${workEnd}`;
@@ -718,7 +712,30 @@ function openDayModal(dateStr) {
             }
         });
 
-    new bootstrap.Modal(document.getElementById('dayModal')).show();
+    const modalElement = document.getElementById('dayModal');
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+    
+    // Фиксируем высоту модального окна для десктопа
+    setTimeout(() => {
+        const dialog = modalElement.querySelector('.modal-dialog');
+        const body = modalElement.querySelector('.modal-body');
+        
+        if (dialog && window.innerWidth > 768) {
+            // Сохраняем текущую высоту
+            const currentHeight = dialog.offsetHeight;
+            if (currentHeight > 0) {
+                dialog.style.height = currentHeight + 'px';
+                dialog.style.maxHeight = currentHeight + 'px';
+            }
+            
+            // Добавляем прокрутку для тела
+            if (body) {
+                body.style.overflowY = 'auto';
+                body.style.maxHeight = (currentHeight - 140) + 'px';
+            }
+        }
+    }, 150);
 }
 
 function renderDayBookings(bookings) {
@@ -767,8 +784,22 @@ function addExtraBreakField(s = '', e = '') {
 }
 
 function showEditForm() {
-    document.getElementById('workingDayActions').style.display = 'none';
+    // Находим кнопку "Изменить время"
+    const editBtn = document.querySelector('#workingDayActions .btn-outline-pink');
+    if (editBtn) {
+        // Меняем текст на "Назад к дню"
+        editBtn.innerHTML = '<i class="fas fa-arrow-left me-2"></i>Назад к дню';
+        // Меняем действие
+        editBtn.onclick = backToDayViewFromEdit;
+        // Убираем класс, если нужно (опционально)
+        editBtn.classList.remove('btn-outline-pink');
+        editBtn.classList.add('btn-outline-secondary');
+    }
+    
+    // Показываем блок редактирования
     document.getElementById('editFormBlock').style.display = 'block';
+    
+    // Заполняем поля
     document.getElementById('extraStartTime').value = currentDayData.extra_start || currentDayData.schedule_start || '09:00';
     document.getElementById('extraEndTime').value = currentDayData.extra_end || currentDayData.schedule_end || '18:00';
     
@@ -784,9 +815,22 @@ function showEditForm() {
 }
 
 function backToDayViewFromEdit() {
+    // Скрываем блок редактирования
     document.getElementById('editFormBlock').style.display = 'none';
     
-    // Перезагружаем данные дня, чтобы узнать его реальный статус
+    // Восстанавливаем кнопку "Изменить время"
+    const editBtn = document.querySelector('#workingDayActions .btn-outline-secondary');
+    if (editBtn) {
+        // Возвращаем текст
+        editBtn.innerHTML = '<i class="fas fa-edit me-2"></i>Изменить время';
+        // Возвращаем действие
+        editBtn.onclick = showEditForm;
+        // Возвращаем класс
+        editBtn.classList.remove('btn-outline-secondary');
+        editBtn.classList.add('btn-outline-pink');
+    }
+    
+    // Перезагружаем данные дня
     fetch(`/api/day-status/?date=${currentSelectedDate}`)
         .then(r => r.json())
         .then(data => {
@@ -798,10 +842,9 @@ function backToDayViewFromEdit() {
             let breaksText = '';
             if (data.breaks && data.breaks.length > 0) {
                 const breaksStr = data.breaks.map(b => `${b.start} - ${b.end}`).join(', ');
-                breaksText = `<br><span class="text-warning">⚠️ Перерывы: ${breaksStr}</span>`;
+                breaksText = `<br><span class="break-info">Перерыв: ${breaksStr}</span>`;
             }
             
-            // Скрываем оба блока кнопок
             document.getElementById('workingDayActions').style.display = 'none';
             document.getElementById('dayOffActions').style.display = 'none';
             
@@ -809,25 +852,23 @@ function backToDayViewFromEdit() {
                 if (data.is_day_off) {
                     statusText = 'Выходной день';
                 } else {
-                    statusText = 'Нерабочий день (нет расписания)';
+                    statusText = 'Нерабочий день';
                 }
                 document.getElementById('currentStatusText').innerHTML = statusText + breaksText;
                 if (!isPast) document.getElementById('dayOffActions').style.display = 'block';
             } else {
                 const workStart = data.schedule_start || data.extra_start || '--:--';
                 const workEnd = data.schedule_end || data.extra_end || '--:--';
-                statusText = `Рабочий день: ${workStart} - ${workEnd}`;
+                statusText = `Работаю: ${workStart} - ${workEnd}`;
                 document.getElementById('currentStatusText').innerHTML = statusText + breaksText;
                 if (!isPast) document.getElementById('workingDayActions').style.display = 'block';
             }
             
-            // Обновляем список записей
             fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
                 .then(r => r.json())
                 .then(bookingsData => renderDayBookings(bookingsData.bookings));
         });
     
-    // Кнопка "Добавить запись" всегда видна для будущих дней (это не трогаем)
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const isPast = new Date(currentSelectedDate) < today;
@@ -2590,219 +2631,5 @@ window.addEventListener('beforeunload', () => {
 });
 </script>
 
-<!-- <style>
-.dashboard-stat {
-    text-align: center;
-    padding: 20px;
-    background: #fff;
-    border-radius: 15px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-.dashboard-stat i { font-size: 2.5rem; color: #ff85b3; margin-bottom: 10px; }
-.dashboard-stat h3 { font-size: 2rem; margin-bottom: 5px; }
 
-.btn-outline-pink {
-    border: 1px solid #ff85b3;
-    color: #ff85b3;
-    background: transparent;
-}
-.btn-outline-pink:hover { background-color: #ff85b3; color: #fff; }
-
-.calendar-weekdays {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 8px;
-    margin-bottom: 8px;
-    text-align: center;
-}
-.calendar-weekday {
-    font-weight: 600;
-    padding: 8px;
-    background-color: #f8f0ff;
-    border-radius: 8px;
-    font-size: 0.9rem;
-}
-.calendar-dates {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 8px;
-}
-.calendar-date {
-    background-color: #f8f9fa;
-    border-radius: 10px;
-    padding: 8px 4px;
-    text-align: center;
-    min-height: 65px;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: 1px solid #e5e7eb;
-    position: relative;
-}
-.calendar-date.empty { background-color: transparent; border: 0; cursor: default; box-shadow: none; }
-.calendar-date.working { background-color: #d4edda; border-color: #28a745; }
-.calendar-date.non-working { background-color: #e9ecef; border-color: #ced4da; opacity: 0.7; }
-.calendar-date.past { opacity: 0.5; }
-.calendar-date.today { border: 2px solid #ff85b3; box-shadow: 0 0 0 2px rgba(255, 133, 179, 0.3); }
-.calendar-time { font-size: 0.65rem; margin-top: 5px; color: #666; }
-.calendar-date.working .calendar-time { color: #155724; }
-
-/* Контейнер для иконок в правом верхнем углу */
-.calendar-icons {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 2px;
-}
-
-.booking-badge {
-    background-color: #ff85b3;
-    color: #fff;
-    font-size: 0.7rem;
-    font-weight: 700;
-    min-width: 18px;
-    height: 18px;
-    border-radius: 9px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 4px;
-}
-
-.break-badge {
-
-    font-size: 0.7rem;
-    font-weight: 700;
-    min-width: 18px;
-    height: 18px;
-    border-radius: 9px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 4px;
-    cursor: help;
-}
-
-
-.service-card, .date-card, .slot-card { cursor: pointer; transition: all 0.2s ease; }
-.service-card:hover, .date-card:hover, .slot-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-.border-pink { border: 2px solid #ff85b3 !important; background-color: #fff9fb !important; }
-
-.service-category {
-    font-size: 18px;
-    color: #000000;
-    font-weight: bold;
-}
-
-.service-name {
-    font-size: 15px;
-    font-weight: normal;
-}
-
-#workingDayActions { display: none !important; }
-#workingDayActions[style*="display: block"] { display: block !important; }
-#dayOffActions { display: none !important; }
-#dayOffActions[style*="display: block"] { display: block !important; }
-
-
-/* Убираем затемнение для всплывающих окон */
-#confirmModal .modal-backdrop,
-#alertModal .modal-backdrop {
-    display: none !important;
-}
-
-
-/* Убеждаемся, что всплывающие окна поверх основного */
-#confirmModal,
-#alertModal {
-    z-index: 1060 !important;
-}
-
-/* Принудительное скрытие кнопки "Добавить запись" в режиме редактирования дня */
-#dayModal .modal-body:has(#editFormBlock[style*="display: block"]) #addBookingButtonContainer {
-    display: none !important;
-}
-
-
-/* Принудительное скрытие кнопки в выходных днях */
-#dayOffActions[style*="display: block"] ~ #addBookingButtonContainer,
-#dayOffActions[style*="display: block"] + hr + #addBookingButtonContainer,
-body:has(#dayOffActions[style*="display: block"]) #addBookingButtonContainer {
-    display: none !important;
-}
-
-/* Убеждаемся, что в рабочих днях кнопка видна */
-#workingDayActions[style*="display: block"] ~ #addBookingButtonContainer,
-#workingDayActions[style*="display: block"] + hr + #addBookingButtonContainer,
-body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer {
-    display: block !important;
-}
-
-/* Стили для всплывающих окон (отличаются от основного) */
-#confirmModal .modal-content,
-#alertModal .modal-content {
-    background-color: #f8f9fa !important;  /* светло-серый фон */
-    border: 1px solid #dee2e6 !important;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2) !important;
-}
-
-#confirmModal .modal-header,
-#alertModal .modal-header {
-    background-color: #e9ecef !important;
-    border-bottom: 1px solid #dee2e6 !important;
-    border-radius: 8px 8px 0 0 !important;
-}
-
-#confirmModal .modal-footer,
-#alertModal .modal-footer {
-    background-color: #f8f9fa !important;
-    border-top: 1px solid #dee2e6 !important;
-}
-
-#confirmModal .btn-pink,
-#alertModal .btn-pink {
-    background-color: #ff85b3 !important;
-    color: white !important;
-}
-
-#confirmModal .btn-secondary,
-#alertModal .btn-secondary {
-    background-color: #6c757d !important;
-    color: white !important;
-}
-
-/* Подсветка записей */
-.booking-very-soon {
-    background-color: #fff0f0 !important;
-    border-left: 4px solid #dc3545;
-}
-
-.booking-soon {
-    background-color: #fff8e7 !important;
-    border-left: 4px solid #ffc107;
-}
-
-.booking-future {
-    background-color: #ffffff !important;
-}
-
-.booking-past {
-    background-color: #f8f9fa !important;
-    opacity: 0.7;
-}
-
-/* Анимация для очень скорых записей (мягкое мигание) */
-@keyframes softPulse {
-    0% { background-color: #fff0f0; }
-    50% { background-color: #ffe0e0; }
-    100% { background-color: #fff0f0; }
-}
-
-.booking-very-soon {
-    animation: softPulse 2s ease-in-out infinite;
-} -->
-
-</style>
 {% endblock %}

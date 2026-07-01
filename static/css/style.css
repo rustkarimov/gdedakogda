@@ -1430,9 +1430,9 @@ body {
 }
 
 /* Принудительное скрытие кнопки "Добавить запись" в режиме редактирования дня */
-#dayModal .modal-body:has(#editFormBlock[style*="display: block"]) #addBookingButtonContainer {
+/* #dayModal .modal-body:has(#editFormBlock[style*="display: block"]) #addBookingButtonContainer {
     display: none !important;
-}
+} */
 
 /* Принудительное скрытие кнопки в выходных днях */
 #dayOffActions[style*="display: block"] ~ #addBookingButtonContainer,
@@ -2132,6 +2132,13 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     margin-top: 2px;
 }
 
+
+
+
+
+
+
+
 /* ============================================================ */
 /* ========== МОДАЛЬНЫЕ ОКНА КАЛЕНДАРЯ (МОБИЛЬНАЯ ВЕРСИЯ) ========== */
 /* ============================================================ */
@@ -2180,6 +2187,8 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         flex-direction: column !important;
         max-height: none !important;
     }
+
+    
 
     #dayModal .btn,
     #dayModal .btn-outline-pink,
