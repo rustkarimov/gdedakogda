@@ -211,23 +211,43 @@
                 <div id="viewDayPanel">
                     <p class="text-muted" id="dayModalDate"></p>
 
-                    <!-- СТРОКА: РАБОЧЕЕ ВРЕМЯ -->
-                    <!-- СТРОКА: РАБОЧЕЕ ВРЕМЯ -->
-                    <div class="d-flex align-items-center justify-content-between mb-2" id="workTimeRow">
-                        <div>
-                            <span id="workTimeLabel">
-                                <i class="fas fa-clock me-2" style="color: var(--primary);"></i>
-                                Работаю: <span id="workTimeDisplay">--:-- - --:--</span>
-                            </span>
-                        </div>
-                        <div>
-                            <button class="btn btn-sm" id="editWorkTimeBtn" onclick="editWorkTime()" title="Изменить время">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        </div>
-                    </div>
+        
+<!-- СТРОКА: РАБОЧЕЕ ВРЕМЯ ИЛИ ВЫХОДНОЙ ДЕНЬ -->
+<!-- СТРОКА: РАБОЧЕЕ ВРЕМЯ ИЛИ ВЫХОДНОЙ ДЕНЬ -->
+<!-- СТРОКА: РАБОЧЕЕ ВРЕМЯ ИЛИ ВЫХОДНОЙ ДЕНЬ -->
+<!-- СТРОКА: РАБОЧЕЕ ВРЕМЯ ИЛИ ВЫХОДНОЙ ДЕНЬ -->
+<div class="d-flex align-items-center mb-2 work-time-row" id="workTimeRow">
+    <div class="d-flex align-items-center">
+        <span id="workTimeLabel">
+            <i class="fas fa-clock me-2" style="color: var(--primary);"></i>
+            <span id="workTimeLabelText">Работаю:</span>
+        </span>
+        <!-- РЕЖИМ ПРОСМОТРА -->
+        <span class="work-view-mode" id="workViewMode">
+            <span id="workTimeDisplay">--:-- - --:--</span>
+        </span>
+        <!-- РЕЖИМ РЕДАКТИРОВАНИЯ (скрыт) -->
+        <span class="work-edit-mode" id="workEditMode" style="display: none;">
+            <input type="time" class="form-control form-control-sm work-time-input" id="editWorkStart">
+            <span class="work-time-separator">—</span>
+            <input type="time" class="form-control form-control-sm work-time-input" id="editWorkEnd">
+            <button class="btn btn-sm work-save-btn" onclick="saveWorkTime()" title="Сохранить">
+                <i class="fas fa-check"></i>
+            </button>
+            <button class="btn btn-sm work-cancel-btn" onclick="cancelEditWorkTime()" title="Отмена">
+                <i class="fas fa-times"></i>
+            </button>
+        </span>
+        <!-- КНОПКА РЕДАКТИРОВАНИЯ - теперь здесь, рядом с часами -->
+        <button class="btn btn-sm ms-1" id="editWorkTimeBtn" onclick="editWorkTime()" title="Изменить время">
+            <i class="fas fa-edit"></i>
+        </button>
+    </div>
+</div>
+
+
                     <!-- РЕДАКТИРОВАНИЕ РАБОЧЕГО ВРЕМЕНИ (скрыто) -->
-                    <div id="editWorkTimeBlock" style="display: none;" class="mb-2">
+                    <!-- <div id="editWorkTimeBlock" style="display: none;" class="mb-2">
                         <div class="d-flex align-items-center gap-2 flex-wrap">
                             <span><i class="fas fa-clock me-2" style="color: var(--primary);"></i>Работаю:</span>
                             <input type="time" class="form-control form-control-sm" id="editWorkStart" style="width: 100px;">
@@ -240,7 +260,7 @@
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
-                    </div>
+                    </div> -->
 
                     <!-- СТРОКИ: ПЕРЕРЫВЫ -->
                     <div id="breaksContainer">
@@ -664,6 +684,97 @@ function changeMonth(delta) {
     loadCalendar();
 }
 
+// function openDayModal(dateStr) {
+//     currentSelectedDate = dateStr;
+//     const dateObj = new Date(dateStr);
+//     const monthNames = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+//     const weekdays = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
+//     document.getElementById('dayModalDate').innerHTML = `${dateObj.getDate()} ${monthNames[dateObj.getMonth()]} (${weekdays[dateObj.getDay()]})`;
+
+//     document.getElementById('viewDayPanel').style.display = 'block';
+//     document.getElementById('addBookingPanel').style.display = 'none';
+//     document.getElementById('dayModalTitle').innerHTML = '<i class="far fa-calendar-alt me-2" style="color: var(--primary);"></i> Редактирование дня';
+    
+//     // Сбрасываем режим редактирования
+//     cancelEditWorkTime();
+//     document.getElementById('dayBookingsContainer').innerHTML = '<div class="text-center py-2"><div class="spinner-border spinner-border-sm" style="color: #7c3aed;"></div></div>';
+
+//     fetch(`/api/bookings/by-date/?date=${dateStr}`)
+//         .then(r => r.json())
+//         .then(data => renderDayBookings(data.bookings));
+
+//     const today = new Date();
+//     today.setHours(0, 0, 0, 0);
+//     const isPast = new Date(dateStr) < today;
+
+//     fetch(`/api/day-status/?date=${dateStr}`)
+//         .then(r => r.json())
+//         .then(data => {
+//             currentDayData = data;
+            
+//             // ======== УНИФИЦИРОВАННАЯ ЛОГИКА ========
+//             const isWorking = data.has_schedule || data.is_extra;
+//             const isDayOff = data.is_day_off || !isWorking;
+            
+//             // Получаем элементы
+//             const workTimeRow = document.getElementById('workTimeRow');
+//             const workDisplay = document.getElementById('workTimeDisplay');
+//             const breaksContainer = document.getElementById('breaksContainer');
+//             const editBtn = document.getElementById('editWorkTimeBtn');
+//             const makeDayOffBtn = document.getElementById('makeDayOffBtn');
+//             const dayOffActions = document.getElementById('dayOffActions');
+//             const addBookingBtn = document.querySelector('#dayActionsContainer .btn-pink');
+            
+//             // ===== СБРАСЫВАЕМ ВСЁ К НАЧАЛЬНОМУ СОСТОЯНИЮ (через setProperty) =====
+//             workTimeRow.style.setProperty('display', 'flex', 'important');
+//             breaksContainer.style.setProperty('display', 'block', 'important');
+//             makeDayOffBtn.style.display = 'none';
+//             dayOffActions.style.display = 'none';
+//             editBtn.style.display = 'inline-block';
+//             addBookingBtn.style.display = 'inline-block';
+//             workDisplay.style.color = 'inherit';
+            
+//             if (isDayOff) {
+//                 // Выходной день — скрываем через setProperty
+//                 workTimeRow.style.setProperty('display', 'none', 'important');
+//                 breaksContainer.style.setProperty('display', 'none', 'important');
+//                 addBookingBtn.style.display = 'none';
+//                 dayOffActions.style.display = 'block';
+//                 renderBreaks([]);
+//             } else {
+//                 // Рабочий день
+//                 let workStart = data.extra_start || data.schedule_start || '--:--';
+//                 let workEnd = data.extra_end || data.schedule_end || '--:--';
+//                 workDisplay.textContent = workStart + ' - ' + workEnd;
+//                 makeDayOffBtn.style.display = 'inline-block';
+//                 renderBreaks(data.breaks || []);
+//             }
+//         });
+
+//     const modalElement = document.getElementById('dayModal');
+//     const modal = new bootstrap.Modal(modalElement);
+//     modal.show();
+    
+//     // Фиксируем высоту
+//     setTimeout(() => {
+//         const dialog = modalElement.querySelector('.modal-dialog');
+//         const body = modalElement.querySelector('.modal-body');
+        
+//         if (dialog && window.innerWidth > 768) {
+//             const currentHeight = dialog.offsetHeight;
+//             if (currentHeight > 0) {
+//                 dialog.style.height = currentHeight + 'px';
+//                 dialog.style.maxHeight = currentHeight + 'px';
+//             }
+//             if (body) {
+//                 body.style.overflowY = 'auto';
+//                 body.style.maxHeight = (currentHeight - 140) + 'px';
+//             }
+//         }
+//     }, 150);
+// }
+
+
 function openDayModal(dateStr) {
     currentSelectedDate = dateStr;
     const dateObj = new Date(dateStr);
@@ -676,43 +787,78 @@ function openDayModal(dateStr) {
     document.getElementById('dayModalTitle').innerHTML = '<i class="far fa-calendar-alt me-2" style="color: var(--primary);"></i> Редактирование дня';
     
     // Сбрасываем режим редактирования
-    cancelEditWorkTime();
+    const viewMode = document.querySelector('.work-view-mode');
+    const editMode = document.querySelector('.work-edit-mode');
+    const editBtn = document.getElementById('editWorkTimeBtn');
+    
+    viewMode.style.display = 'inline';
+    editMode.style.display = 'none';
+    editBtn.style.display = 'inline-block';
+    
     document.getElementById('dayBookingsContainer').innerHTML = '<div class="text-center py-2"><div class="spinner-border spinner-border-sm" style="color: #7c3aed;"></div></div>';
 
     fetch(`/api/bookings/by-date/?date=${dateStr}`)
         .then(r => r.json())
         .then(data => renderDayBookings(data.bookings));
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const isPast = new Date(dateStr) < today;
-
     fetch(`/api/day-status/?date=${dateStr}`)
         .then(r => r.json())
         .then(data => {
             currentDayData = data;
             
-            // Обновляем отображение рабочего времени
-            let workStart = data.extra_start || data.schedule_start || '--:--';
-            let workEnd = data.extra_end || data.schedule_end || '--:--';
-            document.getElementById('workTimeDisplay').textContent = workStart + ' - ' + workEnd;
+            const isDayOff = data.is_day_off || !(data.has_schedule || data.is_extra);
             
-            // Обновляем отображение перерывов
-            renderBreaks(data.breaks || []);
+            const workTimeRow = document.getElementById('workTimeRow');
+            const workDisplay = document.getElementById('workTimeDisplay');
+            const workLabelText = document.getElementById('workTimeLabelText');
+            const breaksContainer = document.getElementById('breaksContainer');
+            const editBtn = document.getElementById('editWorkTimeBtn');
+            const makeDayOffBtn = document.getElementById('makeDayOffBtn');
+            const dayOffActions = document.getElementById('dayOffActions');
+            const addBookingBtn = document.querySelector('#dayActionsContainer .btn-pink');
+            const viewMode = document.querySelector('.work-view-mode');
+            const editMode = document.querySelector('.work-edit-mode');
             
-            // Обновляем кнопки
-            updateDayActions();
+            // Сброс
+            workTimeRow.style.display = 'flex';
+            breaksContainer.style.display = 'block';
+            makeDayOffBtn.style.display = 'none';
+            dayOffActions.style.display = 'none';
+            editBtn.style.display = 'inline-block';
+            viewMode.style.display = 'inline';
+            editMode.style.display = 'none';
+            if (addBookingBtn) addBookingBtn.style.display = 'inline-block';
+            
+            if (isDayOff) {
+                // Выходной день
+                workLabelText.textContent = 'Выходной день';
+                workDisplay.textContent = '';
+                viewMode.style.display = 'none';
+                breaksContainer.style.display = 'none';
+                if (addBookingBtn) addBookingBtn.style.display = 'none';
+                dayOffActions.style.display = 'block';
+                editBtn.style.display = 'none';
+                renderBreaks([]);
+            } else {
+                // Рабочий день
+                workLabelText.textContent = 'Работаю:';
+                let workStart = data.extra_start || data.schedule_start || '--:--';
+                let workEnd = data.extra_end || data.schedule_end || '--:--';
+                workDisplay.textContent = workStart + ' - ' + workEnd;
+                viewMode.style.display = 'inline';
+                makeDayOffBtn.style.display = 'inline-block';
+                editBtn.style.display = 'inline-block';
+                renderBreaks(data.breaks || []);
+            }
         });
 
     const modalElement = document.getElementById('dayModal');
     const modal = new bootstrap.Modal(modalElement);
     modal.show();
     
-    // Фиксируем высоту
     setTimeout(() => {
         const dialog = modalElement.querySelector('.modal-dialog');
         const body = modalElement.querySelector('.modal-body');
-        
         if (dialog && window.innerWidth > 768) {
             const currentHeight = dialog.offsetHeight;
             if (currentHeight > 0) {
@@ -726,6 +872,8 @@ function openDayModal(dateStr) {
         }
     }, 150);
 }
+
+
 
 function renderDayBookings(bookings) {
     const container = document.getElementById('dayBookingsContainer');
@@ -787,14 +935,28 @@ function makeDayOff() {
 }
 
 function makeWorkingFromDayOff() {
+    // Меняем надпись сразу!
+    document.getElementById('workTimeLabelText').textContent = 'Работаю:';
+    document.getElementById('workDisplay').textContent = '09:00 - 18:00';
+    
+    // Показываем кнопку редактирования
+    document.getElementById('editWorkTimeBtn').style.display = 'inline-block';
+    
+    // Скрываем кнопку "Сделать рабочим"
     document.getElementById('dayOffActions').style.display = 'none';
-    document.getElementById('editFormBlock').style.display = 'block';
-    document.getElementById('addBookingButtonContainer').style.display = 'none';  // ← скрываем
-    document.getElementById('extraStartTime').value = '09:00';
-    document.getElementById('extraEndTime').value = '18:00';
-    document.getElementById('extraBreaksContainer').innerHTML = '';
-    addExtraBreakField();
-    document.getElementById('currentStatusText').innerHTML = 'Настройка рабочего дня';
+    
+    // Показываем остальные элементы
+    document.getElementById('workTimeRow').style.display = 'flex';
+    document.getElementById('breaksContainer').style.display = 'block';
+    document.getElementById('editWorkTimeBlock').style.display = 'block';
+    
+    // Заполняем поля
+    document.getElementById('editWorkStart').value = '09:00';
+    document.getElementById('editWorkEnd').value = '18:00';
+    
+    // Показываем кнопку "Добавить запись"
+    const addBookingBtn = document.querySelector('#dayActionsContainer .btn-pink');
+    if (addBookingBtn) addBookingBtn.style.display = 'inline-block';
 }
 
 // function saveDayChanges() {
@@ -2534,37 +2696,46 @@ window.addEventListener('beforeunload', () => {
 // ============================================================
 
 function editWorkTime() {
+    const viewMode = document.getElementById('workViewMode');
+    const editMode = document.getElementById('workEditMode');
+    const editBtn = document.getElementById('editWorkTimeBtn');
     const display = document.getElementById('workTimeDisplay');
-    const row = document.getElementById('workTimeRow');
-    const editBlock = document.getElementById('editWorkTimeBlock');
-    const btn = document.getElementById('editWorkTimeBtn');
     
-    // Прячем отображение и кнопку
-    display.style.display = 'none';
-    btn.style.display = 'none';
-    
-    // Показываем поля редактирования
-    editBlock.style.display = 'block';
-    
-    // Заполняем поля текущими значениями
+    // Получаем текущее время
     const currentText = display.textContent;
     const parts = currentText.split(' - ');
+    
     if (parts.length === 2) {
         document.getElementById('editWorkStart').value = parts[0].trim();
         document.getElementById('editWorkEnd').value = parts[1].trim();
     }
+    
+    // Скрываем режим просмотра, показываем режим редактирования
+    viewMode.style.display = 'none';
+    editMode.style.display = 'inline-flex';
+    editBtn.style.display = 'none';  // ← СКРЫВАЕМ КНОПКУ РЕДАКТИРОВАНИЯ
 }
 
 function cancelEditWorkTime() {
+    const viewMode = document.getElementById('workViewMode');
+    const editMode = document.getElementById('workEditMode');
+    const editBtn = document.getElementById('editWorkTimeBtn');
+    const labelText = document.getElementById('workTimeLabelText');
     const display = document.getElementById('workTimeDisplay');
-    const row = document.getElementById('workTimeRow');
-    const editBlock = document.getElementById('editWorkTimeBlock');
-    const btn = document.getElementById('editWorkTimeBtn');
     
-    // Возвращаем отображение и кнопку
-    display.style.display = 'inline';
-    btn.style.display = 'inline-block';
-    editBlock.style.display = 'none';
+    const isDayOff = currentDayData && (currentDayData.is_day_off || !(currentDayData.has_schedule || currentDayData.is_extra));
+    
+    if (isDayOff) {
+        labelText.textContent = 'Выходной день';
+        display.textContent = '';
+        viewMode.style.display = 'none';
+        editBtn.style.display = 'none';
+    } else {
+        viewMode.style.display = 'inline';
+        editBtn.style.display = 'inline-flex';  // ← ПОКАЗЫВАЕМ КНОПКУ ОБРАТНО
+    }
+    
+    editMode.style.display = 'none';
 }
 
 function saveWorkTime() {
@@ -2619,7 +2790,27 @@ function saveWorkTime() {
     .then(data => {
         if (data.success) {
             // Обновляем отображение
-            document.getElementById('workTimeDisplay').textContent = start + ' - ' + end;
+            const viewMode = document.getElementById('workViewMode');
+            const editMode = document.getElementById('workEditMode');
+            const editBtn = document.getElementById('editWorkTimeBtn');
+            const display = document.getElementById('workTimeDisplay');
+            const labelText = document.getElementById('workTimeLabelText');
+            
+            labelText.textContent = 'Работаю:';
+            display.textContent = start + ' - ' + end;
+            viewMode.style.display = 'inline';
+            editMode.style.display = 'none';
+            editBtn.style.display = 'inline-flex';  // ← ПОКАЗЫВАЕМ КНОПКУ
+            
+            // Скрываем кнопку "Сделать рабочим"
+            document.getElementById('dayOffActions').style.display = 'none';
+            
+            // Показываем кнопку "Сделать выходным"
+            document.getElementById('makeDayOffBtn').style.display = 'inline-block';
+            
+            // Показываем кнопку "Добавить запись"
+            const addBookingBtn = document.querySelector('#dayActionsContainer .btn-pink');
+            if (addBookingBtn) addBookingBtn.style.display = 'inline-block';
             
             // Обновляем currentDayData
             if (currentDayData) {
@@ -2629,16 +2820,7 @@ function saveWorkTime() {
                 currentDayData.is_day_off = false;
             }
             
-            // Обновляем кнопки
-            updateDayActions();
-            
-            // Выходим из режима редактирования
-            cancelEditWorkTime();
-            
-            // Показываем уведомление
-            showToast('✅ Время обновлено', 'success');
-            
-            // Перезагружаем календарь
+            showToast('✅ День сохранён как рабочий', 'success');
             loadCalendar();
         } else {
             showAlert(data.error || 'Ошибка при сохранении', 'Ошибка');
@@ -2658,6 +2840,17 @@ function saveWorkTime() {
 // УПРАВЛЕНИЕ ПЕРЕРЫВАМИ
 // ============================================================
 
+// ============================================================
+// УПРАВЛЕНИЕ ПЕРЕРЫВАМИ (ПОЛНОСТЬЮ)
+// ============================================================
+
+// ============================================================
+// УПРАВЛЕНИЕ ПЕРЕРЫВАМИ (ПОЛНОСТЬЮ)
+// ============================================================
+
+// ============================================================
+// УПРАВЛЕНИЕ ПЕРЕРЫВАМИ (ПОЛНОСТЬЮ)
+// ============================================================
 
 function getCurrentBreaksData() {
     const breaks = [];
@@ -3214,6 +3407,94 @@ function makeWorkingFromDayOff() {
 #breaksContainer .break-item .btn i {
     font-size: 0.85rem !important;
 }
+}
+
+/* ============================================================ */
+/* ========== РАБОЧЕЕ ВРЕМЯ - РЕДАКТИРОВАНИЕ ========== */
+/* ============================================================ */
+
+/* ============================================================ */
+/* ========== РАБОЧЕЕ ВРЕМЯ - РЕДАКТИРОВАНИЕ ========== */
+/* ============================================================ */
+
+.work-time-row {
+    height: 36px !important;
+    min-height: 36px !important;
+}
+
+.work-time-row > div {
+    height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+.work-time-input {
+    width: 80px !important;
+    height: 30px !important;
+    padding: 2px 6px !important;
+    font-size: 0.8rem !important;
+    border-radius: 6px !important;
+    border: 1px solid var(--gray-300) !important;
+    display: inline-block !important;
+}
+
+.work-time-input:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15) !important;
+    outline: none !important;
+}
+
+.work-save-btn,
+.work-cancel-btn {
+    padding: 2px 6px !important;
+    font-size: 0.75rem !important;
+    border-radius: 6px !important;
+    border: none !important;
+    background: transparent !important;
+    color: var(--gray-500) !important;
+    transition: all 0.2s ease !important;
+    height: 30px !important;
+    width: 30px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.work-save-btn:hover {
+    background: #dcfce7 !important;
+    color: #16a34a !important;
+}
+
+.work-cancel-btn:hover {
+    background: #fef2f2 !important;
+    color: #dc2626 !important;
+}
+
+.work-save-btn i,
+.work-cancel-btn i {
+    font-size: 0.75rem !important;
+}
+
+#editWorkTimeBtn {
+    height: 36px !important;
+    width: 36px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+}
+
+#editWorkTimeBtn i {
+    font-size: 0.85rem !important;
+}
+
+.work-time-separator {
+    font-size: 0.8rem !important;
+    color: var(--gray-500) !important;
+    padding: 0 4px !important;
+    line-height: 30px !important;
+    display: inline-block !important;
 }
 </style>
 
