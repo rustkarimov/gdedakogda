@@ -2658,28 +2658,15 @@ function saveWorkTime() {
 // УПРАВЛЕНИЕ ПЕРЕРЫВАМИ
 // ============================================================
 
-// ============================================================
-// УПРАВЛЕНИЕ ПЕРЕРЫВАМИ (ПОЛНОСТЬЮ)
-// ============================================================
 
 function getCurrentBreaksData() {
     const breaks = [];
     document.querySelectorAll('#breaksContainer .break-item').forEach(item => {
-        // Проверяем, есть ли поля ввода
-        const startInput = item.querySelector('.break-start');
-        const endInput = item.querySelector('.break-end');
-        
-        // Если поля есть и они видимы — берём значения из них
-        if (startInput && endInput && startInput.value && endInput.value) {
-            breaks.push({ start: startInput.value, end: endInput.value });
-        } else {
-            // Если полей нет — берём из отображения
-            const display = item.querySelector('.break-display');
-            if (display) {
-                const parts = display.textContent.split(' - ');
-                if (parts.length === 2 && parts[0].trim() && parts[1].trim()) {
-                    breaks.push({ start: parts[0].trim(), end: parts[1].trim() });
-                }
+        const display = item.querySelector('.break-display');
+        if (display && display.textContent !== '—') {
+            const parts = display.textContent.split(' - ');
+            if (parts.length === 2 && parts[0].trim() && parts[1].trim()) {
+                breaks.push({ start: parts[0].trim(), end: parts[1].trim() });
             }
         }
     });
@@ -2690,164 +2677,181 @@ function renderBreaks(breaks) {
     const container = document.getElementById('breaksContainer');
     container.innerHTML = '';
     
-    // Если нет перерывов — показываем "Перерыв: —" + ✏️
     if (!breaks || breaks.length === 0) {
-        const item = document.createElement('div');
-        item.className = 'break-item d-flex align-items-center gap-2 mb-1 flex-wrap';
-        item.innerHTML = `
-            <span class="break-view-mode d-flex align-items-center gap-1">
-                <i class="fas fa-coffee me-1" style="color: #f59e0b;"></i>
-                <span class="fw-bold me-1">Перерыв:</span>
-                <span class="break-display text-muted">—</span>
-            </span>
-            <span class="break-edit-mode d-flex align-items-center gap-1" style="display: none;">
-                <i class="fas fa-coffee me-1" style="color: #f59e0b;"></i>
-                <span class="fw-bold me-1">Перерыв:</span>
-                <input type="time" class="form-control form-control-sm break-start" style="width: 90px;">
-                <span>—</span>
-                <input type="time" class="form-control form-control-sm break-end" style="width: 90px;">
-                <button class="btn btn-sm btn-success save-break-btn" onclick="saveNewBreak(this, 0)">
-                    <i class="fas fa-save"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-secondary cancel-break-btn" onclick="cancelEditBreak(this, 0)">
-                    <i class="fas fa-times"></i>
-                </button>
-            </span>
-            <button class="btn btn-sm edit-break-btn" onclick="editEmptyBreak(this, 0)" title="Добавить перерыв" style="color: var(--gray-600); padding: 0 4px;">
-                <i class="fas fa-edit"></i>
-            </button>
-        `;
+        // Нет перерывов — только "Перерыв: —" и ✏️ (без ➕)
+        const item = createBreakItem(null, 0, false);
         container.appendChild(item);
         return;
     }
     
-    // Если есть перерывы — показываем каждый
+    // Показываем каждый перерыв
     breaks.forEach((b, index) => {
         const isLast = (index === breaks.length - 1);
-        const item = document.createElement('div');
-        item.className = 'break-item d-flex align-items-center gap-2 mb-1 flex-wrap';
-        item.dataset.index = index;
-        
-        // Заголовок "Перерыв:" показываем ТОЛЬКО у первого перерыва
-        const showHeader = (index === 0);
-        
-        item.innerHTML = `
-            <!-- Режим просмотра -->
-            <span class="break-view-mode d-flex align-items-center gap-1">
-                ${showHeader ? '<i class="fas fa-coffee me-1" style="color: #f59e0b;"></i><span class="fw-bold me-1">Перерыв:</span>' : ''}
-                <span class="break-display">${b.start} - ${b.end}</span>
-            </span>
-            <!-- Режим редактирования (скрыт по умолчанию) -->
-            <span class="break-edit-mode d-flex align-items-center gap-1" style="display: none;">
-                ${showHeader ? '<i class="fas fa-coffee me-1" style="color: #f59e0b;"></i><span class="fw-bold me-1">Перерыв:</span>' : ''}
-                <input type="time" class="form-control form-control-sm break-start" value="${b.start}" style="width: 90px;">
-                <span>—</span>
-                <input type="time" class="form-control form-control-sm break-end" value="${b.end}" style="width: 90px;">
-                <button class="btn btn-sm btn-success save-break-btn" onclick="saveBreak(this, ${index})">
-                    <i class="fas fa-save"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-secondary cancel-break-btn" onclick="cancelEditBreak(this, ${index})">
-                    <i class="fas fa-times"></i>
-                </button>
-            </span>
-            <!-- Кнопка редактирования -->
-            <button class="btn btn-sm edit-break-btn" onclick="editBreak(this, ${index})" title="Изменить перерыв" style="color: var(--gray-600); padding: 0 4px;">
-                <i class="fas fa-edit"></i>
-            </button>
-            <!-- Кнопка удаления -->
-            <button class="btn btn-sm delete-break-btn" onclick="deleteBreak(${index})" title="Удалить перерыв" style="color: var(--gray-600); padding: 0 4px;">
-                <i class="fas fa-trash"></i>
-            </button>
-            <!-- Кнопка "+" (только у последнего) -->
-            ${isLast ? `
-                <button class="btn btn-sm add-break-btn" onclick="addNewBreak()" title="Добавить перерыв" style="color: var(--gray-600); padding: 0 4px;">
-                    <i class="fas fa-plus"></i>
-                </button>
-            ` : ''}
-        `;
+        const item = createBreakItem(b, index, isLast);
         container.appendChild(item);
     });
 }
 
-function editBreak(btn, index) {
-    const item = btn.closest('.break-item');
-    const viewMode = item.querySelector('.break-view-mode');
-    const editMode = item.querySelector('.break-edit-mode');
-    const editBtn = item.querySelector('.edit-break-btn');
-    const deleteBtn = item.querySelector('.delete-break-btn');
-    const addBtn = item.querySelector('.add-break-btn');
+function createBreakItem(breakData, index, showAddButton) {
+    const hasBreak = breakData !== null;
+    const displayText = hasBreak ? `${breakData.start} - ${breakData.end}` : '—';
+    const startVal = hasBreak ? breakData.start : '';
+    const endVal = hasBreak ? breakData.end : '';
+    const label = hasBreak ? (index === 0 ? 'Перерыв:' : `Перерыв ${index + 1}:`) : 'Перерыв:';
     
-    // Скрываем режим просмотра
-    viewMode.style.display = 'none';
+    const item = document.createElement('div');
+    item.className = 'break-item d-flex align-items-center gap-2 mb-1 flex-wrap';
+    item.dataset.index = index;
+    item.id = `break-item-${index}`;
     
-    // Показываем режим редактирования (в ТОЙ ЖЕ строке)
-    editMode.style.display = 'inline-flex';
+    let html = `
+        <span class="break-label">
+            <i class="fas fa-coffee me-1" style="color: #f59e0b;"></i>
+            <span class="fw-bold me-1">${label}</span>
+        </span>
+        <span class="break-view-mode d-flex align-items-center gap-1">
+            <span class="break-display">${displayText}</span>
+        </span>
+    `;
     
-    // Скрываем кнопки управления
-    editBtn.style.display = 'none';
-    if (deleteBtn) deleteBtn.style.display = 'none';
-    if (addBtn) addBtn.style.display = 'none';
+    // ✏️ всегда показываем
+    html += `
+        <button class="btn btn-sm edit-break-btn" onclick="toggleBreakEdit(${index})" title="${hasBreak ? 'Изменить перерыв' : 'Добавить перерыв'}" style="color: var(--gray-600); padding: 0 4px;">
+            <i class="fas fa-edit"></i>
+        </button>
+    `;
+    
+    // 🗑️ только если есть перерыв
+    if (hasBreak) {
+        html += `
+            <button class="btn btn-sm delete-break-btn" onclick="deleteBreak(${index})" title="Удалить перерыв" style="color: var(--gray-600); padding: 0 4px;">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+    }
+    
+    // ➕ только если есть перерыв И это последний
+    if (hasBreak && showAddButton) {
+        html += `
+            <button class="btn btn-sm add-break-btn" onclick="addNewBreak()" title="Добавить перерыв" style="color: var(--gray-600); padding: 0 4px;">
+                <i class="fas fa-plus"></i>
+            </button>
+        `;
+    }
+    
+    item.innerHTML = html;
+    
+    // Сохраняем данные для редактирования
+    item._breakStart = startVal;
+    item._breakEnd = endVal;
+    item._breakEditMode = false;
+    
+    return item;
 }
 
-function cancelEditBreak(btn, index) {
-    const item = btn.closest('.break-item');
+function toggleBreakEdit(index) {
+    const item = document.getElementById(`break-item-${index}`);
+    if (!item) return;
+    
     const viewMode = item.querySelector('.break-view-mode');
-    const editMode = item.querySelector('.break-edit-mode');
     const editBtn = item.querySelector('.edit-break-btn');
     const deleteBtn = item.querySelector('.delete-break-btn');
     const addBtn = item.querySelector('.add-break-btn');
+    let editMode = item.querySelector('.break-edit-mode');
     
-    // Показываем режим просмотра
-    viewMode.style.display = 'inline-flex';
-    
-    // Скрываем режим редактирования
-    editMode.style.display = 'none';
-    
-    // Показываем кнопки управления
-    editBtn.style.display = 'inline-block';
-    if (deleteBtn) deleteBtn.style.display = 'inline-block';
-    if (addBtn) addBtn.style.display = 'inline-block';
-    
-    // Восстанавливаем значения из viewMode (отмена изменений)
-    const displaySpan = viewMode.querySelector('.break-display');
-    if (displaySpan) {
-        const parts = displaySpan.textContent.split(' - ');
-        if (parts.length === 2) {
-            const startInput = item.querySelector('.break-start');
-            const endInput = item.querySelector('.break-end');
-            if (startInput) startInput.value = parts[0].trim();
-            if (endInput) endInput.value = parts[1].trim();
-        }
+    if (item._breakEditMode) {
+        // Выход из режима редактирования
+        if (editMode) editMode.remove();
+        viewMode.style.setProperty('display', 'inline-flex', 'important');
+        editBtn.style.setProperty('display', 'inline-flex', 'important');
+        if (deleteBtn) deleteBtn.style.setProperty('display', 'inline-flex', 'important');
+        if (addBtn) addBtn.style.setProperty('display', 'inline-flex', 'important');
+        item._breakEditMode = false;
+    } else {
+        // Вход в режим редактирования
+        viewMode.style.setProperty('display', 'none', 'important');
+        editBtn.style.setProperty('display', 'none', 'important');
+        if (deleteBtn) deleteBtn.style.setProperty('display', 'none', 'important');
+        if (addBtn) addBtn.style.setProperty('display', 'none', 'important');
+        
+        editMode = document.createElement('span');
+        editMode.className = 'break-edit-mode d-flex align-items-center gap-1';
+        editMode.innerHTML = `
+            <input type="time" class="form-control form-control-sm break-start" value="${item._breakStart}" style="width: 90px;">
+            <span>—</span>
+            <input type="time" class="form-control form-control-sm break-end" value="${item._breakEnd}" style="width: 90px;">
+            <button class="btn btn-sm btn-success save-break-btn" onclick="saveBreakFromModal(${index})">
+                <i class="fas fa-save"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-secondary cancel-break-btn" onclick="cancelEditBreakFromModal(${index})">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        const label = item.querySelector('.break-label');
+        label.parentNode.insertBefore(editMode, label.nextSibling);
+        item._breakEditMode = true;
     }
 }
 
-function editEmptyBreak(btn, index) {
-    const item = btn.closest('.break-item');
-    const viewMode = item.querySelector('.break-view-mode');
+function cancelEditBreakFromModal(index) {
+    const item = document.getElementById(`break-item-${index}`);
+    if (!item) return;
+    
     const editMode = item.querySelector('.break-edit-mode');
+    if (editMode) editMode.remove();
+    
+    const viewMode = item.querySelector('.break-view-mode');
     const editBtn = item.querySelector('.edit-break-btn');
+    const deleteBtn = item.querySelector('.delete-break-btn');
+    const addBtn = item.querySelector('.add-break-btn');
     
-    // Скрываем режим просмотра
-    viewMode.style.display = 'none';
+    // Проверяем, был ли перерыв сохранён (есть ли время в display)
+    const display = viewMode.querySelector('.break-display');
+    const hasExistingBreak = display && display.textContent !== '—';
     
-    // Показываем режим редактирования (в ТОЙ ЖЕ строке)
-    editMode.style.display = 'inline-flex';
+    viewMode.style.setProperty('display', 'inline-flex', 'important');
+    editBtn.style.setProperty('display', 'inline-flex', 'important');
+    if (deleteBtn) deleteBtn.style.setProperty('display', 'inline-flex', 'important');
+    if (addBtn) addBtn.style.setProperty('display', 'inline-flex', 'important');
+    item._breakEditMode = false;
     
-    // Скрываем кнопку редактирования
-    editBtn.style.display = 'none';
+    // ЕСЛИ ЭТО НОВЫЙ ПЕРЕРЫВ (пустые поля) — УДАЛЯЕМ СТРОКУ
+    if (!hasExistingBreak) {
+        const allBreaks = getCurrentBreaksData();
+        // Удаляем этот перерыв из массива
+        allBreaks.splice(index, 1);
+        
+        if (allBreaks.length === 0) {
+            // Если перерывов не осталось — перерисовываем с пустым состоянием
+            renderBreaks([]);
+        } else {
+            // Перерисовываем все с новыми индексами
+            renderBreaks(allBreaks);
+        }
+        
+        // Сохраняем на сервер
+        saveAllBreaks(allBreaks);
+    }
 }
 
-function saveNewBreak(btn, index) {
-    saveBreak(btn, index);
-}
-
-function saveBreak(btn, index) {
-    const item = btn.closest('.break-item');
+function saveBreakFromModal(index) {
+    const item = document.getElementById(`break-item-${index}`);
+    if (!item) return;
+    
     const start = item.querySelector('.break-start').value;
     const end = item.querySelector('.break-end').value;
     
+    // Если оба поля пустые — удаляем перерыв
+    if (!start && !end) {
+        // Просто отменяем редактирование, что вызовет удаление
+        cancelEditBreakFromModal(index);
+        return;
+    }
+    
+    // Если одно поле заполнено, а другое нет — ошибка
     if (!start || !end) {
-        showAlert('Заполните время перерыва', 'Ошибка');
+        showAlert('Заполните оба поля времени', 'Ошибка');
         return;
     }
     
@@ -2866,14 +2870,17 @@ function saveBreak(btn, index) {
         return;
     }
     
+    // Получаем все текущие перерывы
     const allBreaks = getCurrentBreaksData();
     
-    if (allBreaks.length === 0 && index === 0) {
-        allBreaks.push({ start: start, end: end });
-    } else {
+    // Обновляем или добавляем
+    if (index < allBreaks.length) {
         allBreaks[index] = { start: start, end: end };
+    } else {
+        allBreaks.push({ start: start, end: end });
     }
     
+    // Проверяем пересечения
     for (let i = 0; i < allBreaks.length; i++) {
         for (let j = i + 1; j < allBreaks.length; j++) {
             if (allBreaks[i].start < allBreaks[j].end && allBreaks[j].start < allBreaks[i].end) {
@@ -2883,7 +2890,46 @@ function saveBreak(btn, index) {
         }
     }
     
+    // Выходим из режима редактирования и сохраняем
+    const itemEl = document.getElementById(`break-item-${index}`);
+    if (itemEl) {
+        const editMode = itemEl.querySelector('.break-edit-mode');
+        if (editMode) editMode.remove();
+        
+        const viewMode = itemEl.querySelector('.break-view-mode');
+        const editBtn = itemEl.querySelector('.edit-break-btn');
+        const deleteBtn = itemEl.querySelector('.delete-break-btn');
+        const addBtn = itemEl.querySelector('.add-break-btn');
+        const display = viewMode.querySelector('.break-display');
+        
+        // Обновляем отображение
+        if (display) display.textContent = `${start} - ${end}`;
+        
+        viewMode.style.setProperty('display', 'inline-flex', 'important');
+        editBtn.style.setProperty('display', 'inline-flex', 'important');
+        if (deleteBtn) deleteBtn.style.setProperty('display', 'inline-flex', 'important');
+        if (addBtn) addBtn.style.setProperty('display', 'inline-flex', 'important');
+        itemEl._breakEditMode = false;
+    }
+    
+    // Сохраняем на сервер
     saveAllBreaks(allBreaks);
+}
+
+function addNewBreak() {
+    const allBreaks = getCurrentBreaksData();
+    
+    // Добавляем новый перерыв с пустыми полями
+    allBreaks.push({ start: '', end: '' });
+    
+    // Перерисовываем все
+    renderBreaks(allBreaks);
+    
+    // Открываем редактирование нового перерыва
+    setTimeout(() => {
+        const newIndex = allBreaks.length - 1;
+        toggleBreakEdit(newIndex);
+    }, 100);
 }
 
 function deleteBreak(index) {
@@ -2891,53 +2937,26 @@ function deleteBreak(index) {
         if (confirmed) {
             const allBreaks = getCurrentBreaksData();
             allBreaks.splice(index, 1);
-            saveAllBreaks(allBreaks);
+            
+            if (allBreaks.length === 0) {
+                // Если перерывов не осталось, сохраняем пустой массив
+                saveAllBreaks([]);
+            } else {
+                // Перерисовываем с обновлёнными индексами
+                renderBreaks(allBreaks);
+                // Сохраняем на сервер
+                saveAllBreaks(allBreaks);
+            }
         }
     });
 }
 
-function addNewBreak() {
-    const allBreaks = getCurrentBreaksData();
-    
-    const workDisplay = document.getElementById('workTimeDisplay').textContent;
-    const parts = workDisplay.split(' - ');
-    const workStart = parts[0].trim();
-    const workEnd = parts[1].trim();
-    
-    let suggestedStart = workStart;
-    let suggestedEnd = workEnd;
-    
-    if (allBreaks.length > 0) {
-        const lastBreak = allBreaks[allBreaks.length - 1];
-        suggestedStart = lastBreak.end;
-        const [hours, minutes] = suggestedStart.split(':');
-        let endMinutes = parseInt(minutes) + 30;
-        let endHours = parseInt(hours);
-        if (endMinutes >= 60) {
-            endMinutes -= 60;
-            endHours += 1;
-        }
-        suggestedEnd = String(endHours).padStart(2, '0') + ':' + String(endMinutes).padStart(2, '0');
-    }
-    
-    allBreaks.push({ start: suggestedStart, end: suggestedEnd });
-    saveAllBreaks(allBreaks);
-}
-
 function saveAllBreaks(breaks) {
+    // Валидация
     for (const b of breaks) {
         if (b.start >= b.end) {
             showAlert('Время начала перерыва не может быть позже времени окончания', 'Ошибка');
             return;
-        }
-    }
-    
-    for (let i = 0; i < breaks.length; i++) {
-        for (let j = i + 1; j < breaks.length; j++) {
-            if (breaks[i].start < breaks[j].end && breaks[j].start < breaks[i].end) {
-                showAlert('Перерывы пересекаются между собой', 'Ошибка');
-                return;
-            }
         }
     }
     
@@ -2948,18 +2967,22 @@ function saveAllBreaks(breaks) {
     
     for (const b of breaks) {
         if (b.start < workStart || b.end > workEnd) {
-            showAlert('Перерыв должен быть в рамках рабочего дня', 'Ошибка');
+            showAlert('Перерыв должен быть в рамках рабочего дня (' + workStart + ' - ' + workEnd + ')', 'Ошибка');
             return;
         }
     }
     
-    // Сохраняем на сервер
-    const btn = document.querySelector('#breaksContainer .save-break-btn');
-    if (btn) {
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-        btn.disabled = true;
+    // Проверяем пересечения
+    for (let i = 0; i < breaks.length; i++) {
+        for (let j = i + 1; j < breaks.length; j++) {
+            if (breaks[i].start < breaks[j].end && breaks[j].start < breaks[i].end) {
+                showAlert('Перерывы пересекаются между собой', 'Ошибка');
+                return;
+            }
+        }
     }
     
+    // Сохраняем на сервер
     fetch('/api/extra-days/delete-by-date/', {
         method: 'POST',
         headers: {
@@ -3002,12 +3025,6 @@ function saveAllBreaks(breaks) {
     .catch(err => {
         console.error('Ошибка:', err);
         showAlert('Произошла ошибка', 'Ошибка');
-    })
-    .finally(() => {
-        if (btn) {
-            btn.innerHTML = '<i class="fas fa-save"></i>';
-            btn.disabled = false;
-        }
     });
 }
 
@@ -3045,9 +3062,7 @@ function makeWorkingFromDayOff() {
 
 
 <style>
-    /* ============================================================ */
-/* ========== ПЕРЕРЫВЫ В МОДАЛЬНОМ ОКНЕ ДНЯ ========== */
-/* ============================================================ */
+
 
 #breaksContainer .break-item {
     display: flex !important;
@@ -3058,9 +3073,14 @@ function makeWorkingFromDayOff() {
     width: 100% !important;
 }
 
-#breaksContainer .break-item .break-view-mode,
-#breaksContainer .break-item .break-edit-mode {
+#breaksContainer .break-item .break-view-mode {
     display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+#breaksContainer .break-item .break-edit-mode {
+    display: none;
     align-items: center !important;
     gap: 4px !important;
 }
@@ -3108,6 +3128,8 @@ function makeWorkingFromDayOff() {
     font-size: 0.85rem !important;
 }
 
+
+
 /* Для мобильной версии */
 @media (max-width: 768px) {
     #breaksContainer .break-item {
@@ -3131,6 +3153,67 @@ function makeWorkingFromDayOff() {
     #breaksContainer .break-item .btn i {
         font-size: 0.75rem !important;
     }
+
+    #breaksContainer .break-item .break-label {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+#breaksContainer .break-item .break-view-mode {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+#breaksContainer .break-item .break-edit-mode {
+    display: none;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+#breaksContainer .break-item .btn {
+    padding: 0 4px !important;
+    font-size: 0.85rem !important;
+    color: var(--gray-600) !important;
+    background: transparent !important;
+    border: none !important;
+    min-width: auto !important;
+    width: auto !important;
+    height: auto !important;
+    line-height: 1 !important;
+}
+
+#breaksContainer .break-item .btn-success {
+    color: #28a745 !important;
+}
+
+#breaksContainer .break-item .btn-success:hover {
+    color: #1e7e34 !important;
+}
+
+#breaksContainer .break-item .btn-outline-secondary {
+    color: var(--gray-600) !important;
+}
+
+#breaksContainer .break-item .btn-outline-secondary:hover {
+    color: var(--gray-800) !important;
+}
+
+#breaksContainer .break-item .edit-break-btn,
+#breaksContainer .break-item .delete-break-btn,
+#breaksContainer .break-item .add-break-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+#breaksContainer .break-item .edit-break-btn i,
+#breaksContainer .break-item .delete-break-btn i,
+#breaksContainer .break-item .add-break-btn i,
+#breaksContainer .break-item .btn i {
+    font-size: 0.85rem !important;
+}
 }
 </style>
 
