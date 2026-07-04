@@ -185,14 +185,13 @@
                 <p id="alertModalMessage"></p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary data-bs-dismiss="modal">OK</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
             </div>
         </div>
     </div>
 </div>
 
-<!-- МОДАЛЬНОЕ ОКНО ДНЯ -->
-<!-- МОДАЛЬНОЕ ОКНО ДНЯ -->
+
 <!-- МОДАЛЬНОЕ ОКНО ДНЯ -->
 <div class="modal fade day-modal-fixed" id="dayModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -1978,58 +1977,58 @@ function saveEditedBooking() {
     });
 }
 
-function deleteGroupedBooking(bookingIds, clientName, time) {
-    const ids = Array.isArray(bookingIds) ? bookingIds : JSON.parse(bookingIds);
-    const count = ids.length;
-    const message = count > 1 
-        ? `Удалить ${count} записи клиента "${clientName}" на ${time}?`
-        : `Удалить запись клиента "${clientName}" на ${time}?`;
+// function deleteGroupedBooking(bookingIds, clientName, time) {
+//     const ids = Array.isArray(bookingIds) ? bookingIds : JSON.parse(bookingIds);
+//     const count = ids.length;
+//     const message = count > 1 
+//         ? `Удалить ${count} записи клиента "${clientName}" на ${time}?`
+//         : `Удалить запись клиента "${clientName}" на ${time}?`;
     
-    showConfirm(message, (confirmed) => {
-        if (confirmed) {
-            let deleted = 0;
-            let errors = 0;
+//     showConfirm(message, (confirmed) => {
+//         if (confirmed) {
+//             let deleted = 0;
+//             let errors = 0;
             
-            ids.forEach(id => {
-                fetch(`/api/booking/${id}/delete/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        deleted++;
-                    } else {
-                        errors++;
-                    }
+//             ids.forEach(id => {
+//                 fetch(`/api/booking/${id}/delete/`, {
+//                     method: 'POST',
+//                     headers: {
+//                         'Content-Type': 'application/json',
+//                         'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+//                     }
+//                 })
+//                 .then(response => response.json())
+//                 .then(data => {
+//                     if (data.success) {
+//                         deleted++;
+//                     } else {
+//                         errors++;
+//                     }
                     
-                    // Если все обработаны
-                    if (deleted + errors === ids.length) {
-                        if (errors === 0) {
-                            showToast(`✅ ${deleted} запись(ей) удалена`, 'success');
-                        } else {
-                            showToast(`⚠️ Удалено ${deleted}, ошибок ${errors}`, 'error');
-                        }
-                        loadCalendar();
-                        loadBookings(1, false);
-                        if (currentSelectedDate) {
-                            fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
-                                .then(r => r.json())
-                                .then(data => renderDayBookings(data.bookings));
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Ошибка:', error);
-                    errors++;
-                });
-            });
-        }
-    });
-}
+//                     // Если все обработаны
+//                     if (deleted + errors === ids.length) {
+//                         if (errors === 0) {
+//                             showToast(`✅ ${deleted} запись(ей) удалена`, 'success');
+//                         } else {
+//                             showToast(`⚠️ Удалено ${deleted}, ошибок ${errors}`, 'error');
+//                         }
+//                         loadCalendar();
+//                         loadBookings(1, false);
+//                         if (currentSelectedDate) {
+//                             fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
+//                                 .then(r => r.json())
+//                                 .then(data => renderDayBookings(data.bookings));
+//                         }
+//                     }
+//                 })
+//                 .catch(error => {
+//                     console.error('Ошибка:', error);
+//                     errors++;
+//                 });
+//             });
+//         }
+//     });
+// }
 
 function deleteBooking(bookingId, clientName, time) {
     showConfirm(`Удалить запись клиента "${clientName}" на ${time}?`, (confirmed) => {
@@ -2053,9 +2052,9 @@ function deleteBooking(bookingId, clientName, time) {
                             .then(data => renderDayBookings(data.bookings));
                     }
                     // Показываем только одно уведомление (быстрое, без кнопки)
-                    showToast('✅ Запись удалена', 'success');
-                } else {
-                    showAlert(data.error || 'Ошибка при удалении', 'Ошибка');
+                //     showToast('✅ Запись удалена', 'success');
+                // } else {
+                //     showAlert(data.error || 'Ошибка при удалении', 'Ошибка');
                 }
             })
             .catch(error => {
@@ -2103,58 +2102,58 @@ function getBookingsLimit() {
     return parseInt(document.getElementById('bookings-limit-select').value);
 }
 
-function deleteGroupedBooking(bookingIds, clientName, time) {
-    const ids = Array.isArray(bookingIds) ? bookingIds : JSON.parse(bookingIds);
-    const count = ids.length;
-    const message = count > 1 
-        ? `Удалить ${count} записи клиента "${clientName}" на ${time}?`
-        : `Удалить запись клиента "${clientName}" на ${time}?`;
+// function deleteGroupedBooking(bookingIds, clientName, time) {
+//     const ids = Array.isArray(bookingIds) ? bookingIds : JSON.parse(bookingIds);
+//     const count = ids.length;
+//     const message = count > 1 
+//         ? `Удалить ${count} записи клиента "${clientName}" на ${time}?`
+//         : `Удалить запись клиента "${clientName}" на ${time}?`;
     
-    showConfirm(message, (confirmed) => {
-        if (confirmed) {
-            let deleted = 0;
-            let errors = 0;
+//     showConfirm(message, (confirmed) => {
+//         if (confirmed) {
+//             let deleted = 0;
+//             let errors = 0;
             
-            ids.forEach(id => {
-                fetch(`/api/booking/${id}/delete/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        deleted++;
-                    } else {
-                        errors++;
-                    }
+//             ids.forEach(id => {
+//                 fetch(`/api/booking/${id}/delete/`, {
+//                     method: 'POST',
+//                     headers: {
+//                         'Content-Type': 'application/json',
+//                         'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+//                     }
+//                 })
+//                 .then(response => response.json())
+//                 .then(data => {
+//                     if (data.success) {
+//                         deleted++;
+//                     } else {
+//                         errors++;
+//                     }
                     
-                    // Если все обработаны
-                    if (deleted + errors === ids.length) {
-                        if (errors === 0) {
-                            showToast(`✅ ${deleted} запись(ей) удалена`, 'success');
-                        } else {
-                            showToast(`⚠️ Удалено ${deleted}, ошибок ${errors}`, 'error');
-                        }
-                        loadCalendar();
-                        loadBookings(1, false);
-                        if (currentSelectedDate) {
-                            fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
-                                .then(r => r.json())
-                                .then(data => renderDayBookings(data.bookings));
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Ошибка:', error);
-                    errors++;
-                });
-            });
-        }
-    });
-}
+//                     // Если все обработаны
+//                     if (deleted + errors === ids.length) {
+//                         if (errors === 0) {
+//                             showToast(`✅ ${deleted} запись(ей) удалена`, 'success');
+//                         } else {
+//                             showToast(`⚠️ Удалено ${deleted}, ошибок ${errors}`, 'error');
+//                         }
+//                         loadCalendar();
+//                         loadBookings(1, false);
+//                         if (currentSelectedDate) {
+//                             fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
+//                                 .then(r => r.json())
+//                                 .then(data => renderDayBookings(data.bookings));
+//                         }
+//                     }
+//                 })
+//                 .catch(error => {
+//                     console.error('Ошибка:', error);
+//                     errors++;
+//                 });
+//             });
+//         }
+//     });
+// }
 
 
 function loadBookings(p = 1, append = false) {
@@ -2820,7 +2819,7 @@ function saveWorkTime() {
                 currentDayData.is_day_off = false;
             }
             
-            showToast('✅ День сохранён как рабочий', 'success');
+            // showToast('✅ День сохранён как рабочий', 'success');
             loadCalendar();
         } else {
             showAlert(data.error || 'Ошибка при сохранении', 'Ошибка');
@@ -2970,9 +2969,9 @@ function toggleBreakEdit(index) {
         editMode = document.createElement('span');
         editMode.className = 'break-edit-mode d-flex align-items-center gap-1';
         editMode.innerHTML = `
-            <input type="time" class="form-control form-control-sm break-start" value="${item._breakStart}" style="width: 90px;">
+            <input type="time" class="form-control form-control-sm break-start" value="${item._breakStart}" style="width: 90px; height: 36px;">
             <span>—</span>
-            <input type="time" class="form-control form-control-sm break-end" value="${item._breakEnd}" style="width: 90px;">
+            <input type="time" class="form-control form-control-sm break-end" value="${item._breakEnd}" style="width: 90px; height: 36px;">
             <button class="btn btn-sm btn-success save-break-btn" onclick="saveBreakFromModal(${index})">
                 <i class="fas fa-save"></i>
             </button>
@@ -2995,38 +2994,148 @@ function cancelEditBreakFromModal(index) {
     if (editMode) editMode.remove();
     
     const viewMode = item.querySelector('.break-view-mode');
-    const editBtn = item.querySelector('.edit-break-btn');
-    const deleteBtn = item.querySelector('.delete-break-btn');
-    const addBtn = item.querySelector('.add-break-btn');
+    if (!viewMode) return;
     
-    // Проверяем, был ли перерыв сохранён (есть ли время в display)
     const display = viewMode.querySelector('.break-display');
-    const hasExistingBreak = display && display.textContent !== '—';
+    const displayText = display ? display.textContent.trim() : '';
+    const hasExistingBreak = displayText && displayText !== '—' && displayText !== '-';
     
-    viewMode.style.setProperty('display', 'inline-flex', 'important');
-    editBtn.style.setProperty('display', 'inline-flex', 'important');
-    if (deleteBtn) deleteBtn.style.setProperty('display', 'inline-flex', 'important');
-    if (addBtn) addBtn.style.setProperty('display', 'inline-flex', 'important');
-    item._breakEditMode = false;
-    
-    // ЕСЛИ ЭТО НОВЫЙ ПЕРЕРЫВ (пустые поля) — УДАЛЯЕМ СТРОКУ
+    // Если это новый перерыв (пустые поля) - удаляем всю строку и перерисовываем
     if (!hasExistingBreak) {
         const allBreaks = getCurrentBreaksData();
-        // Удаляем этот перерыв из массива
         allBreaks.splice(index, 1);
-        
-        if (allBreaks.length === 0) {
-            // Если перерывов не осталось — перерисовываем с пустым состоянием
-            renderBreaks([]);
-        } else {
-            // Перерисовываем все с новыми индексами
-            renderBreaks(allBreaks);
-        }
-        
-        // Сохраняем на сервер
-        saveAllBreaks(allBreaks);
+        renderBreaks(allBreaks);
+        return;
     }
+    
+    // Если это существующий перерыв - просто скрываем поля
+    viewMode.style.display = 'inline-flex';
+    
+    const editBtn = item.querySelector('.edit-break-btn');
+    if (editBtn) editBtn.style.display = 'inline-flex';
+    
+    const deleteBtn = item.querySelector('.delete-break-btn');
+    if (deleteBtn) deleteBtn.style.display = 'inline-flex';
+    
+    // Кнопка + показывается только у последнего перерыва
+    const allItems = document.querySelectorAll('#breaksContainer .break-item');
+    const lastIndex = allItems.length - 1;
+    allItems.forEach((el, i) => {
+        const addBtn = el.querySelector('.add-break-btn');
+        if (addBtn) {
+            addBtn.style.display = i === lastIndex ? 'inline-flex' : 'none';
+            if (i === lastIndex) {
+                addBtn.setAttribute('onclick', `addNewBreak()`);
+            }
+        }
+    });
+    
+    item._breakEditMode = false;
 }
+// function cancelEditBreakFromModal(index) {
+//     const item = document.getElementById(`break-item-${index}`);
+//     if (!item) return;
+    
+//     const editMode = item.querySelector('.break-edit-mode');
+//     if (editMode) editMode.remove();
+    
+//     const viewMode = item.querySelector('.break-view-mode');
+//     const editBtn = item.querySelector('.edit-break-btn');
+//     const deleteBtn = item.querySelector('.delete-break-btn');
+//     const addBtn = item.querySelector('.add-break-btn');
+    
+//     const display = viewMode.querySelector('.break-display');
+//     const hasExistingBreak = display && display.textContent !== '—';
+    
+//     viewMode.style.display = 'inline-flex';
+//     editBtn.style.display = 'inline-flex';
+//     if (deleteBtn) deleteBtn.style.display = 'inline-flex';
+//     if (addBtn) addBtn.style.display = 'inline-flex';
+//     item._breakEditMode = false;
+    
+// }
+
+// function saveBreakFromModal(index) {
+//     const item = document.getElementById(`break-item-${index}`);
+//     if (!item) return;
+    
+//     const start = item.querySelector('.break-start').value;
+//     const end = item.querySelector('.break-end').value;
+    
+//     // Если оба поля пустые — удаляем перерыв
+//     if (!start && !end) {
+//         // Просто отменяем редактирование, что вызовет удаление
+//         cancelEditBreakFromModal(index);
+//         return;
+//     }
+    
+//     // Если одно поле заполнено, а другое нет — ошибка
+//     if (!start || !end) {
+//         showAlert('Заполните оба поля времени', 'Ошибка');
+//         return;
+//     }
+    
+//     if (start >= end) {
+//         showAlert('Время начала не может быть позже времени окончания', 'Ошибка');
+//         return;
+//     }
+    
+//     const workDisplay = document.getElementById('workTimeDisplay').textContent;
+//     const parts = workDisplay.split(' - ');
+//     const workStart = parts[0].trim();
+//     const workEnd = parts[1].trim();
+    
+//     if (start < workStart || end > workEnd) {
+//         showAlert('Перерыв должен быть в рамках рабочего дня (' + workStart + ' - ' + workEnd + ')', 'Ошибка');
+//         return;
+//     }
+    
+//     // Получаем все текущие перерывы
+//     const allBreaks = getCurrentBreaksData();
+    
+//     // Обновляем или добавляем
+//     if (index < allBreaks.length) {
+//         allBreaks[index] = { start: start, end: end };
+//     } else {
+//         allBreaks.push({ start: start, end: end });
+//     }
+    
+//     // Проверяем пересечения
+//     for (let i = 0; i < allBreaks.length; i++) {
+//         for (let j = i + 1; j < allBreaks.length; j++) {
+//             if (allBreaks[i].start < allBreaks[j].end && allBreaks[j].start < allBreaks[i].end) {
+//                 showAlert('Перерывы пересекаются между собой', 'Ошибка');
+//                 return;
+//             }
+//         }
+//     }
+    
+//     // Выходим из режима редактирования и сохраняем
+//     const itemEl = document.getElementById(`break-item-${index}`);
+//     if (itemEl) {
+//         const editMode = itemEl.querySelector('.break-edit-mode');
+//         if (editMode) editMode.remove();
+        
+//         const viewMode = itemEl.querySelector('.break-view-mode');
+//         const editBtn = itemEl.querySelector('.edit-break-btn');
+//         const deleteBtn = itemEl.querySelector('.delete-break-btn');
+//         const addBtn = itemEl.querySelector('.add-break-btn');
+//         const display = viewMode.querySelector('.break-display');
+        
+//         // Обновляем отображение
+//         if (display) display.textContent = `${start} - ${end}`;
+        
+//         viewMode.style.setProperty('display', 'inline-flex', 'important');
+//         editBtn.style.setProperty('display', 'inline-flex', 'important');
+//         if (deleteBtn) deleteBtn.style.setProperty('display', 'inline-flex', 'important');
+//         if (addBtn) addBtn.style.setProperty('display', 'inline-flex', 'important');
+//         itemEl._breakEditMode = false;
+//     }
+    
+//     // Сохраняем на сервер
+//     saveAllBreaks(allBreaks);
+// }
+
 
 function saveBreakFromModal(index) {
     const item = document.getElementById(`break-item-${index}`);
@@ -3035,14 +3144,11 @@ function saveBreakFromModal(index) {
     const start = item.querySelector('.break-start').value;
     const end = item.querySelector('.break-end').value;
     
-    // Если оба поля пустые — удаляем перерыв
     if (!start && !end) {
-        // Просто отменяем редактирование, что вызовет удаление
         cancelEditBreakFromModal(index);
         return;
     }
     
-    // Если одно поле заполнено, а другое нет — ошибка
     if (!start || !end) {
         showAlert('Заполните оба поля времени', 'Ошибка');
         return;
@@ -3063,17 +3169,15 @@ function saveBreakFromModal(index) {
         return;
     }
     
-    // Получаем все текущие перерывы
     const allBreaks = getCurrentBreaksData();
     
-    // Обновляем или добавляем
     if (index < allBreaks.length) {
         allBreaks[index] = { start: start, end: end };
     } else {
         allBreaks.push({ start: start, end: end });
     }
     
-    // Проверяем пересечения
+    // Проверяем пересечения между перерывами
     for (let i = 0; i < allBreaks.length; i++) {
         for (let j = i + 1; j < allBreaks.length; j++) {
             if (allBreaks[i].start < allBreaks[j].end && allBreaks[j].start < allBreaks[i].end) {
@@ -3083,30 +3187,75 @@ function saveBreakFromModal(index) {
         }
     }
     
-    // Выходим из режима редактирования и сохраняем
-    const itemEl = document.getElementById(`break-item-${index}`);
-    if (itemEl) {
-        const editMode = itemEl.querySelector('.break-edit-mode');
-        if (editMode) editMode.remove();
-        
-        const viewMode = itemEl.querySelector('.break-view-mode');
-        const editBtn = itemEl.querySelector('.edit-break-btn');
-        const deleteBtn = itemEl.querySelector('.delete-break-btn');
-        const addBtn = itemEl.querySelector('.add-break-btn');
-        const display = viewMode.querySelector('.break-display');
-        
-        // Обновляем отображение
-        if (display) display.textContent = `${start} - ${end}`;
-        
-        viewMode.style.setProperty('display', 'inline-flex', 'important');
-        editBtn.style.setProperty('display', 'inline-flex', 'important');
-        if (deleteBtn) deleteBtn.style.setProperty('display', 'inline-flex', 'important');
-        if (addBtn) addBtn.style.setProperty('display', 'inline-flex', 'important');
-        itemEl._breakEditMode = false;
-    }
-    
-    // Сохраняем на сервер
-    saveAllBreaks(allBreaks);
+    // ===== ПРОВЕРЯЕМ ЗАПИСИ ПЕРЕД СОХРАНЕНИЕМ =====
+    // Сначала проверяем, есть ли конфликты с записями
+    fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
+        .then(response => response.json())
+        .then(data => {
+            const bookings = data.bookings || [];
+            let hasConflict = false;
+            
+            function timeToMinutes(timeStr) {
+                const [hours, minutes] = timeStr.split(':');
+                return parseInt(hours) * 60 + parseInt(minutes);
+            }
+            
+            function isOverlap(breakStart, breakEnd, bookingTime, bookingDuration) {
+                const breakStartMin = timeToMinutes(breakStart);
+                const breakEndMin = timeToMinutes(breakEnd);
+                const bookingStartMin = timeToMinutes(bookingTime);
+                const bookingEndMin = bookingStartMin + bookingDuration;
+                return (breakStartMin < bookingEndMin && breakEndMin > bookingStartMin);
+            }
+            
+            for (const b of allBreaks) {
+                for (const booking of bookings) {
+                    const bookingDuration = booking.service_duration || 30;
+                    if (isOverlap(b.start, b.end, booking.time, bookingDuration)) {
+                        showAlert(
+                            `⚠️ Перерыв ${b.start}-${b.end} пересекается с записью клиента "${booking.client_name}" в ${booking.time}.\n\nСначала перенесите или отмените запись, затем установите перерыв.`,
+                            'Ошибка'
+                        );
+                        hasConflict = true;
+                        break;
+                    }
+                }
+                if (hasConflict) break;
+            }
+            
+            if (hasConflict) {
+                return; // Не сохраняем
+            }
+            
+            // ===== ВСЕ ПРОВЕРКИ ПРОЙДЕНЫ - СОХРАНЯЕМ =====
+            // Теперь обновляем UI
+            const itemEl = document.getElementById(`break-item-${index}`);
+            if (itemEl) {
+                const editMode = itemEl.querySelector('.break-edit-mode');
+                if (editMode) editMode.remove();
+                
+                const viewMode = itemEl.querySelector('.break-view-mode');
+                const editBtn = itemEl.querySelector('.edit-break-btn');
+                const deleteBtn = itemEl.querySelector('.delete-break-btn');
+                const addBtn = itemEl.querySelector('.add-break-btn');
+                const display = viewMode.querySelector('.break-display');
+                
+                if (display) display.textContent = `${start} - ${end}`;
+                
+                viewMode.style.setProperty('display', 'inline-flex', 'important');
+                editBtn.style.setProperty('display', 'inline-flex', 'important');
+                if (deleteBtn) deleteBtn.style.setProperty('display', 'inline-flex', 'important');
+                if (addBtn) addBtn.style.setProperty('display', 'inline-flex', 'important');
+                itemEl._breakEditMode = false;
+            }
+            
+            // Сохраняем на сервер
+            saveAllBreaks(allBreaks);
+        })
+        .catch(err => {
+            console.error('Ошибка проверки записей:', err);
+            showAlert('Ошибка при проверке записей', 'Ошибка');
+        });
 }
 
 function addNewBreak() {
@@ -3165,7 +3314,7 @@ function saveAllBreaks(breaks) {
         }
     }
     
-    // Проверяем пересечения
+    // Проверяем пересечения между перерывами
     for (let i = 0; i < breaks.length; i++) {
         for (let j = i + 1; j < breaks.length; j++) {
             if (breaks[i].start < breaks[j].end && breaks[j].start < breaks[i].end) {
@@ -3175,7 +3324,59 @@ function saveAllBreaks(breaks) {
         }
     }
     
-    // Сохраняем на сервер
+    // ===== НОВАЯ ПРОВЕРКА: пересечение с записями =====
+    // Получаем записи на текущую дату
+    fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
+        .then(response => response.json())
+        .then(data => {
+            const bookings = data.bookings || [];
+            let hasConflict = false;
+            
+            function timeToMinutes(timeStr) {
+                const [hours, minutes] = timeStr.split(':');
+                return parseInt(hours) * 60 + parseInt(minutes);
+            }
+            
+            function isOverlap(breakStart, breakEnd, bookingTime, bookingDuration) {
+                const breakStartMin = timeToMinutes(breakStart);
+                const breakEndMin = timeToMinutes(breakEnd);
+                const bookingStartMin = timeToMinutes(bookingTime);
+                const bookingEndMin = bookingStartMin + bookingDuration;
+                return (breakStartMin < bookingEndMin && breakEndMin > bookingStartMin);
+            }
+            
+            // Проверяем каждый перерыв
+            for (const b of breaks) {
+                for (const booking of bookings) {
+                    const bookingDuration = booking.service_duration || 30;
+                    if (isOverlap(b.start, b.end, booking.time, bookingDuration)) {
+                        showAlert(
+                            `⚠️ Перерыв ${b.start}-${b.end} пересекается с записью клиента "${booking.client_name}" в ${booking.time}.\n\nСначала перенесите или отмените запись, затем установите перерыв.`,
+                            'Ошибка'
+                        );
+                        hasConflict = true;
+                        break;
+                    }
+                }
+                if (hasConflict) break;
+            }
+            
+            // Если есть конфликт - НЕ СОХРАНЯЕМ
+            if (hasConflict) {
+                return;
+            }
+            
+            // Если все проверки пройдены - сохраняем
+            saveBreaksToServer(breaks, workStart, workEnd);
+        })
+        .catch(err => {
+            console.error('Ошибка проверки записей:', err);
+            showAlert('Ошибка при проверке записей', 'Ошибка');
+        });
+}
+
+// Выносим сохранение в отдельную функцию
+function saveBreaksToServer(breaks, workStart, workEnd) {
     fetch('/api/extra-days/delete-by-date/', {
         method: 'POST',
         headers: {
@@ -3209,7 +3410,7 @@ function saveAllBreaks(breaks) {
     .then(data => {
         if (data.success) {
             renderBreaks(breaks);
-            showToast('✅ Перерывы обновлены', 'success');
+            // showToast('✅ Перерывы обновлены', 'success');
             loadCalendar();
         } else {
             showAlert(data.error || 'Ошибка при сохранении', 'Ошибка');
@@ -3220,6 +3421,84 @@ function saveAllBreaks(breaks) {
         showAlert('Произошла ошибка', 'Ошибка');
     });
 }
+
+// function saveAllBreaks(breaks) {
+//     // Валидация
+//     for (const b of breaks) {
+//         if (b.start >= b.end) {
+//             showAlert('Время начала перерыва не может быть позже времени окончания', 'Ошибка');
+//             return;
+//         }
+//     }
+    
+//     const workDisplay = document.getElementById('workTimeDisplay').textContent;
+//     const parts = workDisplay.split(' - ');
+//     const workStart = parts[0].trim();
+//     const workEnd = parts[1].trim();
+    
+//     for (const b of breaks) {
+//         if (b.start < workStart || b.end > workEnd) {
+//             showAlert('Перерыв должен быть в рамках рабочего дня (' + workStart + ' - ' + workEnd + ')', 'Ошибка');
+//             return;
+//         }
+//     }
+    
+//     // Проверяем пересечения
+//     for (let i = 0; i < breaks.length; i++) {
+//         for (let j = i + 1; j < breaks.length; j++) {
+//             if (breaks[i].start < breaks[j].end && breaks[j].start < breaks[i].end) {
+//                 showAlert('Перерывы пересекаются между собой', 'Ошибка');
+//                 return;
+//             }
+//         }
+//     }
+    
+//     // Сохраняем на сервер
+//     fetch('/api/extra-days/delete-by-date/', {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json',
+//             'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+//         },
+//         body: JSON.stringify({ date: currentSelectedDate })
+//     })
+//     .then(() => fetch('/api/days-off/delete-by-date/', {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json',
+//             'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+//         },
+//         body: JSON.stringify({ date: currentSelectedDate })
+//     }))
+//     .then(() => fetch('/api/extra-days/add/', {
+//         method: 'POST',
+//         headers: {
+//             'Content-Type': 'application/json',
+//             'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+//         },
+//         body: JSON.stringify({
+//             date: currentSelectedDate,
+//             start_time: workStart,
+//             end_time: workEnd,
+//             breaks: breaks
+//         })
+//     }))
+//     .then(r => r.json())
+//     .then(data => {
+//         if (data.success) {
+//             renderBreaks(breaks);
+//             // showToast('✅ Перерывы обновлены', 'success');
+//             loadCalendar();
+//         } else {
+//             showAlert(data.error || 'Ошибка при сохранении', 'Ошибка');
+//         }
+//     })
+//     .catch(err => {
+//         console.error('Ошибка:', err);
+//         showAlert('Произошла ошибка', 'Ошибка');
+//     });
+// }
+
 
 // ============================================================
 // ОБНОВЛЕНИЕ КНОПОК УПРАВЛЕНИЯ ДНЁМ
@@ -3264,18 +3543,25 @@ function makeWorkingFromDayOff() {
     flex-wrap: wrap !important;
     margin-bottom: 4px !important;
     width: 100% !important;
+
+    height: 36px !important;        /* ← ДОБАВИТЬ ЭТУ СТРОКУ */
+    min-height: 36px !important;   /* ← ДОБАВИТЬ ЭТУ СТРОКУ */
 }
 
 #breaksContainer .break-item .break-view-mode {
     display: flex !important;
     align-items: center !important;
     gap: 4px !important;
+
+    height: 36px !important;        /* ← ДОБАВИТЬ ЭТУ СТРОКУ */
 }
 
 #breaksContainer .break-item .break-edit-mode {
     display: none;
     align-items: center !important;
     gap: 4px !important;
+
+    height: 36px !important;        /* ← ДОБАВИТЬ ЭТУ СТРОКУ */
 }
 
 #breaksContainer .break-item .btn {
@@ -3479,7 +3765,7 @@ function makeWorkingFromDayOff() {
 #editWorkTimeBtn {
     height: 36px !important;
     width: 36px !important;
-    display: inline-flex !important;
+    /* display: inline-flex !important; */
     align-items: center !important;
     justify-content: center !important;
     padding: 0 !important;
