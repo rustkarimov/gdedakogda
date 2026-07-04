@@ -792,7 +792,7 @@ function openDayModal(dateStr) {
     
     viewMode.style.display = 'inline';
     editMode.style.display = 'none';
-    editBtn.style.display = 'inline-block';
+    editBtn.style.display = 'inline-flex';
     
     document.getElementById('dayBookingsContainer').innerHTML = '<div class="text-center py-2"><div class="spinner-border spinner-border-sm" style="color: #7c3aed;"></div></div>';
 
@@ -823,7 +823,7 @@ function openDayModal(dateStr) {
             breaksContainer.style.display = 'block';
             makeDayOffBtn.style.display = 'none';
             dayOffActions.style.display = 'none';
-            editBtn.style.display = 'inline-block';
+            editBtn.style.display = 'inline-flex';
             viewMode.style.display = 'inline';
             editMode.style.display = 'none';
             if (addBookingBtn) addBookingBtn.style.display = 'inline-block';
@@ -846,7 +846,7 @@ function openDayModal(dateStr) {
                 workDisplay.textContent = workStart + ' - ' + workEnd;
                 viewMode.style.display = 'inline';
                 makeDayOffBtn.style.display = 'inline-block';
-                editBtn.style.display = 'inline-block';
+                editBtn.style.display = 'inline-flex';
                 renderBreaks(data.breaks || []);
             }
         });
@@ -3782,6 +3782,49 @@ function makeWorkingFromDayOff() {
     line-height: 30px !important;
     display: inline-block !important;
 }
+
+@media (max-width: 768px) {
+           .work-time-row {
+        height: 36px !important;
+        min-height: 36px !important;
+        display: flex !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+    }
+    
+    .work-time-row > div {
+        height: 36px !important;
+        min-height: 36px !important;
+        display: flex !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        gap: 4px !important;
+    }
+    
+    /* Чтобы поля и текст не переносились */
+    .work-view-mode,
+    .work-edit-mode {
+        white-space: nowrap !important;
+        /* display: inline-flex !important; */
+        align-items: center !important;
+    }
+    
+    .work-time-input {
+        width: 70px !important;
+        height: 28px !important;
+        font-size: 0.7rem !important;
+    }
+    
+    #editWorkTimeBtn {
+        height: 30px !important;
+        width: 30px !important;
+    }
+    
+    #workTimeLabel {
+        white-space: nowrap !important;
+    }
+}
+
 </style>
 
 {% endblock %}

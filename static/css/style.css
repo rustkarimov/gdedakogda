@@ -2299,7 +2299,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
 @media (max-width: 480px) {
     #dayModalDate {
-        font-size: 0.95rem;
+        font-size: 30px;
     }
 
     #currentStatusText {
