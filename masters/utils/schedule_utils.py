@@ -85,10 +85,25 @@ class ScheduleCalculator:
         day_of_week = target_date.weekday()
         schedule = Schedule.objects.filter(master=self.master, day_of_week=day_of_week).first()
         
+        # Получаем перерывы в минутах
         breaks = []
-        if schedule:
-            for break_start, break_end in schedule.breaks.all().values_list('start_time', 'end_time'):
+
+        # Сначала проверяем дополнительный рабочий день
+        extra_day = ExtraWorkingDay.objects.filter(master=self.master, date=target_date).first()
+        if extra_day:
+            # Берём перерывы из дополнительного дня
+            for break_start, break_end in extra_day.breaks.all().values_list('start_time', 'end_time'):
                 breaks.append((time_to_minutes(break_start), time_to_minutes(break_end)))
+        else:
+            # Если нет дополнительного дня, берём из регулярного расписания
+            day_of_week = target_date.weekday()
+            schedule = Schedule.objects.filter(master=self.master, day_of_week=day_of_week).first()
+            if schedule:
+                for break_start, break_end in schedule.breaks.all().values_list('start_time', 'end_time'):
+                    breaks.append((time_to_minutes(break_start), time_to_minutes(break_end)))
+        # if schedule:
+        #     for break_start, break_end in schedule.breaks.all().values_list('start_time', 'end_time'):
+        #         breaks.append((time_to_minutes(break_start), time_to_minutes(break_end)))
         
         # Получаем занятые слоты в минутах (исключая текущую запись при редактировании)
         booked_slots = []

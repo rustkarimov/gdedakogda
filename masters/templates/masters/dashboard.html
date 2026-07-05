@@ -89,7 +89,25 @@
 
 <!-- Статистика -->
 <!-- Статистика -->
-<div class="stats-container mb-4">
+ <!-- Статистика как на странице статистики -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+        <div class="stat-number">{{ total_bookings }}</div>
+        <div class="stat-label">Записей</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-cut"></i></div>
+        <div class="stat-number">{{ total_services }}</div>
+        <div class="stat-label">Услуг</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-users"></i></div>
+        <div class="stat-number">{{ total_clients }}</div>
+        <div class="stat-label">Клиентов</div>
+    </div>
+</div>
+<!-- <div class="stats-container mb-4">
     <div class="row g-3">
         <div class="col-4">
             <div class="dashboard-stat">
@@ -113,7 +131,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> -->
 
 <!-- Ваша страница для записи -->
 <!-- Ваша страница для записи -->
@@ -3612,8 +3630,8 @@ function makeWorkingFromDayOff() {
 /* Для мобильной версии */
 @media (max-width: 768px) {
     #breaksContainer .break-item {
-        flex-wrap: wrap !important;
-        gap: 4px !important;
+        flex-wrap: nowrap !important;
+        gap: 5px !important;
         padding: 4px 0 !important;
     }
     
@@ -3623,7 +3641,7 @@ function makeWorkingFromDayOff() {
     }
     
     #breaksContainer .break-item .form-control-sm {
-        width: 70px !important;
+        width: 50px !important;
         font-size: 0.7rem !important;
         padding: 2px 6px !important;
         height: 28px !important;
@@ -3637,12 +3655,21 @@ function makeWorkingFromDayOff() {
     display: inline-flex !important;
     align-items: center !important;
     gap: 4px !important;
+    font-size: 15px !important;
+}
+#breaksContainer .break-item .break-edit-mode span {
+    font-size: 0.55rem !important;
+}
+
+#breaksContainer .break-item .break-display {
+    font-size: 15px !important;
 }
 
 #breaksContainer .break-item .break-view-mode {
     display: inline-flex !important;
     align-items: center !important;
     gap: 4px !important;
+    margin-right: 5px !important;
 }
 
 #breaksContainer .break-item .break-edit-mode {
@@ -3798,7 +3825,7 @@ function makeWorkingFromDayOff() {
         display: flex !important;
         align-items: center !important;
         flex-wrap: nowrap !important;
-        gap: 4px !important;
+        gap: 1px !important;
     }
     
     /* Чтобы поля и текст не переносились */
@@ -3810,7 +3837,7 @@ function makeWorkingFromDayOff() {
     }
     
     .work-time-input {
-        width: 70px !important;
+        width: 55px !important;
         height: 28px !important;
         font-size: 0.7rem !important;
     }
@@ -3823,7 +3850,13 @@ function makeWorkingFromDayOff() {
     #workTimeLabel {
         white-space: nowrap !important;
     }
+    
+    .work-time-separator {
+    font-size: 0.55rem !important;
+    padding: 0 1px !important;   /* было 0 2px */
 }
+}
+
 
 </style>
 

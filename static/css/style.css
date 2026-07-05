@@ -1307,8 +1307,8 @@ body {
 }
 
 .calendar-date.working {
-    background-color: #d4edda;
-    border-color: #28a745;
+    background-color: #ede9fe !important;  /* было #d4edda */
+    border-color: 1px solid #d3d3d3;
 }
 
 .calendar-date.non-working {
@@ -1327,8 +1327,8 @@ body {
 }
 
 .calendar-date.today {
-    border: none;
-    box-shadow: none;
+    border: 2px solid var(--primary) !important;  /* ← фиолетовая обводка всей карточки */
+    box-shadow: 0 0 0 0.5px var(--primary) !important;
 }
 
 .calendar-time {
@@ -1337,9 +1337,9 @@ body {
     color: #666;
 }
 
-.calendar-date.working .calendar-time {
+/* .calendar-date.working .calendar-time {
     color: #155724;
-}
+} */
 
 .calendar-icons {
     position: absolute;
@@ -1564,6 +1564,11 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 /* ============================================================ */
 
 @media (max-width: 768px) {
+
+    .calendar-date.working {
+        background-color: transparent !important;
+        border-color: none !important;
+    }
     /* Кнопка добавления записи */
     .add-booking-btn {
         padding: 8px 10px !important;
@@ -2299,7 +2304,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
 @media (max-width: 480px) {
     #dayModalDate {
-        font-size: 30px;
+        font-size: 20px;
     }
 
     #currentStatusText {
@@ -2367,23 +2372,93 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 /* ========== СТАТИСТИКА КЛИЕНТОВ ========== */
 /* ============================================================ */
 
-.dashboard-stat {
-    text-align: center;
-    padding: 20px;
-    background: white;
-    border-radius: 15px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+/* ---- Статистика как на странице статистики ---- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
 }
 
-/* .dashboard-stat i {
-    font-size: 2.5rem;
-    color: var(--primary);
-    margin-bottom: 10px;
-} */
+.stat-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--gray-200);
+    transition: all 0.2s ease;
+}
 
-.dashboard-stat h3 {
+.stat-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.stat-card .stat-icon {
     font-size: 2rem;
-    margin-bottom: 5px;
+    color: var(--primary);
+    margin-bottom: 8px;
+}
+
+.stat-card .stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gray-800);
+}
+
+.stat-card .stat-label {
+    font-size: 0.85rem;
+    color: var(--gray-500);
+    margin-top: 4px;
+}
+
+/* Мобильная версия */
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+    
+    .stat-card {
+        padding: 12px 8px;
+        border-radius: 12px;
+    }
+    
+    .stat-card .stat-icon {
+        font-size: 1.5rem;
+        margin-bottom: 4px;
+    }
+    
+    .stat-card .stat-number {
+        font-size: 1.3rem;
+    }
+    
+    .stat-card .stat-label {
+        font-size: 0.65rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-grid {
+        gap: 6px;
+    }
+    
+    .stat-card {
+        padding: 10px 4px;
+    }
+    
+    .stat-card .stat-icon {
+        font-size: 1.2rem;
+    }
+    
+    .stat-card .stat-number {
+        font-size: 1rem;
+    }
+    
+    .stat-card .stat-label {
+        font-size: 0.55rem;
+    }
 }
 
 /* ============================================================ */
@@ -2456,16 +2531,18 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     .calendar-date.past .date-number {
         opacity: 0.8;
     }
+
+    .calendar-date.today {
+        border: none !important;
+        box-shadow: none !important;
+    }
     
     /* ---- Сегодня: фиолетовый кружок ---- */
     .calendar-date.today .date-number {
-        background: #d4edda !important;  /* зелёный фон как у рабочих дней */
-        color: #155724 !important;       /* тёмно-зелёный текст как у рабочих дней */
-        background: #ede9fe !important;
+        /* background: #ede9fe !important; */
         color: #000000 !important;
         font-weight: 600;
         box-shadow: 0 0 0 1px var(--primary) !important;  /* фиолетовое кольцо */
-        /* убираем box-shadow от фиолета */
     }
     
     /* ---- Иконки (под цифрой) ---- */
