@@ -3392,20 +3392,26 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
 .services-page .service-card .service-actions {
     display: flex;
-    gap: 4px;
+    /* gap: 1px; */
     margin-top: 8px;
     padding-top: 8px;
     border-top: 1px solid var(--gray-100);
+    justify-content: flex-start;  /* ← прижимаем к левому краю */
 }
 
 .services-page .service-card .service-actions .btn {
-    flex: 1;
-    padding: 4px 8px;
-    font-size: 0.7rem;
+    flex: 0 0 auto;  /* ← убираем растягивание */
+    /* padding: 6px 10px; */
+    font-size: 0.75rem;
     border-radius: 8px;
     border: none;
     background: transparent;
     transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* gap: 4px; */
+    cursor: pointer;
 }
 
 .services-page .service-card .service-actions .btn-edit {
@@ -3718,6 +3724,23 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     font-size: 0.75rem;
 }
 
+/* #categoryModal .list-group-item .category-edit-mode .form-control-sm {
+        flex: 1;
+        min-width: 50px;
+    } */
+
+
+/* Кнопки в списке категорий - чтобы не переносились */
+#categoryModal .list-group-item .category-actions {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    flex-shrink: 0 !important;
+    gap: 0px !important;
+    align-items: center !important;
+}
+
+
+
 /* ---- Кнопки в списке категорий ---- */
 #categoryModal .list-group-item .btn-sm {
     padding: 2px 6px;
@@ -3832,7 +3855,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     }
     
     /* Карточка формы */
-    #categoryModal .card {
+    /* #categoryModal .card {
         border-radius: 10px !important;
     }
     
@@ -3843,6 +3866,23 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     
     #categoryModal .card-body {
         padding: 12px !important;
+    } */
+
+    #categoryModal .card {
+        border: none !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+    }
+
+    #categoryModal .card-header {
+        border: none !important;
+        background: transparent !important;
+        padding: 8px 0 !important;
+    }
+
+    #categoryModal .card-body {
+        padding: 8px 0 !important;
     }
     
     #categoryModal .card-body .form-label {
@@ -3861,7 +3901,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     }
     
     #categoryModal .list-group-item .d-flex {
-        flex-wrap: wrap !important;
+        flex-wrap: nowrap !important;
         gap: 6px !important;
     }
     
@@ -3882,7 +3922,13 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     #categoryModal .list-group-item .category-view-mode .text-muted {
         font-size: 0.65rem !important;
     }
-    
+
+    #categoryModal .list-group-item .category-edit-mode .form-control-sm {
+        padding: 0px;
+        margin: 0px;
+        height: 10px;
+    }
+
     /* Кнопки в списке категорий */
     #categoryModal .list-group-item .btn-sm {
         padding: 2px 6px !important;
@@ -3922,7 +3968,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     }
     
     #categoryModal .list-group-item {
-        padding: 8px 10px !important;
+        padding: 8px 2px !important;
     }
     
     #categoryModal .list-group-item .category-view-mode strong {

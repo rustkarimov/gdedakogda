@@ -177,7 +177,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="confirmModalCancelBtn">Отмена</button>
-                <button type="button" class="btn btn-pink" id="confirmModalOkBtn">Да</button>
+                <button type="button" class="btn btn-primary" id="confirmModalOkBtn">Да</button>
             </div>
         </div>
     </div>
@@ -274,10 +274,10 @@ function renderServiceCard(service) {
             </div>
             <div class="service-actions">
                 <button class="btn btn-edit" onclick="editService(${service.id})">
-                    <i class="fas fa-edit me-1"></i>Изменить
+                    <i class="fas fa-edit me-1"></i>
                 </button>
                 <button class="btn btn-delete" onclick="deleteService(${service.id}, '${escapeHtml(service.name)}')">
-                    <i class="fas fa-trash me-1"></i>Удалить
+                    <i class="fas fa-trash me-1"></i>
                 </button>
             </div>
         </div>
@@ -336,20 +336,16 @@ function loadCategoriesList() {
             data.categories.forEach(cat => {
                 html += `
                     <div class="list-group-item" data-category-id="${cat.id}" id="category-item-${cat.id}">
-                        <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div class="d-flex justify-content-between align-items-center" >
                             <div class="category-view-mode">
                                 <strong>${escapeHtml(cat.name)}</strong>
                                 <span class="badge bg-secondary ms-2">${cat.services.length} услуг</span>
                                 <span class="text-muted ms-2">(порядок: ${cat.order})</span>
                             </div>
                             <div class="category-edit-mode" style="display: none; width: 100%; margin-top: 8px;">
-                                <div class="row g-2">
-                                    <div class="col-8">
-                                        <input type="text" class="form-control form-control-sm" value="${escapeHtml(cat.name)}" id="edit-name-${cat.id}" placeholder="Название">
-                                    </div>
-                                    <div class="col-4">
-                                        <input type="number" class="form-control form-control-sm" value="${cat.order}" id="edit-order-${cat.id}" min="0">
-                                    </div>
+                                <div class="d-flex gap-2 align-items-center" style="width: 100%; flex-wrap: nowrap">
+                                    <input type="text" class="form-control form-control-sm" value="${escapeHtml(cat.name)}" id="edit-name-${cat.id}" placeholder="Название">
+                                    <input type="number" class="form-control form-control-sm" value="${cat.order}" id="edit-order-${cat.id}" min="0" style="width: 60px; flex-shrink: 0;">
                                 </div>
                             </div>
                             <div class="category-actions">
@@ -466,14 +462,26 @@ function deleteCategoryInModal(id, name) {
     });
 }
 
+
 function editCategory(id, name, order) {
     document.getElementById('categoryId').value = id;
     document.getElementById('categoryName').value = name;
     document.getElementById('categoryOrder').value = order;
-    document.getElementById('categoryModalTitle').innerHTML = '<i class="fas fa-edit me-2" style="color: #ff85b3;"></i>Редактировать категорию';
+    document.getElementById('categoryModalTitle').innerHTML = '<i class="fas fa-edit me-2" style="color: var(--primary);"></i>Редактировать категорию';
+    
+    loadCategoriesList();  // ← ДОБАВИТЬ ЭТУ СТРОКУ
     
     new bootstrap.Modal(document.getElementById('categoryModal')).show();
 }
+
+// function editCategory(id, name, order) {
+//     document.getElementById('categoryId').value = id;
+//     document.getElementById('categoryName').value = name;
+//     document.getElementById('categoryOrder').value = order;
+//     document.getElementById('categoryModalTitle').innerHTML = '<i class="fas fa-edit me-2" style="color: #ff85b3;"></i>Редактировать категорию';
+    
+//     new bootstrap.Modal(document.getElementById('categoryModal')).show();
+// }
 
 function deleteCategory(id, name) {
     showConfirm(`Удалить категорию "${name}"?\nУслуги из этой категории будут перемещены в "Без категории".`, (confirmed) => {
