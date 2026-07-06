@@ -4248,16 +4248,35 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     border-bottom: 1px solid var(--gray-200);
 }
 
-.schedule-page .card-header h5 {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--gray-700);
-    margin: 0;
+.schedule-page .card-body .section-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin: 0 0 12px 0;
+    display: inline-block;
+    background: #ede9fe;
+    padding: 6px 14px 6px 10px;
+    border-radius: 0 6px 6px 0;
+    border-left: 4px solid #7c3aed;
+    box-shadow: 0 1px 3px rgba(124, 58, 237, 0.15);
 }
 
+/* .schedule-page .card-header h5 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--gray-800);
+    margin: 0;
+    display: inline-block;
+    background: #ede9fe;
+    padding: 6px 14px 6px 10px;
+    border-radius: 0 6px 6px 0;
+    border-left: 4px solid #7c3aed;
+    box-shadow: 0 1px 3px rgba(124, 58, 237, 0.15);
+} */
+
+/* скрываем иконки секций Расписания */
 .schedule-page .card-header h5 i {
-    color: var(--primary);
-    margin-right: 8px;
+    display: none;
 }
 
 .schedule-page .card-body {
@@ -4315,6 +4334,21 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     color: white;
 }
 
+/* Кнопки действий секций */
+.schedule-page .section-actions {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: flex-start;  /* ← прижаты к левому краю */
+}
+
+.schedule-page .section-actions .btn-pink {
+    padding: 8px 20px;
+    font-size: 0.85rem;
+    border-radius: 30px;
+}
+
 /* ---- Таблицы ---- */
 .schedule-page .table {
     font-size: 0.9rem;
@@ -4348,14 +4382,14 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 }
 
 /* ---- Бейдж перерывов ---- */
-.schedule-page .break-badge {
-    display: inline-block;
-    background: var(--gray-100);
+.schedule-page .break-text {
+    display: inline;
+    background: none !important;
     color: var(--gray-600);
-    font-size: 0.7rem;
-    padding: 2px 10px;
-    border-radius: 30px;
-    margin: 2px 0;
+    font-size: 0.85rem;
+    padding: 0;
+    margin: 0;
+    border-radius: 0;
 }
 
 /* ---- Подсказка (sticky) ---- */
@@ -4515,13 +4549,19 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         margin-bottom: 12px;
     }
     
-    .schedule-page .card-header {
+    /* .schedule-page .card-header {
         padding: 10px 12px;
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
-    }
+    } */
     
+    .schedule-page .card-body .section-title {
+        font-size: 1rem;
+        padding: 4px 12px 4px 8px;
+        border-left-width: 3px;
+    }
+
     .schedule-page .card-header h5 {
         font-size: 0.85rem;
     }
@@ -4529,6 +4569,17 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     .schedule-page .card-body {
         padding: 12px;
     }
+
+    /* Эти строки расширяют кнопки в Расписании */
+    /* .schedule-page .section-actions {
+        margin-top: 12px;
+        padding-top: 10px;
+    }
+    
+    .schedule-page .section-actions .btn-pink {
+        width: 100%;
+        justify-content: center;
+    } */
     
     /* Таблица в карточки на мобильных */
     .schedule-page .table {
@@ -4611,12 +4662,8 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         justify-content: left !important;
     }
     
-    .schedule-page .break-badge {
-        font-size: 0.7rem;
-        padding: 2px 8px;
-        background: var(--gray-100);
-        border-radius: 30px;
-        color: var(--gray-600);
+    .schedule-page .break-text {
+        font-size: 0.8rem !important;
     }
 
     .schedule-page #days-off-container .table tbody td[data-label="reason"]:before {
@@ -4709,7 +4756,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         font-size: 0.7rem;
     }
     
-    .schedule-page .break-badge {
+    .schedule-page .break-text {
         font-size: 0.6rem;
         padding: 1px 6px;
     }
@@ -4880,21 +4927,21 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 }
 
 #scheduleModal .btn-outline-pink {
-    border: 1px solid var(--primary);
-    color: var(--primary);
-    background: transparent;
-    padding: 6px 16px;
-    border-radius: 30px;
-    font-weight: 500;
+    border: none !important;
+    color: var(--gray-500) !important;
+    background: transparent !important;
     font-size: 0.8rem;
     transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: left;
 }
 
-#scheduleModal .btn-outline-pink:hover {
-    background: var(--primary-gradient);
-    border-color: transparent;
-    color: white;
-}
+/* #scheduleModal .btn-outline-pink:hover {
+    color: var(--gray-700) !important;
+    background: var(--gray-100) !important;
+    border: none !important;
+} */
 
 /* ---- Кнопки в футере ---- */
 #scheduleModal .btn-secondary {
@@ -5008,6 +5055,10 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     }
     
     /* Перерывы на мобильных */
+    #scheduleModal .mb-3:has(#breaksContainer) {
+        margin-top: 16px !important;
+    }
+
     #scheduleModal .break-item {
         padding: 6px 0;
         gap: 6px;
@@ -5047,11 +5098,16 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         margin-bottom: 0;
     }
     
-    #scheduleModal .btn-outline-pink {
+    /* #scheduleModal .btn-outline-pink {
         width: 100% !important;
         justify-content: center !important;
         font-size: 0.8rem !important;
         padding: 6px 12px !important;
+    } */
+    #scheduleModal .btn-outline-pink {
+        width: auto !important;
+        padding: 4px 12px !important;
+        font-size: 0.75rem !important;
     }
 }
 

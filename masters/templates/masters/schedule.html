@@ -47,36 +47,26 @@
 
 <div class="row">
     <div class="col-lg-8">
-        <!-- Ваше регулярное расписание -->
+
+        <!-- Регулярное расписание -->
         <div class="card">
-            <div class="card-header">
-                <h5>
-                    <i class="far fa-calendar-alt"></i>
-                    Ваше регулярное расписание
-                </h5>
-                <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#scheduleModal" onclick="openAddModal()">
-                    <i class="fas fa-plus me-1"></i>Добавить рабочий день
-                </button>
-            </div>
             <div class="card-body">
+                <div class="section-title">Ваше регулярное расписание</div>
                 <div id="schedules-container">
                     {% include 'masters/_schedules_list.html' %}
+                </div>
+                <div class="section-actions">
+                    <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#scheduleModal" onclick="openAddModal()">
+                        <i class="fas fa-plus me-1"></i>Добавить рабочий день
+                    </button>
                 </div>
             </div>
         </div>
 
         <!-- Дополнительные рабочие дни -->
         <div class="card">
-            <div class="card-header">
-                <h5>
-                    <i class="fas fa-calendar-plus"></i>
-                    Дополнительные рабочие дни
-                </h5>
-                <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#extraDayModal" onclick="openAddExtraDayModal()">
-                    <i class="fas fa-plus me-1"></i>Добавить рабочий день
-                </button>
-            </div>
             <div class="card-body">
+                <div class="section-title">Дополнительные рабочие дни</div>
                 <div id="extra-days-container">
                     <div class="text-center">
                         <div class="spinner-border" style="color: var(--primary);" role="status">
@@ -84,21 +74,18 @@
                         </div>
                     </div>
                 </div>
+                <div class="section-actions">
+                    <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#extraDayModal" onclick="openAddExtraDayModal()">
+                        <i class="fas fa-plus me-1"></i>Добавить рабочий день
+                    </button>
+                </div>
             </div>
         </div>
 
         <!-- Выходные дни -->
         <div class="card">
-            <div class="card-header">
-                <h5>
-                    <i class="fas fa-umbrella-beach"></i>
-                    Выходные дни
-                </h5>
-                <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#dayOffModal" onclick="openAddDayOffModal()">
-                    <i class="fas fa-plus me-1"></i>Добавить выходной
-                </button>
-            </div>
             <div class="card-body">
+                <div class="section-title">Выходные дни</div>
                 <div id="days-off-container">
                     <div class="text-center">
                         <div class="spinner-border" style="color: var(--primary);" role="status">
@@ -106,11 +93,15 @@
                         </div>
                     </div>
                 </div>
+                <div class="section-actions">
+                    <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#dayOffModal" onclick="openAddDayOffModal()">
+                        <i class="fas fa-plus me-1"></i>Добавить выходной
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
 
-    
+    </div>
 </div>
 
 <!-- Модальное окно для добавления/редактирования регулярного расписания -->
@@ -126,6 +117,20 @@
                     {% csrf_token %}
                     <input type="hidden" id="scheduleId" name="schedule_id">
                     
+                    <!-- <div class="mb-3">
+                        <label class="form-label">День недели</label>
+                        <select class="form-select" id="dayOfWeek" required>
+                            <option value="">Выберите день</option>
+                            <option value="0">Понедельник</option>
+                            <option value="1">Вторник</option>
+                            <option value="2">Среда</option>
+                            <option value="3">Четверг</option>
+                            <option value="4">Пятница</option>
+                            <option value="5">Суббота</option>
+                            <option value="6">Воскресенье</option>
+                        </select>
+                    </div> -->
+                    
                     <div class="mb-3">
                         <label class="form-label">День недели</label>
                         <select class="form-select" id="dayOfWeek" required>
@@ -138,8 +143,12 @@
                             <option value="5">Суббота</option>
                             <option value="6">Воскресенье</option>
                         </select>
+                        <!-- Добавляем отдельное поле для отображения названия дня при редактировании -->
+                        <div id="dayOfWeekDisplay" style="display: none; padding: 8px 12px; background: var(--gray-100); border-radius: 10px; color: var(--gray-700);">
+                            <!-- Сюда будет подставляться название дня -->
+                        </div>
                     </div>
-                    
+
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label">Начало работы</label>
@@ -151,37 +160,19 @@
                         </div>
                     </div>
                     
-                    <!-- <div class="mb-3">
-                        <label class="form-label">Перерывы</label>
-                        <div id="breaksContainer">
-                            <div class="break-item row mb-2">
-                                <div class="col-md-5">
-                                    <input type="time" class="form-control break-start" placeholder="Начало">
-                                </div>
-                                <div class="col-md-5">
-                                    <input type="time" class="form-control break-end" placeholder="Конец">
-                                </div>
-                                <div class="col-md-2">
-                                    <button type="button" class="btn btn-danger btn-sm remove-break" style="display: none;">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
+                
+                    <div class="mb-3 mt-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="form-label mb-0">Перерывы</label>
+                            <button type="button" class="btn btn-sm btn-outline-pink" onclick="addBreakField()" title="Добавить перерыв" style="padding: 2px 8px; font-size: 0.8rem;">
+                                <i class="fas fa-plus"></i>
+                            </button>
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-pink mt-2" onclick="addBreakField()">
-                            <i class="fas fa-plus me-1"></i>Добавить перерыв
-                        </button>
-                    </div> -->
-
-                    <div class="mb-3">
-                        <label class="form-label">Перерывы</label>
                         <div id="breaksContainer" style="display: none;">
                             <!-- Перерывы будут добавляться сюда -->
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-pink mt-2" onclick="addBreakField()">
-                            <i class="fas fa-plus me-1"></i>Добавить перерыв
-                        </button>
                     </div>
+                    
                 </form>
             </div>
             <div class="modal-footer">
@@ -322,27 +313,14 @@ function showConfirm(message, onConfirm) {
     modal.show();
 }
 
-// function openAddModal() {
-//     document.getElementById('modalTitle').innerText = 'Добавить рабочий день';
-//     document.getElementById('scheduleForm').reset();
-//     document.getElementById('dayOfWeek').disabled = false;
-//     document.getElementById('scheduleId').value = '';
-//     document.getElementById('breaksContainer').innerHTML = `
-//         <div class="break-item row mb-2">
-//             <div class="col-md-5"><input type="time" class="form-control break-start" placeholder="Начало"></div>
-//             <div class="col-md-5"><input type="time" class="form-control break-end" placeholder="Конец"></div>
-//             <div class="col-md-2"><button type="button" class="btn btn-danger btn-sm remove-break" style="display: none;"><i class="fas fa-trash"></i></button></div>
-//         </div>
-//     `;
-// }
-
 function openAddModal() {
     document.getElementById('modalTitle').innerText = 'Добавить рабочий день';
     document.getElementById('scheduleForm').reset();
+    document.getElementById('dayOfWeek').style.display = 'block';  // ← показываем select
+    document.getElementById('dayOfWeekDisplay').style.display = 'none';  // ← скрываем текстовое поле
     document.getElementById('dayOfWeek').disabled = false;
     document.getElementById('scheduleId').value = '';
     
-    // Очищаем и скрываем контейнер перерывов
     const container = document.getElementById('breaksContainer');
     container.innerHTML = '';
     container.style.display = 'none';
@@ -350,29 +328,17 @@ function openAddModal() {
     new bootstrap.Modal(document.getElementById('scheduleModal')).show();
 }
 
-// function editSchedule(button) {
-//     document.getElementById('modalTitle').innerText = `Редактировать расписание - ${button.dataset.dayName}`;
-//     document.getElementById('scheduleId').value = button.dataset.id;
-//     document.getElementById('dayOfWeek').value = button.dataset.day;
-//     document.getElementById('dayOfWeek').disabled = true;
-//     document.getElementById('startTime').value = button.dataset.start;
-//     document.getElementById('endTime').value = button.dataset.end;
-    
-//     let breaks = [];
-//     try { breaks = JSON.parse(button.dataset.breaks); } catch(e) {}
-    
-//     const container = document.getElementById('breaksContainer');
-//     container.innerHTML = '';
-//     if (breaks.length === 0) addBreakField();
-//     else breaks.forEach(b => addBreakField(b.start, b.end));
-//     new bootstrap.Modal(document.getElementById('scheduleModal')).show();
-// }
 
 function editSchedule(button) {
     document.getElementById('modalTitle').innerText = `Редактировать расписание - ${button.dataset.dayName}`;
     document.getElementById('scheduleId').value = button.dataset.id;
-    document.getElementById('dayOfWeek').value = button.dataset.day;
-    document.getElementById('dayOfWeek').disabled = true;
+    
+    // Скрываем select, показываем текстовое поле
+    document.getElementById('dayOfWeek').style.display = 'none';
+    const display = document.getElementById('dayOfWeekDisplay');
+    display.style.display = 'block';
+    display.textContent = button.dataset.dayName;
+    
     document.getElementById('startTime').value = button.dataset.start;
     document.getElementById('endTime').value = button.dataset.end;
     
@@ -392,16 +358,6 @@ function editSchedule(button) {
     new bootstrap.Modal(document.getElementById('scheduleModal')).show();
 }
 
-// function addBreakField(start = '', end = '') {
-//     const div = document.createElement('div');
-//     div.className = 'break-item row mb-2';
-//     div.innerHTML = `
-//         <div class="col-md-5"><input type="time" class="form-control break-start" value="${start}"></div>
-//         <div class="col-md-5"><input type="time" class="form-control break-end" value="${end}"></div>
-//         <div class="col-md-2"><button type="button" class="btn btn-danger btn-sm remove-break" onclick="this.closest('.break-item').remove()"><i class="fas fa-trash"></i></button></div>
-//     `;
-//     document.getElementById('breaksContainer').appendChild(div);
-// }
 
 function addBreakField(start = '', end = '') {
     const container = document.getElementById('breaksContainer');
@@ -490,7 +446,7 @@ function loadExtraDays() {
 }
 
 function loadPastDays(page = 1, append = false) {
-    fetch(`/api/extra-days/past/?page=${page}&limit=30`).then(r => r.json()).then(data => {
+    fetch(`/api/extra-days/past/?page=${page}&limit=10`).then(r => r.json()).then(data => {
         if (append) allPastDays.push(...data.past_days);
         else allPastDays = data.past_days;
         pastDaysHasMore = data.has_more;
@@ -528,7 +484,7 @@ function renderFutureDays(futureDays) {
             let breaksHtml = '';
             if (day.breaks && day.breaks.length > 0) {
                 breaksHtml = day.breaks.map(function(b) {
-                    return '<span class="break-badge">' + b.start + ' - ' + b.end + '</span>';
+                    return '<span class="break-text">' + b.start + ' - ' + b.end + '</span>';
                 }).join(' ');
             } else {
                 breaksHtml = '<span class="text-muted">—</span>';
@@ -844,7 +800,7 @@ document.addEventListener('hidden.bs.modal', function() {
 });
 </script>
 
-<script>
+<!-- <script>
 document.addEventListener('DOMContentLoaded', function() {
     function formatWorkingHours() {
         // Проверяем мобильную версию
@@ -912,6 +868,6 @@ document.addEventListener('DOMContentLoaded', function() {
         resizeTimeout = setTimeout(formatWorkingHours, 300);
     });
 });
-</script>
+</script> -->
 
 {% endblock %}

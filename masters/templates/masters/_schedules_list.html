@@ -20,9 +20,10 @@
                     <td data-label="end">{{ schedule.end_time|time:"H:i" }}</td>
                     <td data-label="breaks">
                         {% for break in schedule.breaks.all %}
-                            <span class="break-badge">
+                            <span class="break-text">
                                 {{ break.start_time|time:"H:i" }} - {{ break.end_time|time:"H:i" }}
                             </span>
+                            {% if not forloop.last %}, {% endif %}
                         {% empty %}
                             <span class="text-muted">—</span>
                         {% endfor %}
