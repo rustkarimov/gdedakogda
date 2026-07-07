@@ -1,0 +1,22 @@
+{% extends "admin/base_site.html" %}
+
+{% block extrahead %}
+{{ block.super }}
+    <style>
+        .support-badge {
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            padding: 1px 8px;
+            font-size: 10px;
+            margin-left: 6px;
+            display: inline-block;
+            line-height: 1.6;
+            font-weight: bold;
+        }
+        .app-support .support-badge {
+            background: #dc3545;
+            color: white;
+        }
+    </style>
+{% endblock %}

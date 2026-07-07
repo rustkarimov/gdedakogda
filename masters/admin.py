@@ -161,6 +161,14 @@ from django.template.response import TemplateResponse
 from django.http import JsonResponse  # ← ДОБАВИТЬ ЭТУ СТРОКУ
 from .models import SupportMessage, Master
 
+def get_unread_count(request):
+    unread_count = SupportMessage.objects.filter(direction='user', is_read=False).count()
+    return JsonResponse({'unread_count': unread_count})
+
+# В get_admin_urls() добавьте:
+path('support-chat/unread-count/', admin.site.admin_view(get_unread_count), name='support-chat-unread'),
+
+
 # Кастомное представление для чата поддержки
 def support_chat_view(request):
     # Очищаем все сообщения Django
@@ -286,9 +294,38 @@ def get_admin_urls():
         path('support-chat/messages/', admin.site.admin_view(get_messages_api), name='support-chat-messages'),
         path('support-chat/masters-data/', admin.site.admin_view(get_masters_data_api), name='support-chat-masters'),
         path('support-chat/mark-read/', admin.site.admin_view(mark_messages_read), name='support-chat-mark-read'),
+        path('support-chat/unread-count/', admin.site.admin_view(get_unread_count), name='support-chat-unread'),  # ← добавить
     ] + admin_urls
 
 admin.site.get_urls = get_admin_urls
 
 
+from django.contrib.admin import AdminSite
+from django.utils.safestring import mark_safe
 
+class CustomAdminSite(AdminSite):
+    def get_app_list(self, request):
+        app_list = super().get_app_list(request)
+        
+        unread_count = SupportMessage.objects.filter(direction='user', is_read=False).count()
+        
+        name = 'Чат с мастерами'
+        if unread_count > 0:
+            name = mark_safe(f'Чат с мастерами <span style="background:#dc3545;color:white;border-radius:50%;padding:1px 8px;font-size:10px;margin-left:6px;display:inline-block;line-height:1.6;font-weight:bold;">{unread_count}</span>')
+        
+        support_app = {
+            'name': 'Поддержка',
+            'app_label': 'support',
+            'models': [{
+                'name': name,
+                'object_name': 'SupportChat',
+                'admin_url': '/admin/support-chat/',
+                'view_only': True,
+            }]
+        }
+        
+        app_list.insert(0, support_app)
+        return app_list
+
+# ⬇️ ЭТО ПРОПУЩЕНО! Добавьте эту строку:
+admin.site.__class__ = CustomAdminSite

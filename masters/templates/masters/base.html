@@ -101,10 +101,13 @@
             <span class="notification-dot" id="notification-dot"></span>
         </div>
 
+        
+
         <!-- Поддержка -->
-        <a href="#" class="support-link" onclick="openSupportChat(); return false;">
+        <a href="#" class="support-link" onclick="openSupportChat(); return false;" style="position: relative;">
             <i class="fas fa-comment-dots"></i>
-            <span>Поддержка</span>
+            <span class="support-text">Поддержка</span>
+            <!-- <span class="support-dot-mobile" id="support-dot-mobile" style="display: none;"></span> -->
         </a>
 
         <!-- Кнопка "Добавить запись" -->
@@ -229,7 +232,7 @@
                             <i class="fas fa-paper-plane me-2"></i> Отправить
                         </button>
                         <div class="small text-muted mt-2 text-center">
-                            <i class="fas fa-clock me-1"></i>Ответ 15 минут
+                            <i class="fas fa-clock me-1"></i>Скоро ответим
                         </div>
                     </div>
 
@@ -517,16 +520,52 @@
     // ============================================================
     let chatRefreshInterval = null;
 
+    // function openSupportChat() {
+    //     const modal = new bootstrap.Modal(document.getElementById('supportChatModal'));
+    //     modal.show();
+    //     loadSupportMessages();
+    //     startChatAutoRefresh();
+        
+    //     setTimeout(() => {
+    //         const container = document.getElementById('chat-messages');
+    //         if (container) container.scrollTop = container.scrollHeight;
+    //     }, 200);
+    // }
+
     function openSupportChat() {
         const modal = new bootstrap.Modal(document.getElementById('supportChatModal'));
         modal.show();
         loadSupportMessages();
         startChatAutoRefresh();
         
+        // Определяем устройство
+        const isMobile = window.innerWidth <= 768;
+        const delay = isMobile ? 500 : 200;
+        
         setTimeout(() => {
             const container = document.getElementById('chat-messages');
-            if (container) container.scrollTop = container.scrollHeight;
-        }, 200);
+            const input = document.getElementById('chat-input');
+            
+            if (container) {
+                if (isMobile) {
+                    // Мобильная версия - скролл к последнему сообщению
+                    const lastMessage = container.querySelector('.message:last-child');
+                    if (lastMessage) {
+                        lastMessage.scrollIntoView({ block: 'end', behavior: 'smooth' });
+                    } else {
+                        container.scrollTop = container.scrollHeight;
+                    }
+                } else {
+                    // Десктопная версия - просто скролл вниз
+                    container.scrollTop = container.scrollHeight;
+                }
+            }
+            
+            // Фокус на поле ввода (для обеих версий)
+            if (input) {
+                input.focus();
+            }
+        }, delay);
     }
 
     function loadSupportMessages() {
@@ -537,10 +576,15 @@
                     renderChatMessages(data.messages);
                     updateSupportDot(data.unread_count);
                     
+                    const isMobile = window.innerWidth <= 768;
+                    const delay = isMobile ? 300 : 100;
+                    
                     setTimeout(() => {
                         const container = document.getElementById('chat-messages');
-                        if (container) container.scrollTop = container.scrollHeight;
-                    }, 100);
+                        if (container) {
+                            container.scrollTop = container.scrollHeight;
+                        }
+                    }, delay);
                 }
             })
             .catch(error => console.error('Ошибка загрузки чата:', error));
@@ -568,7 +612,7 @@
             
             html += `
                 <div class="d-flex ${alignClass} mb-3">
-                    <div class="${bubbleClass} rounded-3 p-2 px-3" style="max-width: 75%;">
+                    <div class="${bubbleClass} rounded-3 p-2 px-3" style="max-width: 75%; text-align: left;">
                         <div class="small mb-1 ${isUser ? 'text-white-50' : 'text-muted'}">
                             ${isUser ? 'Я' : 'Поддержка'} • ${msg.created_at}
                         </div>
@@ -641,17 +685,24 @@
     }
 
     function updateSupportDot(unreadCount) {
+        // Десктопная точка
         const supportLink = document.querySelector('.support-link');
-        if (!supportLink) return;
+        if (supportLink) {
+            const existingDot = supportLink.querySelector('.support-dot');
+            if (existingDot) existingDot.remove();
+            
+            if (unreadCount > 0) {
+                const dot = document.createElement('span');
+                dot.className = 'support-dot';
+                supportLink.style.position = 'relative';
+                supportLink.appendChild(dot);
+            }
+        }
         
-        const existingDot = supportLink.querySelector('.support-dot');
-        if (existingDot) existingDot.remove();
-        
-        if (unreadCount > 0) {
-            const dot = document.createElement('span');
-            dot.className = 'support-dot';
-            supportLink.style.position = 'relative';
-            supportLink.appendChild(dot);
+        // Мобильная точка
+        const mobileDot = document.getElementById('support-dot-mobile');
+        if (mobileDot) {
+            mobileDot.style.display = unreadCount > 0 ? 'block' : 'none';
         }
     }
 
