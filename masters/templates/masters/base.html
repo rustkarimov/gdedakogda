@@ -221,8 +221,8 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-0">
-                    <div id="chat-messages" class="p-3" style="height: 400px; overflow-y: auto; background-color: #f8f9fa;">
-                        <div class="text-center text-muted py-5">
+                    <div id="chat-messages" style="overflow-y: auto; background-color: #f8f9fa; ">
+                        <div class="text-center text-muted py-5" style="padding: 0 !important;">
                             <div class="spinner-border" style="color: var(--primary);"></div>
                         </div>
                     </div>
@@ -251,6 +251,7 @@
     let notificationsOffset = 0;
     let notificationsHasMore = true;
     let isLoadingNotifications = false;
+    let isSending = false;  // ← ДОБАВИТЬ ЭТУ СТРОКУ
 
     function loadNotifications(append = false) {
         if (isLoadingNotifications) return;
@@ -518,203 +519,290 @@
     // ============================================================
     // ЧАТ ПОДДЕРЖКИ
     // ============================================================
-    let chatRefreshInterval = null;
+    // ============================================================
+// ЧАТ ПОДДЕРЖКИ
+// ============================================================
+let chatRefreshInterval = null;
+let chatScrollPosition = 0;
+let isChatOpen = false;
 
-    // function openSupportChat() {
-    //     const modal = new bootstrap.Modal(document.getElementById('supportChatModal'));
-    //     modal.show();
-    //     loadSupportMessages();
-    //     startChatAutoRefresh();
+function openSupportChat() {
+    const modal = new bootstrap.Modal(document.getElementById('supportChatModal'));
+    modal.show();
+    isChatOpen = true;
+    
+    // Загружаем сообщения с принудительной прокруткой вниз
+    loadSupportMessages(true);
+    startChatAutoRefresh();
+    
+    // Определяем устройство для корректной прокрутки
+    const isMobile = window.innerWidth <= 768;
+    const delay = isMobile ? 500 : 200;
+    
+    setTimeout(() => {
+        const container = document.getElementById('chat-messages');
+        const input = document.getElementById('chat-input');
         
-    //     setTimeout(() => {
-    //         const container = document.getElementById('chat-messages');
-    //         if (container) container.scrollTop = container.scrollHeight;
-    //     }, 200);
-    // }
-
-    function openSupportChat() {
-        const modal = new bootstrap.Modal(document.getElementById('supportChatModal'));
-        modal.show();
-        loadSupportMessages();
-        startChatAutoRefresh();
-        
-        // Определяем устройство
-        const isMobile = window.innerWidth <= 768;
-        const delay = isMobile ? 500 : 200;
-        
-        setTimeout(() => {
-            const container = document.getElementById('chat-messages');
-            const input = document.getElementById('chat-input');
-            
-            if (container) {
-                if (isMobile) {
-                    // Мобильная версия - скролл к последнему сообщению
-                    const lastMessage = container.querySelector('.message:last-child');
-                    if (lastMessage) {
-                        lastMessage.scrollIntoView({ block: 'end', behavior: 'smooth' });
-                    } else {
-                        container.scrollTop = container.scrollHeight;
-                    }
+        if (container) {
+            if (isMobile) {
+                const lastMessage = container.querySelector('.message:last-child');
+                if (lastMessage) {
+                    lastMessage.scrollIntoView({ block: 'end', behavior: 'smooth' });
                 } else {
-                    // Десктопная версия - просто скролл вниз
                     container.scrollTop = container.scrollHeight;
                 }
+            } else {
+                container.scrollTop = container.scrollHeight;
             }
-            
-            // Фокус на поле ввода (для обеих версий)
-            if (input) {
-                input.focus();
-            }
-        }, delay);
-    }
-
-    function loadSupportMessages() {
-        fetch('/api/support/messages/')
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    renderChatMessages(data.messages);
-                    updateSupportDot(data.unread_count);
-                    
-                    const isMobile = window.innerWidth <= 768;
-                    const delay = isMobile ? 300 : 100;
-                    
-                    setTimeout(() => {
-                        const container = document.getElementById('chat-messages');
-                        if (container) {
-                            container.scrollTop = container.scrollHeight;
-                        }
-                    }, delay);
-                }
-            })
-            .catch(error => console.error('Ошибка загрузки чата:', error));
-    }
-
-    function renderChatMessages(messages) {
-        const container = document.getElementById('chat-messages');
-        
-        if (messages.length === 0) {
-            container.innerHTML = `
-                <div class="text-center text-muted py-5">
-                    <i class="fas fa-comment-dots fa-3x mb-3" style="color: var(--primary);"></i>
-                    <p>Напишите свой вопрос, и мы обязательно поможем!</p>
-                    
-                </div>
-            `;
-            return;
         }
         
-        let html = '';
-        messages.forEach(msg => {
-            const isUser = msg.direction === 'user';
-            const bubbleClass = isUser ? 'bg-primary text-white' : 'bg-light border';
-            const alignClass = isUser ? 'justify-content-end' : 'justify-content-start';
-            
-            html += `
-                <div class="d-flex ${alignClass} mb-3">
-                    <div class="${bubbleClass} rounded-3 p-2 px-3" style="max-width: 75%; text-align: left;">
-                        <div class="small mb-1 ${isUser ? 'text-white-50' : 'text-muted'}">
-                            ${isUser ? 'Я' : 'Поддержка'} • ${msg.created_at}
-                        </div>
-                        <div class="message-text" style="white-space: pre-wrap; word-break: break-word;">
-                            ${escapeHtml(msg.message)}
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        container.innerHTML = html;
-        container.scrollTop = container.scrollHeight;
-    }
+        if (input) {
+            input.focus();
+        }
+    }, delay);
+}
 
-    function sendSupportMessage() {
-        const input = document.getElementById('chat-input');
-        const message = input.value.trim();
-        
-        if (!message) return;
-        
-        const sendBtn = document.getElementById('chat-send-btn');
-        sendBtn.disabled = true;
-        sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Отправка...';
-        
-        fetch('/api/support/send/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({ message: message })
-        })
+function loadSupportMessages(forceScroll = false) {
+    const container = document.getElementById('chat-messages');
+    
+    // Запоминаем позицию скролла ДО обновления (если не принудительная прокрутка)
+    if (!forceScroll && container) {
+        chatScrollPosition = container.scrollTop;
+    }
+    
+    fetch('/api/support/messages/')
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                input.value = '';
-                loadSupportMessages();
+                renderChatMessages(data.messages);
+                updateSupportDot(data.unread_count);
                 
-                setTimeout(() => {
-                    const container = document.getElementById('chat-messages');
-                    if (container) container.scrollTop = container.scrollHeight;
-                }, 100);
-            } else {
-                alert('Ошибка: ' + data.error);
+                if (container) {
+                    if (forceScroll) {
+                        // При открытии чата — скролл вниз
+                        const isMobile = window.innerWidth <= 768;
+                        const delay = isMobile ? 300 : 100;
+                        
+                        setTimeout(() => {
+                            if (isMobile) {
+                                const lastMessage = container.querySelector('.message:last-child');
+                                if (lastMessage) {
+                                    lastMessage.scrollIntoView({ block: 'end', behavior: 'smooth' });
+                                } else {
+                                    container.scrollTop = container.scrollHeight;
+                                }
+                            } else {
+                                container.scrollTop = container.scrollHeight;
+                            }
+                        }, delay);
+                    } else {
+                        // При автообновлении — возвращаем на ту же позицию
+                        setTimeout(() => {
+                            container.scrollTop = chatScrollPosition;
+                        }, 100);
+                    }
+                }
             }
         })
-        .catch(error => {
-            console.error('Ошибка:', error);
-            alert('Не удалось отправить сообщение');
-        })
-        .finally(() => {
-            sendBtn.disabled = false;
-            sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Отправить';
-        });
-    }
+        .catch(error => console.error('Ошибка загрузки чата:', error));
+}
 
-    function startChatAutoRefresh() {
-        if (chatRefreshInterval) clearInterval(chatRefreshInterval);
-        chatRefreshInterval = setInterval(() => {
-            loadSupportMessages();
-        }, 5000);
+function renderChatMessages(messages) {
+    const container = document.getElementById('chat-messages');
+    
+    if (messages.length === 0) {
+        container.innerHTML = 
+            '<div style="text-align: center; padding: 40px 20px; color: #999;">' +
+                '<i class="fas fa-comment-dots" style="font-size: 3rem; display: block; margin-bottom: 16px; color: var(--primary);"></i>' +
+                '<p>Напишите свой вопрос, и мы обязательно поможем!</p>' +
+            '</div>';
+        return;
     }
-
-    function stopChatAutoRefresh() {
-        if (chatRefreshInterval) {
-            clearInterval(chatRefreshInterval);
-            chatRefreshInterval = null;
+    
+    // Проверяем, не дублируется ли последнее сообщение
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg) {
+        const existingMsgs = container.querySelectorAll('[style*="background: #e5e7eb"]');
+        if (existingMsgs.length > 0) {
+            const lastExisting = existingMsgs[existingMsgs.length - 1];
+            const lastText = lastExisting.textContent.trim();
+            // Если последнее сообщение в HTML совпадает с последним из API — не перерисовываем
+            if (lastText === lastMsg.message.trim()) {
+                // Но обновляем время, если оно изменилось
+                const timeElements = container.querySelectorAll('[style*="font-size: 0.65rem"]');
+                if (timeElements.length > 0) {
+                    const lastTime = timeElements[timeElements.length - 1];
+                    const msgTime = lastMsg.created_at.split(' ')[0];
+                    if (lastTime.textContent !== msgTime) {
+                        lastTime.textContent = msgTime;
+                    }
+                }
+                // Прокручиваем вниз, если нужно
+                container.scrollTop = container.scrollHeight;
+                return;
+            }
         }
     }
-
-    function updateSupportDot(unreadCount) {
-        // Десктопная точка
-        const supportLink = document.querySelector('.support-link');
-        if (supportLink) {
-            const existingDot = supportLink.querySelector('.support-dot');
-            if (existingDot) existingDot.remove();
+    
+    let html = '';
+    let lastDate = '';
+    
+    messages.forEach((msg) => {
+        const isUser = msg.direction === 'user';
+        const msgDate = msg.created_at.split(' ').slice(1).join(' ');
+        const msgTime = msg.created_at.split(' ')[0];
+        
+        // Разделитель даты
+        if (msgDate !== lastDate) {
+            const dateParts = msgDate.split('.');
+            const day = parseInt(dateParts[0]);
+            const month = parseInt(dateParts[1]);
+            const year = dateParts[2];
+            const monthNames = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 
+                               'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+            const formattedDate = day + ' ' + monthNames[month - 1] + ' ' + year;
             
-            if (unreadCount > 0) {
-                const dot = document.createElement('span');
-                dot.className = 'support-dot';
-                supportLink.style.position = 'relative';
-                supportLink.appendChild(dot);
-            }
+            html +=
+                '<div style="display: flex; justify-content: center; align-items: center; margin: 16px 0 12px 0; padding: 0 16px;">' +
+                    '<div style="flex: 1; height: 1px; background: #e5e7eb;"></div>' +
+                    '<div style="padding: 0 16px; font-size: 0.75rem; color: #9ca3af; white-space: nowrap; background: #f8f9fa; border-radius: 12px; padding: 4px 16px;">' +
+                        formattedDate +
+                    '</div>' +
+                    '<div style="flex: 1; height: 1px; background: #e5e7eb;"></div>' +
+                '</div>';
+            lastDate = msgDate;
         }
         
-        // Мобильная точка
-        const mobileDot = document.getElementById('support-dot-mobile');
-        if (mobileDot) {
-            mobileDot.style.display = unreadCount > 0 ? 'block' : 'none';
+        if (isUser) {
+            // Сообщение пользователя (справа, серое)
+            html +=
+                '<div style="display: flex; justify-content: flex-end; align-items: flex-end; gap: 8px; margin-bottom: 6px; padding: 0 16px;">' +
+                    '<div style="font-size: 0.65rem; color: #9ca3af; padding-bottom: 4px; flex-shrink: 0;">' + msgTime + '</div>' +
+                    '<div style="background: #e5e7eb; color: #1f2937; border-radius: 18px 18px 4px 18px; padding: 8px 14px; max-width: 75%; word-wrap: break-word; white-space: pre-wrap;">' +
+                        '<div style="font-size: 0.85rem; line-height: 1.4; text-align: left;">' + escapeHtml(msg.message).trim() + '</div>' +
+                    '</div>' +
+                '</div>';
+        } else {
+            // Сообщение поддержки (слева, бледно-сиреневое)
+            html +=
+                '<div style="display: flex; justify-content: flex-start; align-items: flex-end; gap: 8px; margin-bottom: 6px; padding: 0 16px;">' +
+                    '<div style="background: #f3e8ff; border: 1px solid #e9d5ff; color: #1f2937; border-radius: 18px 18px 18px 4px; padding: 8px 14px; max-width: 75%; word-wrap: break-word; white-space: pre-wrap;">' +
+                        '<div style="font-size: 0.85rem; line-height: 1.4; text-align: left;">' + escapeHtml(msg.message).trim() + '</div>' +
+                    '</div>' +
+                    '<div style="font-size: 0.65rem; color: #9ca3af; padding-bottom: 4px; flex-shrink: 0;">' + msgTime + '</div>' +
+                '</div>';
+        }
+    });
+    
+    container.innerHTML = html;
+    container.scrollTop = container.scrollHeight;
+}
+
+function sendSupportMessage() {
+    // Защита от повторной отправки
+    if (isSending) return;
+    
+    const input = document.getElementById('chat-input');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    isSending = true;
+    const sendBtn = document.getElementById('chat-send-btn');
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Отправка...';
+    
+    fetch('/api/support/send/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ message: message })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            input.value = '';
+            // После отправки загружаем сообщения
+            loadSupportMessages(true);
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка:', error);
+        alert('Не удалось отправить сообщение');
+    })
+    .finally(() => {
+        isSending = false;
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Отправить';
+    });
+}
+
+function startChatAutoRefresh() {
+    if (chatRefreshInterval) clearInterval(chatRefreshInterval);
+    chatRefreshInterval = setInterval(() => {
+        if (isChatOpen) {
+            loadSupportMessages(false);  // без принудительной прокрутки
+        }
+    }, 5000);
+}
+
+function stopChatAutoRefresh() {
+    if (chatRefreshInterval) {
+        clearInterval(chatRefreshInterval);
+        chatRefreshInterval = null;
+    }
+    isChatOpen = false;
+}
+
+function updateSupportDot(unreadCount) {
+    // Десктопная точка
+    const supportLink = document.querySelector('.support-link');
+    if (supportLink) {
+        const existingDot = supportLink.querySelector('.support-dot');
+        if (existingDot) existingDot.remove();
+        
+        if (unreadCount > 0) {
+            const dot = document.createElement('span');
+            dot.className = 'support-dot';
+            supportLink.style.position = 'relative';
+            supportLink.appendChild(dot);
         }
     }
-
-    function checkUnreadSupport() {
-        fetch('/api/support/unread/')
-            .then(r => r.json())
-            .then(data => {
-                updateSupportDot(data.unread_count);
-            })
-            .catch(error => console.error('Ошибка:', error));
+    
+    // Мобильная точка
+    const mobileDot = document.getElementById('support-dot-mobile');
+    if (mobileDot) {
+        mobileDot.style.display = unreadCount > 0 ? 'block' : 'none';
     }
+}
 
+function checkUnreadSupport() {
+    fetch('/api/support/unread/')
+        .then(r => r.json())
+        .then(data => {
+            updateSupportDot(data.unread_count);
+        })
+        .catch(error => console.error('Ошибка:', error));
+}
+
+// Очистка при закрытии модального окна
+document.getElementById('supportChatModal')?.addEventListener('hidden.bs.modal', function() {
+    stopChatAutoRefresh();
+});
+
+// Отправка по Enter
+document.getElementById('chat-input')?.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendSupportMessage();
+    }
+});
+
+document.getElementById('chat-send-btn')?.addEventListener('click', sendSupportMessage);
 
     // ============================================================
     // ИНИЦИАЛИЗАЦИЯ

@@ -212,7 +212,7 @@ def support_chat_view(request):
             SupportMessage.objects.create(
                 master=selected_master,
                 direction='admin',
-                message=reply_text,
+                message=reply_text.strip(),
                 is_read=False
             )
             # messages.success удалена

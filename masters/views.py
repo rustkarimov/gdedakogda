@@ -2695,7 +2695,7 @@ def send_support_message(request):
     SupportMessage.objects.create(
         master=master,
         direction='user',
-        message=message,
+        message=message.strip(),
         is_read=False  # ← Теперь сообщение будет непрочитанным
 
     )
