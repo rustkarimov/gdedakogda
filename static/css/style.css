@@ -605,8 +605,452 @@ body {
 }
 
 
+/* ============================================================ */
+/* ========== СЕКЦИЯ: ВОЗМОЖНОСТИ ========== */
+/* ============================================================ */
+
+.features-section {
+    padding: 80px 0;
+    background: white;
+}
+
+.section-header {
+    margin-bottom: 48px;
+}
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+}
+
+.section-subtitle {
+    font-size: 1.1rem;
+    color: #6b7280;
+}
+
+.features-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.feature-card {
+    background: white;
+    padding: 32px 24px;
+    border-radius: 24px;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 1px solid #f0eef5;
+    height: 100%;
+}
+
+.feature-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+    border-color: var(--primary-light);
+}
+
+.feature-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 28px;
+}
+
+.feature-icon.purple {
+    background: #ede9fe;
+    color: var(--primary);
+}
+
+.feature-icon.pink {
+    background: #fce7f3;
+    color: #ec4899;
+}
+
+.feature-icon.blue {
+    background: #dbeafe;
+    color: #3b82f6;
+}
+
+.feature-icon.green {
+    background: #dcfce7;
+    color: #22c55e;
+}
+
+.feature-icon.orange {
+    background: #fef3c7;
+    color: #f59e0b;
+}
+
+.feature-icon.teal {
+    background: #ccfbf1;
+    color: #14b8a6;
+}
+
+.feature-card h4 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+}
+
+.feature-card p {
+    font-size: 0.95rem;
+    color: #6b7280;
+    line-height: 1.6;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    /* ... существующие стили ... */
+
+    /* ===== ВОЗМОЖНОСТИ — КОМПАКТНАЯ МОБИЛЬНАЯ ВЕРСИЯ ===== */
+    .features-section {
+        padding: 20px 0 ;
+    }
+
+    .features-grid {
+        row-gap: 10px;
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        margin-bottom: 4px;
+    }
+
+    .section-subtitle {
+        font-size: 0.85rem;
+    }
+
+    .section-header {
+        margin-bottom: 10px;
+    }
+
+    .feature-card {
+        padding: 16px 12px;
+        border-radius: 14px;
+    }
+
+    .feature-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+        margin-bottom: 10px;
+        border-radius: 14px;
+    }
+
+    .feature-card h4 {
+        font-size: 0.9rem;
+        margin-bottom: 4px;
+    }
+
+    .feature-card p {
+        font-size: 0.75rem;
+        line-height: 1.4;
+    }
+
+}
 
 
+/* ============================================================ */
+/* ========== СЕКЦИЯ: КАК ЭТО РАБОТАЕТ ========== */
+/* ============================================================ */
+/* ============================================================ */
+/* ========== СЕКЦИЯ: КАК ЭТО РАБОТАЕТ ========== */
+/* ============================================================ */
+
+.how-it-works-section {
+    padding: 80px 0;
+    background: var(--primary-lighter);
+}
+
+/* Левая колонка — график + цифры */
+.time-savings {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+}
+
+/* ===== ГРАФИК ===== */
+.chart-container {
+    width: 100%;
+    max-width: 400px;
+    background: white;
+    padding: 30px 30px 20px;
+    border-radius: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.chart-bars {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 50px;
+    height: 160px;
+    padding-bottom: 8px;
+}
+
+.chart-bar-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    max-width: 80px;
+}
+
+.chart-bar {
+    width: 56px;
+    border-radius: 8px 8px 0 0;
+    position: relative;
+    transition: all 0.6s ease;
+    min-height: 20px;
+}
+
+.chart-bar.bar-without {
+    background: linear-gradient(180deg, #e5e7eb 0%, #d1d5db 100%);
+    height: 100%;
+}
+
+.chart-bar.bar-with {
+    background: var(--primary-gradient);
+    height: 25%;
+    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.25);
+}
+
+.chart-label {
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    white-space: nowrap;
+}
+
+.chart-bar.bar-without .chart-label {
+    color: #6b7280;
+}
+
+.chart-bar.bar-with .chart-label {
+    color: var(--primary);
+}
+
+.chart-caption {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-align: center;
+}
+
+.chart-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--gray-200);
+}
+
+.chart-arrow i {
+    color: var(--primary);
+    font-size: 1.1rem;
+}
+
+.chart-arrow span {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+/* ===== КАРТОЧКИ С ЦИФРАМИ (под графиком) ===== */
+.time-cards {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    max-width: 400px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.time-saving-card {
+    background: white;
+    padding: 16px 28px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    text-align: center;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+    flex: 1;
+    min-width: 120px;
+    transition: all 0.3s ease;
+}
+
+.time-saving-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+}
+
+.time-saving-card.muted {
+    opacity: 0.6;
+}
+
+.time-saving-card.muted .time-number {
+    color: #9ca3af;
+}
+
+.time-number {
+    font-size: 2.4rem;
+    font-weight: 900;
+    color: var(--primary);
+    line-height: 1;
+}
+
+.time-number span {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #6b7280;
+}
+
+.time-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+.time-saving-divider {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--primary);
+    padding: 0 4px;
+}
+
+/* Правая колонка — текст */
+.how-it-works-content h3 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 16px;
+}
+
+.how-it-works-content p {
+    font-size: 1.05rem;
+    color: #4a4a6a;
+    line-height: 1.7;
+    margin-bottom: 24px;
+}
+
+.how-it-works-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.how-it-works-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    font-size: 0.95rem;
+    color: #374151;
+}
+
+.how-it-works-list li i {
+    color: var(--primary);
+    font-size: 1.1rem;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    /* ... существующие стили ... */
+
+    /* ===== КАК ЭТО РАБОТАЕТ ===== */
+    .how-it-works-section {
+        padding: 50px 0;
+    }
+
+    .chart-container {
+        padding: 20px 16px 16px;
+        max-width: 320px;
+    }
+
+    .chart-bars {
+        gap: 30px;
+        height: 120px;
+    }
+
+    .chart-bar {
+        width: 40px;
+    }
+
+    .chart-label {
+        font-size: 0.65rem;
+        top: -24px;
+    }
+
+    .chart-caption {
+        font-size: 0.6rem;
+    }
+
+    .chart-arrow span {
+        font-size: 0.7rem;
+    }
+
+    .time-cards {
+        gap: 8px;
+        max-width: 320px;
+    }
+
+    .time-saving-card {
+        padding: 12px 16px;
+        min-width: 80px;
+    }
+
+    .time-number {
+        font-size: 1.8rem;
+    }
+
+    .time-number span {
+        font-size: 0.8rem;
+    }
+
+    .time-label {
+        font-size: 0.65rem;
+    }
+
+    .time-saving-divider {
+        font-size: 0.65rem;
+    }
+
+    .how-it-works-content h3 {
+        font-size: 1.4rem;
+        text-align: center;
+    }
+
+    .how-it-works-content p {
+        font-size: 0.95rem;
+        text-align: center;
+    }
+
+    .how-it-works-list {
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    .how-it-works-list li {
+        font-size: 0.85rem;
+        padding: 6px 0;
+    }
+}
 
 
 
@@ -675,9 +1119,6 @@ body {
     margin: 0 16px 24px 16px;
 }
 
-/* ============================================================ */
-/* ========== ШАПКА С ГРАДИЕНТОМ ========== */
-/* ============================================================ */
 
 /* ============================================================ */
 /* ========== ШАПКА С ГРАДИЕНТОМ ========== */
