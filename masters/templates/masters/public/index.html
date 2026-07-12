@@ -135,19 +135,20 @@
         <div class="row align-items-center g-5">
             <!-- Левая колонка: иллюстрация/цифры -->
             <!-- Левая колонка: график + цифры -->
+        <!-- Левая колонка: график -->
         <div class="col-lg-6">
             <div class="time-savings">
                 <!-- График -->
                 <div class="chart-container">
                     <div class="chart-bars">
                         <div class="chart-bar-wrapper">
-                            <div class="chart-bar bar-without" style="height: 100%;">
+                            <div class="chart-bar bar-without">
                                 <span class="chart-label">15 мин</span>
                             </div>
                             <span class="chart-caption">Без сервиса</span>
                         </div>
                         <div class="chart-bar-wrapper">
-                            <div class="chart-bar bar-with" style="height: 25%;">
+                            <div class="chart-bar bar-with">
                                 <span class="chart-label">2 мин</span>
                             </div>
                             <span class="chart-caption">С сервисом</span>
@@ -158,23 +159,9 @@
                         <span>в 7 раз быстрее</span>
                     </div>
                 </div>
-
-                <!-- Карточки с цифрами (оставляем для дублирования) -->
-                <div class="time-cards">
-                    <div class="time-saving-card muted">
-                        <div class="time-number">15 <span>мин</span></div>
-                        <div class="time-label">в среднем без сервиса</div>
-                    </div>
-                    <div class="time-saving-divider">
-                        <span>в 7 раз быстрее</span>
-                    </div>
-                    <div class="time-saving-card">
-                        <div class="time-number">2 <span>мин</span></div>
-                        <div class="time-label">на запись через сервис</div>
-                    </div>
-                </div>
             </div>
         </div>
+
             <!-- Правая колонка: текст -->
             <div class="col-lg-6">
                 <div class="how-it-works-content">
@@ -208,20 +195,141 @@
 </section>
 
 
-<!-- Цитаты мастеров -->
-<div class="testimonials-section">
+<!-- ============================================================ -->
+<!-- СЕКЦИЯ: КАК ЭТО ВЫГЛЯДИТ (с телефоном) -->
+<!-- ============================================================ -->
+<section id="how-it-looks" class="how-it-looks-section">
     <div class="container">
-        <div class="row text-center mb-5">
-            <div class="col-12">
-                <h2 class="section-title">Мастера уже с нами</h2>
-                <p class="section-subtitle">Что говорят те, кто перешёл на Где Да Когда</p>
+        <div class="section-header text-center">
+            <h2 class="section-title">Посмотрите, как это работает</h2>
+            <p class="section-subtitle">Всё в вашем смартфоне — от записи до статистики</p>
+        </div>
+        <div class="how-it-looks-wrapper">
+            <!-- Телефон с анимацией -->
+            <div class="looks-phone-wrapper">
+                <div class="looks-phone">
+                    <!-- Чёлка -->
+                    <div class="looks-notch">
+                        <div class="looks-notch-camera"></div>
+                        <div class="looks-notch-speaker"></div>
+                    </div>
+                    <!-- Экран -->
+                    <div class="looks-screen" id="looksScreen">
+                        <img src="{% static 'images/screens/dashboard.png' %}" alt="Дашборд" class="looks-screenshot active" data-index="0">
+                        <img src="{% static 'images/screens/calendar.png' %}" alt="Календарь" class="looks-screenshot" data-index="1">
+                        <img src="{% static 'images/screens/booking.png' %}" alt="Запись" class="looks-screenshot" data-index="2">
+                    </div>
+                    <!-- Домашняя кнопка -->
+                    <div class="looks-home-button"></div>
+                    <!-- Боковые кнопки -->
+                    <div class="looks-side-button looks-side-top"></div>
+                    <div class="looks-side-button looks-side-bottom"></div>
+                </div>
+
+                <!-- Подпись + индикаторы -->
+                <div class="looks-caption">
+                    <div class="looks-indicators">
+                        <span class="looks-dot active" data-index="0"></span>
+                        <span class="looks-dot" data-index="1"></span>
+                        <span class="looks-dot" data-index="2"></span>
+                    </div>
+                    <div class="looks-caption-text">
+                        <span class="looks-step">01</span>
+                        <h4 id="looksCaptionTitle">Дашборд мастера</h4>
+                        <p id="looksCaptionDesc">Все записи, статистика и календарь — в одном окне</p>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- СЕКЦИЯ: ДЛЯ КОГО ЭТО -->
+<!-- ============================================================ -->
+<section id="for-whom" class="for-whom-section">
+    <div class="container">
+        <div class="section-header text-center">
+            <h2 class="section-title">Для кого это</h2>
+            <p class="section-subtitle">Сервис для всех, кто принимает клиентов</p>
+        </div>
+        <!-- <div class="row g-3 categories-grid"> -->
+        <div class="row g-3 categories-grid justify-content-center">
+            <!-- 1. Маникюр и педикюр -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="category-card">
+                    <div class="category-icon">💅</div>
+                    <span class="category-name">Маникюр и педикюр</span>
+                </div>
+            </div>
+            <!-- 2. Парикмахерские и барберы -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="category-card">
+                    <div class="category-icon">✂️</div>
+                    <span class="category-name">Парикмахерские и барберы</span>
+                </div>
+            </div>
+            <!-- 3. Стоматологии -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="category-card">
+                    <div class="category-icon">🦷</div>
+                    <span class="category-name">Стоматологии</span>
+                </div>
+            </div>
+            <!-- 4. Тренировки и фитнес -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="category-card">
+                    <div class="category-icon">💪</div>
+                    <span class="category-name">Тренировки и фитнес</span>
+                </div>
+            </div>
+            <!-- 5. Репетиторы и курсы -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="category-card">
+                    <div class="category-icon">📚</div>
+                    <span class="category-name">Репетиторы и курсы</span>
+                </div>
+            </div>
+            <!-- 6. Косметология и массаж -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="category-card">
+                    <div class="category-icon">🧖</div>
+                    <span class="category-name">Косметология и массаж</span>
+                </div>
+            </div>
+            <!-- 7. Швеи и ателье -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="category-card">
+                    <div class="category-icon">👗</div>
+                    <span class="category-name">Швеи и ателье</span>
+                </div>
+            </div>
+            <!-- 8. Ремонт и мастера на дом -->
+            <div class="col-6 col-md-4 col-lg-3">
+                <div class="category-card">
+                    <div class="category-icon">🔧</div>
+                    <span class="category-name">Ремонт и мастера на дом</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============================================================ -->
+<!-- СЕКЦИЯ: ОТЗЫВЫ -->
+<!-- ============================================================ -->
+<section id="testimonials" class="testimonials-section">
+    <div class="container">
+        <div class="section-header text-center">
+            <h2 class="section-title">Мастера уже с нами</h2>
+            <p class="section-subtitle">Что говорят те, кто перешёл на ДАТЫ</p>
+        </div>
         <div class="row g-4">
+            <!-- Отзыв 1 -->
             <div class="col-md-4">
                 <div class="testimonial-card">
                     <div class="testimonial-avatar">
-                        <img src="" alt="Аватар">
+                        <img src="{% static 'images/avatars/avatar-1.jpg' %}" alt="Анна С.">
                     </div>
                     <div class="stars">
                         <i class="fas fa-star"></i>
@@ -235,10 +343,11 @@
                     <span class="testimonial-prof">Мастер маникюра, 5 лет стажа</span>
                 </div>
             </div>
+            <!-- Отзыв 2 -->
             <div class="col-md-4">
                 <div class="testimonial-card">
                     <div class="testimonial-avatar">
-                        <img src="" alt="Аватар">
+                        <img src="{% static 'images/avatars/avatar-2.jpg' %}" alt="Дмитрий В.">
                     </div>
                     <div class="stars">
                         <i class="fas fa-star"></i>
@@ -247,15 +356,16 @@
                         <i class="fas fa-star"></i>
                         <i class="fas fa-star"></i>
                     </div>
-                    <p class="testimonial-text">"Напоминания клиентам — это магия. Неявок стало в 3 раза меньше. Очень довольна сервисом."</p>
+                    <p class="testimonial-text">"Напоминания клиентам — это магия. Неявок стало в 3 раза меньше. Очень доволен сервисом."</p>
                     <h5>Дмитрий В.</h5>
                     <span class="testimonial-prof">Парикмахер-барбер</span>
                 </div>
             </div>
+            <!-- Отзыв 3 -->
             <div class="col-md-4">
                 <div class="testimonial-card">
                     <div class="testimonial-avatar">
-                        <img src="" alt="Аватар">
+                        <img src="{% static 'images/avatars/avatar-3.jpg' %}" alt="Екатерина М.">
                     </div>
                     <div class="stars">
                         <i class="fas fa-star"></i>
@@ -271,269 +381,197 @@
             </div>
         </div>
     </div>
-</div>
+</section>
 
-<!-- Импорт из других сервисов -->
-<div class="import-section">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-7">
-                <div class="import-content">
-                    <div class="badge-gradient mb-3">Переходите легко</div>
-                    <h2>Перенесите данные из других сервисов</h2>
-                    <p>Уже пользуетесь расписанием в другом месте? Мы поможем перенести ваши услуги, график и историю клиентов. Без боли и потери данных.</p>
-                    <div class="import-list">
-                        <div class="import-item">
-                            <i class="fas fa-check-circle"></i>
-                            <span>YCLIENTS</span>
-                        </div>
-                        <div class="import-item">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Profi.ru</span>
-                        </div>
-                        <div class="import-item">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Google Таблицы</span>
-                        </div>
-                        <div class="import-item">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Excel / CSV</span>
-                        </div>
-                    </div>
-                    <a href="#" class="btn btn-outline-primary mt-4">Узнать подробнее</a>
-                </div>
-            </div>
-            <div class="col-lg-5">
-                <img src="" alt="Импорт данных" class="img-fluid">
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Тарифы (светлые, нежные) -->
-<div id="pricing" class="pricing-section">
+<!-- ============================================================ -->
+<!-- СЕКЦИЯ: ТАРИФЫ -->
+<!-- ============================================================ -->
+<section id="pricing" class="pricing-section">
     <div class="container">
-        <div class="row text-center mb-5">
-            <div class="col-12">
-                <h2 class="section-title-light">Выберите свой тариф</h2>
-                <p class="section-subtitle-light">Никаких скрытых платежей</p>
-            </div>
+        <div class="section-header text-center">
+            <h2 class="section-title">Выберите свой тариф</h2>
+            <p class="section-subtitle">Никаких скрытых платежей</p>
         </div>
         <div class="row g-4 align-items-center justify-content-center">
-            <div class="col-md-4">
-                <div class="pricing-card-light">
+            <!-- Базовый — бесплатный -->
+            <div class="col-md-6 col-lg-5">
+                <div class="pricing-card active">
+                    <div class="pricing-badge">Бесплатно</div>
                     <h3>Базовый</h3>
-                    <div class="pricing-price-light">₽0 <span>/ месяц</span></div>
-                    <ul class="pricing-features-light">
-                        <li><i class="fas fa-check"></i> До 50 записей</li>
+                    <div class="pricing-price">₽0 <span>/ месяц</span></div>
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-check"></i> До 50 записей в месяц</li>
                         <li><i class="fas fa-check"></i> Базовое расписание</li>
-                        <li><i class="fas fa-check"></i> Email напоминания</li>
-                        <li class="disabled"><i class="fas fa-times"></i> SMS напоминания</li>
-                        <li class="disabled"><i class="fas fa-times"></i> Статистика</li>
+                        <li><i class="fas fa-check"></i> Страница для клиентов</li>
+                        <li><i class="fas fa-check"></i> Email-напоминания</li>
+                        <li class="disabled"><i class="fas fa-times"></i> SMS и Telegram</li>
+                        <li class="disabled"><i class="fas fa-times"></i> Расширенная статистика</li>
                     </ul>
-                    <a href="#" class="btn btn-primary-gradient btn-lg" data-bs-toggle="modal" data-bs-target="#registerModal">
-    начать
-    <i class="fas fa-arrow-right ms-2"></i>
-</a>
+                    <a href="#" class="btn btn-primary-gradient w-100" data-bs-toggle="modal" data-bs-target="#registerModal">
+                        Начать бесплатно
+                        <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="pricing-card-light popular-light">
-                    <div class="popular-badge-light">🔥 Популярный</div>
+
+            <!-- Профи — скоро -->
+            <div class="col-md-6 col-lg-5">
+                <div class="pricing-card disabled">
+                    <div class="pricing-badge secondary">Скоро</div>
                     <h3>Профи</h3>
-                    <div class="pricing-price-light">₽690 <span>/ месяц</span></div>
-                    <ul class="pricing-features-light">
-                        <li><i class="fas fa-check"></i> Неограниченно записей</li>
-                        <li><i class="fas fa-check"></i> Умное расписание</li>
-                        <li><i class="fas fa-check"></i> SMS + Telegram напоминания</li>
-                        <li><i class="fas fa-check"></i> Полная статистика</li>
-                        <li><i class="fas fa-check"></i> Импорт данных</li>
+                    <div class="pricing-price">—</div>
+                    <ul class="pricing-features">
+                        <li><i class="fas fa-lock"></i> Неограниченно записей</li>
+                        <li><i class="fas fa-lock"></i> Умное расписание с перерывами</li>
+                        <li><i class="fas fa-lock"></i> SMS + Telegram напоминания</li>
+                        <li><i class="fas fa-lock"></i> Полная статистика</li>
+                        <li><i class="fas fa-lock"></i> Приоритетная поддержка</li>
+                        <li><i class="fas fa-lock"></i> Импорт данных</li>
                     </ul>
-                    
-                    <a href="#" class="btn btn-primary-gradient btn-lg" data-bs-toggle="modal" data-bs-target="#registerModal">
-    Попробовать 14 дней
-    <i class="fas fa-arrow-right ms-2"></i>
-</a>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="pricing-card-light">
-                    <h3>Бизнес</h3>
-                    <div class="pricing-price-light">₽1 490 <span>/ месяц</span></div>
-                    <ul class="pricing-features-light">
-                        <li><i class="fas fa-check"></i> Всё из Профи</li>
-                        <li><i class="fas fa-check"></i> До 5 сотрудников</li>
-                        <li><i class="fas fa-check"></i> Приоритетная поддержка</li>
-                        <li><i class="fas fa-check"></i> API доступ</li>
-                        <li><i class="fas fa-check"></i> Белые этикетки</li>
-                    </ul>
-                    <a href="#" class="btn btn-primary-gradient btn-lg" data-bs-toggle="modal" data-bs-target="#registerModal">
-    связаться
-    <i class="fas fa-arrow-right ms-2"></i>
-</a>
+                    <button class="btn btn-outline-secondary w-100" disabled>
+                        <i class="fas fa-clock me-2"></i>Скоро будет доступно
+                    </button>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 
-<!-- FAQ -->
-<div class="faq-section">
+<!-- ============================================================ -->
+<!-- СЕКЦИЯ: FAQ -->
+<!-- ============================================================ -->
+<section id="faq" class="faq-section">
     <div class="container">
-        <div class="row text-center mb-5">
-            <div class="col-12">
-                <h2 class="section-title">Частые вопросы</h2>
-                <p class="section-subtitle">Всё, что вы хотели знать о сервисе</p>
-            </div>
+        <div class="section-header text-center">
+            <h2 class="section-title">Частые вопросы</h2>
+            <p class="section-subtitle">Всё, что вы хотели знать о сервисе</p>
         </div>
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                <div class="accordion" id="faqAccordion">
+                <div class="faq-list">
+                    <!-- Вопрос 1 -->
                     <div class="faq-item">
-                        <div class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq1">
-                            <span>Можно ли попробовать бесплатно?</span>
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>Сколько стоит?</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
-                        <div id="faq1" class="collapse show" data-bs-parent="#faqAccordion">
-                            <div class="faq-answer">
-                                Да, у нас есть 14-дневный бесплатный период. Никаких обязательств и карты не требуется.
-                            </div>
+                        <div class="faq-answer">
+                            Базовый тариф бесплатный навсегда. Профи-тариф появится позже — следите за новостями!
                         </div>
                     </div>
+                    <!-- Вопрос 2 -->
                     <div class="faq-item">
-                        <div class="faq-question collapsed" data-bs-toggle="collapse" data-bs-target="#faq2">
-                            <span>Безопасно ли хранить данные клиентов?</span>
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>Можно ли попробовать?</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
-                        <div id="faq2" class="collapse" data-bs-parent="#faqAccordion">
-                            <div class="faq-answer">
-                                Да, мы шифруем все номера телефонов и личные данные. Только вы имеете доступ к информации о своих клиентах.
-                            </div>
+                        <div class="faq-answer">
+                            Да, регистрация бесплатна и не требует ввода банковской карты. Просто войдите и начните пользоваться.
                         </div>
                     </div>
+                    <!-- Вопрос 3 -->
                     <div class="faq-item">
-                        <div class="faq-question collapsed" data-bs-toggle="collapse" data-bs-target="#faq3">
-                            <span>Могу ли я перенести данные из другого сервиса?</span>
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>Безопасно ли хранить данные?</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
-                        <div id="faq3" class="collapse" data-bs-parent="#faqAccordion">
-                            <div class="faq-answer">
-                                Да, мы помогаем с переносом из YCLIENTS, Google Sheets и других систем. Напишите поддержке.
-                            </div>
+                        <div class="faq-answer">
+                            Да, все номера телефонов клиентов хранятся в зашифрованном виде. Только вы имеете доступ к своим данным.
                         </div>
                     </div>
+                    <!-- Вопрос 4 -->
                     <div class="faq-item">
-                        <div class="faq-question collapsed" data-bs-toggle="collapse" data-bs-target="#faq4">
+                        <div class="faq-question" onclick="toggleFaq(this)">
                             <span>Что будет, если превысить лимит записей?</span>
                             <i class="fas fa-chevron-down"></i>
                         </div>
-                        <div id="faq4" class="collapse" data-bs-parent="#faqAccordion">
-                            <div class="faq-answer">
-                                Вы получите уведомление. Вы всегда можете перейти на следующий тариф или докупить дополнительный пакет записей.
-                            </div>
+                        <div class="faq-answer">
+                            Вы получите уведомление. Вы всегда можете перейти на Профи-тариф, когда он станет доступен.
+                        </div>
+                    </div>
+                    <!-- Вопрос 5 -->
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>Нужна ли установка?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Нет, всё работает в браузере на любом устройстве — компьютере, планшете или телефоне.
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 
-<!-- Дорожная карта (что планируем) -->
-<div class="roadmap-section">
+<!-- ============================================================ -->
+<!-- СЕКЦИЯ: ПОДДЕРЖКА -->
+<!-- ============================================================ -->
+<section id="support" class="support-section">
     <div class="container">
-        <div class="row text-center mb-5">
-            <div class="col-12">
-                <h2 class="section-title">Что нас ждёт в будущем</h2>
-                <p class="section-subtitle">Мы постоянно развиваем сервис для вас</p>
-            </div>
-        </div>
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="roadmap-card">
-                    <div class="roadmap-icon">
-                        <i class="fas fa-microphone-alt"></i>
-                    </div>
-                    <h4>Голосовой помощник</h4>
-                    <p>Запись клиентов через голосового ассистента — просто скажите "запиши на завтра"</p>
-                    <div class="roadmap-status">В разработке</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="roadmap-card">
-                    <div class="roadmap-icon">
-                        <i class="fas fa-palette"></i>
-                    </div>
-                    <h4>Красивые страницы</h4>
-                    <p>Индивидуальный дизайн страницы записи под ваш бренд</p>
-                    <div class="roadmap-status">Скоро</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="roadmap-card">
-                    <div class="roadmap-icon">
-                        <i class="fas fa-map-marked-alt"></i>
-                    </div>
-                    <h4>Карта мастеров</h4>
-                    <p>Клиенты смогут находить вас рядом с собой</p>
-                    <div class="roadmap-status">Планируется</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Команда и поддержка -->
-<div class="team-section">
-    <div class="container">
-        <div class="row align-items-center">
+        <div class="row align-items-center g-5">
             <div class="col-lg-6">
-                <div class="team-content">
+                <div class="support-content">
+                    <span class="section-badge">Поддержка 24/7</span>
                     <h2>Мы всегда рядом</h2>
-                    <p>Наша команда поддержки отвечает на вопросы в течение 15 минут. Мы не просто сервис — мы партнёры, которым важно развитие вашего бизнеса.</p>
-                    <div class="team-features">
-                        <div class="team-feature">
+                    <p>
+                        Наша команда поддержки отвечает на вопросы в течение 15 минут.
+                        Мы не просто сервис — мы партнёры, которым важно развитие вашего бизнеса.
+                    </p>
+                    <div class="support-features">
+                        <div class="support-feature">
                             <i class="fas fa-headset"></i>
-                            <span>Поддержка 24/7</span>
+                            <span>Поддержка в чате</span>
                         </div>
-                        <div class="team-feature">
+                        <div class="support-feature">
                             <i class="fas fa-comments"></i>
-                            <span>Чат в Telegram</span>
+                            <span>Telegram-бот</span>
                         </div>
-                        <div class="team-feature">
+                        <div class="support-feature">
                             <i class="fas fa-envelope"></i>
-                            <span>Email 24/7</span>
+                            <span>Email-поддержка</span>
                         </div>
                     </div>
-                    <a href="#" class="btn btn-primary-gradient mt-3">Связаться с поддержкой</a>
+                    <a href="#" class="btn btn-primary-gradient mt-3" data-bs-toggle="modal" data-bs-target="#registerModal">
+                        Задать вопрос
+                        <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
                 </div>
             </div>
             <div class="col-lg-6">
-                <div class="team-photo">
-                    <img src="" alt="Команда поддержки">
+                <div class="support-illustration">
+                    <div class="support-emoji">💬</div>
+                    <div class="support-bubble support-bubble-1">Привет! Как записаться?</div>
+                    <div class="support-bubble support-bubble-2">Сейчас всё покажем 👋</div>
+                    <div class="support-bubble support-bubble-3">Выберите услугу → время → готово!</div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+</section>
 
-<!-- CTA финальная -->
-<div class="cta-section">
+<!-- ============================================================ -->
+<!-- СЕКЦИЯ: CTA (финальный призыв) -->
+<!-- ============================================================ -->
+<section id="cta" class="cta-section">
     <div class="container">
         <div class="row justify-content-center text-center">
             <div class="col-lg-8">
                 <h2 class="display-5 fw-bold mb-4">Готовы попробовать?</h2>
-                <p class="lead mb-4">Присоединяйтесь к 500+ мастерам, которые уже экономят время с "Где Да Когда"</p>
-                
-
+                <p class="lead mb-4">
+                    Присоединяйтесь к 500+ мастерам, которые уже экономят время с ДАТЫ
+                </p>
                 <a href="#" class="btn btn-primary-gradient btn-lg" data-bs-toggle="modal" data-bs-target="#registerModal">
-    Попробовать 14 дней
-    <i class="fas fa-arrow-right ms-2"></i>
-</a>
+                    Начать бесплатно
+                    <i class="fas fa-arrow-right ms-2"></i>
+                </a>
             </div>
         </div>
     </div>
-</div>
+</section>
+
 
 
 
@@ -593,6 +631,103 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 
+<script>
+// ============================================================
+// АНИМАЦИЯ ТЕЛЕФОНА (секция «Как это выглядит»)
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    const screens = document.querySelectorAll('.looks-screenshot');
+    const dots = document.querySelectorAll('.looks-dot');
+    const captionTitle = document.getElementById('looksCaptionTitle');
+    const captionDesc = document.getElementById('looksCaptionDesc');
+    
+    const captions = [
+        { title: 'Дашборд мастера', desc: 'Все записи, статистика и календарь — в одном окне' },
+        { title: 'Умное расписание', desc: 'Все записи и свободные окна — в удобном календаре' },
+        { title: 'Страница клиента', desc: 'Клиент выбирает услугу, время и записывается за 2 клика' }
+    ];
+    
+    let currentIndex = 0;
+    let interval;
+
+    function showSlide(index) {
+        screens.forEach((screen, i) => {
+            screen.classList.toggle('active', i === index);
+        });
+        dots.forEach((dot, i) => {
+            dot.classList.toggle('active', i === index);
+        });
+        captionTitle.textContent = captions[index].title;
+        captionDesc.textContent = captions[index].desc;
+        currentIndex = index;
+    }
+
+    function nextSlide() {
+        const next = (currentIndex + 1) % screens.length;
+        showSlide(next);
+    }
+
+    function startSlider() {
+        if (interval) clearInterval(interval);
+        interval = setInterval(nextSlide, 4000);
+    }
+
+    function stopSlider() {
+        if (interval) {
+            clearInterval(interval);
+            interval = null;
+        }
+    }
+
+    // Клик по точкам
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', function() {
+            stopSlider();
+            showSlide(index);
+            setTimeout(startSlider, 5000);
+        });
+    });
+
+    showSlide(0);
+    startSlider();
+
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            stopSlider();
+        } else {
+            startSlider();
+        }
+    });
+});
+</script>
+
+
+<script>
+// ============================================================
+// FAQ АККОРДЕОН
+// ============================================================
+function toggleFaq(element) {
+    const answer = element.nextElementSibling;
+    const icon = element.querySelector('i');
+    const isOpen = answer.classList.contains('open');
+    
+    // Закрываем все остальные
+    document.querySelectorAll('.faq-answer').forEach(el => {
+        if (el !== answer) {
+            el.classList.remove('open');
+            el.previousElementSibling.querySelector('i').classList.remove('active');
+        }
+    });
+    
+    if (isOpen) {
+        answer.classList.remove('open');
+        icon.classList.remove('active');
+    } else {
+        answer.classList.add('open');
+        icon.classList.add('active');
+    }
+}
+</script>
 
 
 {% endblock %}
