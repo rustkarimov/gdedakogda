@@ -1,0 +1,148 @@
+{% extends 'masters/public/promo_base.html' %}
+{% load static %}
+
+{% block title %}Согласие на обработку персональных данных{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="legal-content">
+                <h1 class="mb-4">Согласие на обработку персональных данных</h1>
+                <p class="text-muted">Последнее обновление: 13 июля 2026 г.</p>
+
+                <div class="legal-section">
+                    <p>
+                        Настоящим я, <strong>Пользователь сервиса «ДАТЫ»</strong>, свободно, своей волей и в своём интересе даю согласие <strong>Каримов Рустам Ильязович</strong> (далее — «Оператор») на обработку моих персональных данных в порядке и на условиях, предусмотренных Федеральным законом от 27.07.2006 № 152-ФЗ «О персональных данных».
+                    </p>
+                </div>
+
+                <div class="legal-section">
+                    <h2>1. Перечень персональных данных</h2>
+                    <p>Я даю согласие на обработку следующих персональных данных:</p>
+                    <ul>
+                        <li>Номер телефона;</li>
+                        <li>Имя и фамилия;</li>
+                        <li>Адрес электронной почты (при указании);</li>
+                        <li>IP-адрес и данные браузера.</li>
+                    </ul>
+                </div>
+
+                <div class="legal-section">
+                    <h2>2. Цели обработки</h2>
+                    <ul>
+                        <li>Регистрация и аутентификация в Сервисе;</li>
+                        <li>Отправка уведомлений о записях и изменениях;</li>
+                        <li>Обеспечение безопасности и предотвращение мошенничества;</li>
+                        <li>Улучшение работы Сервиса.</li>
+                    </ul>
+                </div>
+
+                <div class="legal-section">
+                    <h2>3. Срок действия согласия</h2>
+                    <p>
+                        Настоящее согласие действует с момента регистрации и до момента удаления моей учётной записи, а также в течение 1 года после удаления для возможности восстановления.
+                    </p>
+                    <p>
+                        Я уведомлён, что могу отозвать своё согласие в любое время, направив письменное уведомление на адрес: <strong>[ваш-email]</strong>
+                    </p>
+                </div>
+
+                <div class="legal-section">
+                    <h2>4. Отзыв согласия</h2>
+                    <p>
+                        Я уведомлён, что могу отозвать своё согласие в любое время:
+                    </p>
+                    <ul>
+                        <li>Путём отправки письменного уведомления на email: <strong>rustkarimovv@yandex.ru</strong></li>
+                        <li>Путём удаления своей учётной записи в Сервисе</li>
+                    </ul>
+                    <p>
+                        В случае отзыва согласия, Оператор обязан прекратить обработку моих персональных данных и удалить их в течение 30 дней.
+                    </p>
+                </div>
+
+                <div class="legal-section">
+                    <h2>5. Контактная информация</h2>
+                    <ul>
+                        <li><strong>Оператор:</strong> <strong>Каримов Рустам Ильязович</strong></li>
+                        <li><strong>Email:</strong> <strong>rustkarimovv@yandex.ru</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.legal-content {
+    background: white;
+    padding: 40px 48px;
+    border-radius: 28px;
+    border: 1px solid var(--gray-200);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.legal-content h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #1a1a2e;
+}
+
+.legal-section {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--gray-100);
+}
+
+.legal-section:first-of-type {
+    margin-top: 24px;
+    border-top: none;
+    padding-top: 0;
+}
+
+.legal-section h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 12px;
+}
+
+.legal-section p {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #374151;
+}
+
+.legal-section ul {
+    padding-left: 20px;
+}
+
+.legal-section ul li {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #374151;
+    margin-bottom: 4px;
+}
+
+@media (max-width: 768px) {
+    .legal-content {
+        padding: 24px 16px;
+        border-radius: 18px;
+    }
+
+    .legal-content h1 {
+        font-size: 1.5rem;
+    }
+
+    .legal-section h2 {
+        font-size: 1rem;
+    }
+
+    .legal-section p,
+    .legal-section ul li {
+        font-size: 0.85rem;
+    }
+}
+</style>
+{% endblock %}

@@ -19,7 +19,7 @@
                     <span class="hero-title-highlight">в 2 клика</span>
                 </h1>
                 <p class="hero-description">
-                    Сервис для самозанятых, фрилансеров, мастеров
+                    Система записи для самозанятых, фрилансеров, мастеров, индивидуальных предпринимателей
                 </p>
                 <div class="hero-buttons">
                     <a href="#" class="btn btn-primary-gradient btn-lg" data-bs-toggle="modal" data-bs-target="#registerModal">
@@ -38,11 +38,23 @@
                         <img src="{% static 'images/girl.jpg' %}" alt="Скриншот" style="width: 100%; height: 100%; object-fit: cover; border-radius: 28px;">
                     </div>
 
-                    <div class="deck-card" style="background: linear-gradient(135deg, #ec4899, #f472b6); transform: rotate(4deg) translateX(10px) translateY(-8px);"></div>
-                    <div class="deck-card" style="background: linear-gradient(135deg, #14b8a6, #34d399); transform: rotate(-2deg) translateX(-12px) translateY(4px);"></div>
-                    <div class="deck-card" style="background: linear-gradient(135deg, #f59e0b, #fbbf24); transform: rotate(8deg) translateX(6px) translateY(-2px);"></div>
-                    <div class="deck-card" style="background: linear-gradient(135deg, #3b82f6, #60a5fa); transform: rotate(-10deg) translateX(-4px) translateY(8px);"></div>
-                    <div class="deck-card" style="background: linear-gradient(135deg, #8b5cf6, #a78bfa); transform: rotate(2deg) translateX(14px) translateY(-6px);"></div>
+                    <div class="deck-card" style="transform: rotate(-6deg) translateX(-8px) translateY(-4px);">
+                        <img src="{% static 'images/dashboard.png' %}" alt="Скриншот" style="width: 100%; height: 100%; object-fit: cover; border-radius: 28px;">
+                    </div>
+
+                    <div class="deck-card" style="transform: rotate(-6deg) translateX(-8px) translateY(-4px);">
+                        <img src="{% static 'images/nail.jpg' %}" alt="Скриншот" style="width: 100%; height: 100%; object-fit: cover; border-radius: 28px;">
+                    </div>
+
+                    <div class="deck-card" style="transform: rotate(-6deg) translateX(-8px) translateY(-4px);">
+                        <img src="{% static 'images/barber.jpg' %}" alt="Скриншот" style="width: 100%; height: 100%; object-fit: cover; border-radius: 28px;">
+                    </div>
+
+                    <div class="deck-card" style="transform: rotate(-6deg) translateX(-8px) translateY(-4px);">
+                        <img src="{% static 'images/fit.jpg' %}" alt="Скриншот" style="width: 100%; height: 100%; object-fit: cover; border-radius: 28px;">
+                    </div>
+
+                    <!-- <div class="deck-card" style="background: linear-gradient(135deg, #8b5cf6, #a78bfa); transform: rotate(2deg) translateX(14px) translateY(-6px);"></div> -->
                 </div>
             </div>
         </div>
@@ -218,7 +230,7 @@
                     </div>
                     <!-- Экран -->
                     <div class="looks-screen" id="looksScreen">
-                        <img src="{% static 'images/screens/dashboard.png' %}" alt="Дашборд" class="looks-screenshot active" data-index="0">
+                        <img src="{% static 'images/dashboard.png' %}" alt="Дашборд" class="looks-screenshot active" data-index="0">
                         <img src="{% static 'images/screens/calendar.png' %}" alt="Календарь" class="looks-screenshot" data-index="1">
                         <img src="{% static 'images/screens/booking.png' %}" alt="Запись" class="looks-screenshot" data-index="2">
                     </div>
@@ -517,7 +529,6 @@
         <div class="row align-items-center g-5">
             <div class="col-lg-6">
                 <div class="support-content">
-                    <span class="section-badge">Поддержка 24/7</span>
                     <h2>Мы всегда рядом</h2>
                     <p>
                         Наша команда поддержки отвечает на вопросы в течение 15 минут.

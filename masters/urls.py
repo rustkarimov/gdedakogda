@@ -5,6 +5,11 @@ from . import views
 urlpatterns = [
     
     path('', views.home, name='home'),
+
+
+    path('privacy/', views.privacy_policy, name='privacy'),
+    path('terms/', views.terms_of_service, name='terms'),
+    path('agree/', views.agree, name='agree'),
     
     # Аутентификация
     path('logout/', views.logout_view, name='logout'),
@@ -108,5 +113,8 @@ urlpatterns = [
     path('api/support/messages/', views.get_support_messages, name='api_support_messages'),
     path('api/support/send/', views.send_support_message, name='api_support_send'),
     path('api/support/unread/', views.get_unread_support_count, name='api_support_unread'),
+
+
+    
     
 ]
