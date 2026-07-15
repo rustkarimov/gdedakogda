@@ -145,7 +145,57 @@ body {
     color: white;
 }
 
+@font-face {
+    font-family: 'Baloo';
+    src: url('../webfonts/Baloo/baloo-cyrillic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
 
+@font-face {
+    font-family: 'Cunia';
+    src: url('../webfonts/Cunia/cunia.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ComicHelvetic — семейство шрифтов (тяжёлый) */
+@font-face {
+    font-family: 'ComicHelvetic';
+    src: url('../webfonts/Comic Helvetic/ComicHelvetic_Heavy.otf') format('opentype');
+    font-weight: 900;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ComicHelvetic — семейство шрифтов (лёгкий) */
+@font-face {
+    font-family: 'ComicHelvetic';
+    src: url('../webfonts/Comic Helvetic/ComicHelvetic_Light.otf') format('opentype');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* ComicHelvetic — семейство шрифтов (средний) */
+@font-face {
+    font-family: 'ComicHelvetic';
+    src: url('../webfonts/Comic Helvetic/ComicHelvetic_Medium.otf') format('opentype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+/* Boorsok — вероятно, декоративный/кириллический */
+@font-face {
+    font-family: 'Boorsok';
+    src: url('../webfonts/Borsok/boorsok.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
 
 
 
@@ -176,8 +226,10 @@ body {
 }
 
 #promo-navbar .navbar-brand {
-    font-size: 1.3rem;
-    font-weight: 700;
+    font-family: 'Boorsok', sans-serif;
+    font-family: 'Cunia', sans-serif;
+    font-size: 40px;
+    font-weight: 500;
     color: var(--gray-800);
 }
 
@@ -370,7 +422,7 @@ body {
     display: flex;
     align-items: center;
     min-height: auto;  /* ← было 100vh, стало auto */
-    padding: 80px 0;   /* ← добавляем отступы сверху и снизу */
+    padding: 60px 0;   /* ← добавляем отступы сверху и снизу */
 }
 
 .hero-section::before {
@@ -398,8 +450,9 @@ body {
 }
 
 .hero-title {
+    font-family: 'ComicHelvetic', system-ui, sans-serif;
     font-size: 3.8rem;
-    font-weight: 900;
+    font-weight: 500;
     line-height: 1.15;
     color: #1a1a2e;
     margin-bottom: 1.5rem;
@@ -427,34 +480,6 @@ body {
     flex-wrap: wrap;
 }
 
-
-/* .btn-outline-dark {
-    border: 1.5px solid #c7c7e0;
-    background: transparent;
-    color: #1a1a2e;
-    padding: 12px 32px;
-    border-radius: 100px;
-    font-weight: 500;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.btn-outline-dark:hover {
-    background: rgba(139, 92, 246, 0.05);
-    border-color: var(--primary);
-    color: var(--primary);
-    text-decoration: none;
-} */
-
-
-/* ============================================================ */
-/* ========== КОЛОДА КАРТОЧЕК (HERO) ========== */
-/* ============================================================ */
-
 .hero-image {
     display: flex;
     align-items: center;
@@ -464,8 +489,8 @@ body {
 
 .card-deck {
     position: relative;
-    width: 420px;
-    height: 520px;
+    width: 380px;
+    height: 480px;
     margin: 0 auto;
 }
 
@@ -473,8 +498,8 @@ body {
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 320px;
-    height: 420px;
+    width: 290px;
+    height: 380px;
     border-radius: 28px;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
     transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
@@ -490,7 +515,33 @@ body {
 }
 
 /* Каждая карточка получает свой z-index и смещение (размашисто) */
+
+/* Каждая карточка получает свой z-index и смещение (максимально размашисто) */
 .deck-card:nth-child(1) { 
+    z-index: 1; 
+    transform: translate(calc(-50% - 75px), calc(-50% - 80px)) scale(0.78) rotate(-12deg);
+}
+.deck-card:nth-child(2) { 
+    z-index: 2; 
+    transform: translate(calc(-50% + 85px), calc(-50% - 100px)) scale(0.81) rotate(9deg);
+}
+.deck-card:nth-child(3) { 
+    z-index: 3; 
+    transform: translate(calc(-50% - 55px), calc(-50% + 10px)) scale(0.84) rotate(-7deg);
+}
+.deck-card:nth-child(4) { 
+    z-index: 4; 
+    transform: translate(calc(-50% + 95px), calc(-50% - 35px)) scale(0.87) rotate(14deg);
+}
+.deck-card:nth-child(5) { 
+    z-index: 5; 
+    transform: translate(calc(-50% - 80px), calc(-50% + 55px)) scale(0.90) rotate(-16deg);
+}
+.deck-card:nth-child(6) { 
+    z-index: 6; 
+    transform: translate(calc(-50% + 45px), calc(-50% - 70px)) scale(0.94) rotate(6deg);
+}
+/* .deck-card:nth-child(1) { 
     z-index: 1; 
     transform: translate(calc(-50% - 40px), calc(-50% - 60px)) scale(0.82) rotate(-8deg);
 }
@@ -513,7 +564,9 @@ body {
 .deck-card:nth-child(6) { 
     z-index: 6; 
     transform: translate(calc(-50% + 30px), calc(-50% - 50px)) scale(0.97) rotate(4deg);
-}
+} */
+
+
 
 /* ============================================================ */
 /* ========== АДАПТИВ ДЛЯ МОБИЛЬНЫХ ========== */
@@ -2073,7 +2126,7 @@ body {
 }
 
 .nav-item:hover {
-    background-color: var(--gray-100);
+    /* background-color: var(--gray-100); */
     color: var(--primary);
 }
 
@@ -2164,6 +2217,7 @@ body {
 }
 
 .logo i {
+    background-color: #16a34a;
     font-size: 1.4rem;
 }
 
