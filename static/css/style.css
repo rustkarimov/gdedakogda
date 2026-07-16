@@ -38,10 +38,7 @@ body {
     color: var(--gray-800);
 }
 
-/* body, p, span, div {
-    font-family: 'Nunito', system-ui, sans-serif;
-    font-weight: 400;
-} */
+
 
 /* ============================================================ */
 /* ========== ГЛОБАЛЬНЫЕ КОМПОНЕНТЫ ========== */
@@ -250,7 +247,7 @@ body {
     border-bottom: 1px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 1px 20px rgba(0, 0, 0, 0.04);
     transition: all 0.3s ease;
-    padding: 0 !important;  /* ← убираем лишний отступ */
+    padding: 0 !important;  
     margin: 0 !important;
     
 }
@@ -300,11 +297,18 @@ body {
 /* ========== МОБИЛЬНАЯ ШАПКА (до 768px) ========== */
 /* ============================================================ */
 
-/* ============================================================ */
-/* ========== МОБИЛЬНАЯ ШАПКА (до 768px) ========== */
-/* ============================================================ */
-
 @media (max-width: 768px) {
+    /* ===== ШАПКА — ФИКСАЦИЯ ===== */
+    #promo-navbar {
+        position: sticky !important;
+        top: 0 !important;
+        min-height: 60px !important;
+        background: rgba(255, 255, 255, 0.95) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
+        backdrop-filter: blur(12px) !important;
+        will-change: transform !important;
+    }
+
     /* Кнопка "Начать" в шапке */
     .btn-start-mobile {
         font-size: 0.85rem !important;
@@ -371,6 +375,14 @@ body {
         border-radius: 100px;
         justify-content: center;
     }
+
+    #promo-navbar .navbar-brand {
+
+        font-size: 20px;
+      
+    }
+
+    
 }
 
 
@@ -758,9 +770,18 @@ body {
     justify-content: center;
     margin: 0 auto 16px;
     font-size: 28px;
+    background: white;  /* светло-серый фон */
+    color: #1d1d1d;               /* тёмно-серый цвет иконки */
+    transition: all 0.3s ease;
 }
 
-.feature-icon.purple {
+/* При наведении — лёгкое оживление */
+/* .feature-card:hover .feature-icon {
+    background: var(--primary-light);
+    color: var(--primary);
+} */
+
+/* .feature-icon.purple {
     background: #ede9fe;
     color: var(--primary);
 }
@@ -788,7 +809,7 @@ body {
 .feature-icon.teal {
     background: #ccfbf1;
     color: #14b8a6;
-}
+} */
 
 .feature-card h4 {
     font-size: 1.15rem;
@@ -1433,6 +1454,10 @@ body {
 /* ========== СЕКЦИЯ: ДЛЯ КОГО ЭТО ========== */
 /* ============================================================ */
 
+/* ============================================================ */
+/* ========== СЕКЦИЯ: ДЛЯ КОГО ЭТО ========== */
+/* ============================================================ */
+
 .for-whom-section {
     padding: 80px 0;
     background: white;
@@ -1466,9 +1491,15 @@ body {
 }
 
 .category-icon {
-    font-size: 2.2rem;
+    font-size: 2rem;
+    color: #4b5563;        /* ← тёмно-серый */
     margin-bottom: 10px;
     line-height: 1;
+    transition: color 0.3s ease;
+}
+
+.category-card:hover .category-icon {
+    color: var(--primary); /* ← при наведении фиолетовый */
 }
 
 .category-name {
@@ -8993,5 +9024,10 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         justify-content: center;
     }
 }
+
+
+
+
+
 
 

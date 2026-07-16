@@ -364,34 +364,35 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     <script>
-    // Плавный скролл к секциям
-        document.addEventListener('DOMContentLoaded', function() {
-            // Находим все ссылки, которые начинаются с #
-            const links = document.querySelectorAll('a[href^="#"]');
-            
-            links.forEach(anchor => {
-                anchor.addEventListener('click', function(e) {
-                    e.preventDefault();
+    // Плавный скролл к секциям (с учётом высоты шапки)
+    document.addEventListener('DOMContentLoaded', function() {
+        const links = document.querySelectorAll('a[href^="#"]');
+        const navbar = document.getElementById('promo-navbar');
+        
+        links.forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href').substring(1);
+                const targetElement = document.getElementById(targetId);
+                
+                if (targetElement) {
+                    // Высота шапки
+                    const navbarHeight = navbar ? navbar.offsetHeight : 0;
+                    // Позиция целевого элемента
+                    const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - navbarHeight;
                     
-                    // Получаем ID цели (убираем # из href)
-                    const targetId = this.getAttribute('href').substring(1);
-                    const targetElement = document.getElementById(targetId);
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
                     
-                    if (targetElement) {
-                        targetElement.scrollIntoView({ 
-                            behavior: 'smooth', 
-                            block: 'start' 
-                        });
-                        
-                        // Меняем URL без перезагрузки (опционально)
-                        history.pushState(null, null, `#${targetId}`);
-                    } else {
-                        console.warn(`Элемент с id "${targetId}" не найден`);
-                    }
-                });
+                    history.pushState(null, null, `#${targetId}`);
+                }
             });
         });
-    </script>
+    });
+</script>
 
 
 <script>
