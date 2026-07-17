@@ -22,9 +22,13 @@
     <nav class="navbar navbar-light bg-white border-bottom">
         <div class="container">
             <a class="navbar-brand" href="{% url 'home' %}">
-                <i class="fas fa-calendar-check me-2" style="color: #7c3aed;"></i>
-                <span class="fw-bold">ДАТЫ</span>
+                <i class="fas fa-calendar-check me-2" style="color: var(--primary);"></i>
+                <span class="fw-bold" style="font-family: 'Nunito', system-ui, sans-serif;">ДАТЫ</span>
             </a>
+            <!-- Можно добавить кнопку "Войти" для мастера -->
+            {% if not user.is_authenticated %}
+                <a href="{% url 'home' %}" class="btn btn-outline-primary btn-sm">Войти</a>
+            {% endif %}
         </div>
     </nav>
 

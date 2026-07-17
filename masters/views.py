@@ -617,7 +617,8 @@ def get_master_categories(request, login):
                 'name': s.name,
                 'description': s.description,
                 'duration': s.duration,
-                'price': float(s.price)
+                'price': float(s.price),
+                'category_name': cat.name,
             } for s in services]
         })
     
@@ -628,7 +629,8 @@ def get_master_categories(request, login):
             'name': s.name,
             'description': s.description,
             'duration': s.duration,
-            'price': float(s.price)
+            'price': float(s.price),
+            'category_name': None,
         } for s in uncategorized]
     }) 
 
@@ -2000,21 +2002,61 @@ import json
 #     })
 
 
+# def get_available_dates(request, login):
+#     """API для получения доступных дат (поддерживает как одну услугу, так и суммарную длительность)"""
+#     try:
+#         master = get_object_or_404(Master, login=login)
+#         service_id = request.GET.get('service_id')
+#         total_duration = request.GET.get('total_duration')
+        
+#         # Определяем длительность для поиска слотов
+#         duration = None
+        
+#         if total_duration:
+#             # Новый режим: множественный выбор услуг
+#             duration = int(total_duration)
+#         elif service_id:
+#             # Старый режим: одна услуга
+#             try:
+#                 service = Service.objects.get(id=service_id, master=master)
+#                 duration = service.duration
+#             except Service.DoesNotExist:
+#                 return JsonResponse({'error': 'Услуга не найдена'}, status=404)
+#         else:
+#             return JsonResponse({'error': 'Выберите услугу или укажите общую длительность'}, status=400)
+        
+#         calculator = ScheduleCalculator(master)
+#         available_dates = calculator.get_available_dates(
+#             days_ahead=60,
+#             min_service_duration=duration
+#         )
+        
+#         dates_list = [{
+#             'date': d.strftime('%Y-%m-%d'),
+#             'display': f"{d.day} {get_month_ru(d)}",
+#             'day_of_week': get_weekday_ru(d)
+#         } for d in available_dates]
+        
+#         return JsonResponse({'dates': dates_list})
+        
+#     except Exception as e:
+#         import traceback
+#         traceback.print_exc()
+#         return JsonResponse({'error': str(e)}, status=500)
+
 def get_available_dates(request, login):
-    """API для получения доступных дат (поддерживает как одну услугу, так и суммарную длительность)"""
     try:
         master = get_object_or_404(Master, login=login)
         service_id = request.GET.get('service_id')
         total_duration = request.GET.get('total_duration')
+        page = int(request.GET.get('page', 1))
+        limit = int(request.GET.get('limit', 30))
         
-        # Определяем длительность для поиска слотов
         duration = None
         
         if total_duration:
-            # Новый режим: множественный выбор услуг
             duration = int(total_duration)
         elif service_id:
-            # Старый режим: одна услуга
             try:
                 service = Service.objects.get(id=service_id, master=master)
                 duration = service.duration
@@ -2024,24 +2066,38 @@ def get_available_dates(request, login):
             return JsonResponse({'error': 'Выберите услугу или укажите общую длительность'}, status=400)
         
         calculator = ScheduleCalculator(master)
-        available_dates = calculator.get_available_dates(
-            days_ahead=60,
+        
+        # Получаем все даты (без пагинации)
+        all_dates = calculator.get_available_dates(
+            days_ahead=180,
             min_service_duration=duration
         )
         
+        # Пагинация вручную
+        total = len(all_dates)
+        start = (page - 1) * limit
+        end = start + limit
+        dates_page = all_dates[start:end]
+        has_more = end < total
+        
         dates_list = [{
             'date': d.strftime('%Y-%m-%d'),
-            'display': f"{d.day} {get_month_ru(d)} {d.year}",
+            'display': f"{d.day} {get_month_ru(d)}",
             'day_of_week': get_weekday_ru(d)
-        } for d in available_dates]
+        } for d in dates_page]
         
-        return JsonResponse({'dates': dates_list})
+        return JsonResponse({
+            'dates': dates_list,
+            'total': total,
+            'page': page,
+            'limit': limit,
+            'has_more': has_more
+        })
         
     except Exception as e:
         import traceback
         traceback.print_exc()
         return JsonResponse({'error': str(e)}, status=500)
-
 
 
 def get_available_slots(request, login):

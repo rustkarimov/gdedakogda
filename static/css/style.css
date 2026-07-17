@@ -9028,6 +9028,497 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
 
 
+/* ============================================================ */
+/* ========== ПУБЛИЧНАЯ СТРАНИЦА (master_page.html) ========== */
+/* ============================================================ */
+
+/* --- Общие карточки --- */
+.service-card, .date-card, .slot-card {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.service-card:hover, .date-card:hover, .slot-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(139, 92, 246, 0.12);
+}
+
+/* --- Выделение выбранной услуги --- */
+.border-pink {
+    border: 2px solid var(--primary) !important;
+    background-color: var(--primary-light) !important;
+}
+
+/* --- Крестик на выбранной услуге --- */
+/* --- Крестик на выбранной услуге — без трансформ --- */
+.service-close-btn {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: white;
+    color: #dc2626;
+    border: 1px solid #dc2626;;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    z-index: 10;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    padding: 0;
+}
+
+.service-close-btn:hover {
+    background: #f8d6d6;
+    color: #dc2626;
+    border-color: #dc2626;
+    /* без scale */
+}
+
+/* --- Карточки дат и времени --- */
+.slot-card .card-body, .date-card .card-body {
+    padding: 8px !important;
+}
+
+/* --- Анимации --- */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+#date-card, #time-card, #booking-card, #confirmation-card {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.services-cart {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+/* --- Корзина --- */
+.cart-item {
+    transition: all 0.2s ease;
+}
+
+.cart-item:hover {
+    background-color: #e9ecef !important;
+}
+
+.btn-outline-danger {
+    border-radius: 20px;
+    padding: 2px 8px;
+}
+
+/* ============================================================ */
+/* ========== КАТЕГОРИИ И УСЛУГИ ========== */
+/* ============================================================ */
+
+/* Категория — группа с разделителем */
+.public-category-group {
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.public-category-group:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+/* Название категории */
+.public-category-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 12px;
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+}
+
+.public-category-title .badge {
+    font-weight: 400;
+    font-size: 0.6rem;
+    background: var(--gray-100);
+    color: var(--gray-500);
+}
+
+/* Карточка услуги на публичной странице */
+.public-service-card {
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 12px 14px;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    background: white;
+    cursor: pointer;
+    height: 100%;
+}
+
+.public-service-card:hover {
+    border-color: var(--primary-light);
+    background: var(--primary-lighter);
+    /* без translateY */
+}
+
+.public-service-card.selected {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.08);
+}
+
+/* ============================================================ */
+/* ========== ЯКОРЯ КАТЕГОРИЙ ========== */
+/* ============================================================ */
+
+.category-anchors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.category-anchor {
+    display: inline-block;
+    padding: 6px 16px;
+    background: var(--gray-100);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--gray-600);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.category-anchor:hover {
+    background: var(--primary-light);
+    color: var(--primary);
+    border-color: var(--primary-light);
+}
+
+.category-anchor:active {
+    transform: scale(0.97);
+}
+
+
+.date-card, .slot-card {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    background: white;
+}
+
+.date-card:hover, .slot-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.date-card .card-body, .slot-card .card-body {
+    padding: 10px 8px !important;
+}
+
+.date-card .small {
+    font-size: 0.65rem;
+    color: var(--gray-500);
+}
+
+.date-card .fw-bold {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.slot-card .card-body {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--gray-700);
+}
+
+
+/* ============================================================ */
+/* ========== КНОПКА "ПОКАЗАТЬ ЕЩЁ" (ДАТЫ) ========== */
+/* ============================================================ */
+
+#load-more-dates {
+    padding: 8px 0;
+}
+
+#load-more-dates .btn-outline-primary {
+    border: 1px solid var(--primary);
+    color: var(--primary);
+    background: transparent;
+    padding: 6px 20px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+#load-more-dates .btn-outline-primary:hover {
+    background: var(--primary-gradient);
+    border-color: transparent;
+    color: white;
+}
+
+#load-more-dates .btn-outline-primary:active {
+    transform: scale(0.97);
+}
+
+
+/* ============================================================ */
+/* ========== ИТОГОВАЯ ИНФОРМАЦИЯ В ШАГЕ 4 ========== */
+/* ============================================================ */
+
+/* ============================================================ */
+/* ========== ИТОГОВАЯ ИНФОРМАЦИЯ В ШАГЕ 4 ========== */
+/* ============================================================ */
+
+.booking-summary-services {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.booking-summary-service {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+    background: var(--gray-50);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    border: 1px solid var(--gray-100);
+}
+
+.booking-summary-service .service-name {
+    font-weight: 500;
+    color: #1a1a2e;
+}
+
+.booking-summary-service .service-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--gray-500);
+    font-size: 0.8rem;
+}
+
+.booking-summary-service .remove-service-btn {
+    background: transparent;
+    border: none;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 0 4px;
+    font-size: 0.9rem;
+    transition: color 0.15s ease;
+}
+
+.booking-summary-service .remove-service-btn:hover {
+    color: #dc2626;
+}
+
+.booking-summary-item {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 12px;
+    background: var(--gray-50);
+    border-radius: 8px;
+    border: 1px solid var(--gray-100);
+}
+
+.booking-summary-label {
+    font-size: 0.65rem;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.booking-summary-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.booking-summary-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #1a1a2e;
+    border-top: 2px solid var(--gray-200);
+}
+
+.booking-summary-total span:last-child {
+    color: var(--primary);
+}
+
+#booking-form .btn-pink {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+}
+
+/* Мобильная версия */
+@media (max-width: 768px) {
+    .booking-summary-service {
+        font-size: 0.8rem;
+        padding: 6px 8px;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    
+    .booking-summary-service .service-meta {
+        font-size: 0.7rem;
+        gap: 8px;
+    }
+    
+    .booking-summary-item {
+        padding: 6px 10px;
+    }
+    
+    .booking-summary-value {
+        font-size: 0.85rem;
+    }
+    
+    .booking-summary-total {
+        font-size: 0.95rem;
+    }
+}
 
 
 
+/* ============================================================ */
+/* ========== МОБИЛЬНАЯ ВЕРСИЯ ========== */
+/* ============================================================ */
+
+@media (max-width: 768px) {
+    .public-category-group {
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+    }
+    
+    .public-category-title {
+        font-size: 0.7rem;
+        letter-spacing: 0.3px;
+        margin-bottom: 10px;
+    }
+    
+    .public-service-card {
+        padding: 10px 12px;
+    }
+
+    .category-anchors {
+        gap: 6px;
+        margin-bottom: 14px;
+        padding-bottom: 12px;
+    }
+    
+    .category-anchor {
+        font-size: 0.7rem;
+        padding: 4px 12px;
+    }
+
+        /* Даты — по 3 в ряд */
+    #dates-container .col-4 {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+        padding: 0 4px;
+    }
+    
+    .date-card .card-body {
+        padding: 6px 4px !important;
+    }
+    
+    .date-card .small {
+        font-size: 0.5rem;
+    }
+    
+    .date-card .fw-bold {
+        font-size: 0.7rem;
+    }
+    
+    /* Время — по 4 в ряд */
+    #slots-container .col-3 {
+        flex: 0 0 25%;
+        max-width: 25%;
+        padding: 0 4px;
+    }
+    
+    .slot-card .card-body {
+        padding: 6px 4px !important;
+        font-size: 0.7rem;
+    }
+
+    .booking-summary-service {
+        font-size: 0.8rem;
+        padding: 6px 8px;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+    
+    .booking-summary-service .service-meta {
+        font-size: 0.7rem;
+        gap: 8px;
+    }
+    
+    .booking-summary-item {
+        padding: 6px 10px;
+    }
+    
+    .booking-summary-value {
+        font-size: 0.85rem;
+    }
+    
+    .booking-summary-total {
+        font-size: 0.95rem;
+    }
+}
+
+@media (max-width: 480px) {
+    /* Даты — по 3 в ряд */
+    #dates-container .col-4 {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+    }
+    
+    .date-card .small {
+        font-size: 0.45rem;
+    }
+    
+    .date-card .fw-bold {
+        font-size: 0.65rem;
+    }
+    
+    /* Время — по 3 в ряд */
+    #slots-container .col-3 {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+    }
+    
+    .slot-card .card-body {
+        font-size: 0.65rem;
+        padding: 4px 2px !important;
+    }
+}
