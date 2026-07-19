@@ -3,11 +3,11 @@
 /* ============================================================ */
 
 :root {
-    --primary: #8b5cf6;
-    --primary-dark: #7c3aed;
-    --primary-light: #ede9fe;
-    --primary-lighter: #f5f3ff;
-    --primary-gradient: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 50%, #c4b5fd 100%);
+    --primary: #4053d3 !important;           
+    --primary-dark: #6b7bc6 !important;
+    --primary-light: #e0e5ff !important;
+    --primary-lighter: #f0f2ff !important;
+    --primary-gradient: linear-gradient(135deg, #6c7bdb 0%, #8b9af0 50%, #a8b4f5 100%) !important;
     --accent: #f59e0b;
     --accent-light: #fef3c7;
     --success: #10b981;
@@ -565,6 +565,8 @@ body {
     transform: translate(-50%, -50%) scale(1) rotate(0deg) !important;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
 }
+
+
 
 /* Каждая карточка получает свой z-index и смещение (размашисто) */
 
@@ -9522,3 +9524,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         padding: 4px 2px !important;
     }
 }
+
+
+
+
