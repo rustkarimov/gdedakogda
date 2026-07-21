@@ -18,3 +18,8 @@ db.sqlite3-journal
 *.swp
 *.swo
 *~
+
+# .gitignore
+.env
+*.env
+.env.*
