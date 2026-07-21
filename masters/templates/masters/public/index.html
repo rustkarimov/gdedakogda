@@ -16,63 +16,54 @@
 
 
 <!-- Hero секция -->
+<!-- Hero секция -->
+<!-- Hero секция -->
 <div id="hero" class="hero-section">
     <div class="container">
         <div class="row align-items-center">
-            <!-- Левая колонка -->
+            <!-- Левая колонка: текст -->
             <div class="col-lg-6 hero-content">
-
                 <h1 class="hero-title">
-                    Твои клиенты запишутся
-                    <br>
+                    Твои клиенты запишутся<br>
                     <span class="hero-title-highlight">в 2 клика</span>
                 </h1>
                 <p class="hero-description">
-                    Система записи для самозанятых, фрилансеров, мастеров, индивидуальных предпринимателей
+                    Сервис для самозанятых, фрилансеров, мастеров
                 </p>
                 <div class="hero-buttons">
                     <a href="#" class="btn btn-primary-gradient btn-lg" data-bs-toggle="modal" data-bs-target="#registerModal">
                         Начать бесплатно
                         <i class="fas fa-arrow-right ms-2"></i>
                     </a>
-        
                 </div>
-                
             </div>
-            <!-- Правая колонка: колода карточек -->
+            <!-- Правая колонка: смартфон -->
             <div class="col-lg-6 hero-image">
-                <div class="card-deck" id="cardDeck">
-                    <!-- 6 карточек разного цвета -->
-
-                    <div class="deck-card" style="transform: rotate(-6deg) translateX(-8px) translateY(-4px);">
-                        <img src="{% static 'images/nail.webp' %}" alt="Скриншот" style="width: 100%; height: 100%; object-fit: cover; border-radius: 28px;">
+                <div class="hero-phone-wrapper">
+                    <div class="hero-phone">
+                        <!-- Чёлка -->
+                        <div class="hero-notch">
+                            <div class="hero-notch-camera"></div>
+                            <div class="hero-notch-speaker"></div>
+                        </div>
+                        <!-- Экран -->
+                        <div class="hero-screen" id="heroScreen">
+                            <img src="{% static 'images/screens/dashboard.png' %}" alt="Дашборд" class="hero-screenshot active" data-index="0">
+                            <img src="{% static 'images/screens/calendar.png' %}" alt="Календарь" class="hero-screenshot" data-index="1">
+                            <img src="{% static 'images/screens/booking.png' %}" alt="Запись" class="hero-screenshot" data-index="2">
+                        </div>
+                        <!-- Домашняя кнопка -->
+                        <div class="hero-home-button"></div>
+                        <!-- Боковые кнопки -->
+                        <div class="hero-side-button hero-side-top"></div>
+                        <div class="hero-side-button hero-side-bottom"></div>
                     </div>
-
-                    <div class="deck-card" style="transform: rotate(-6deg) translateX(-8px) translateY(-4px);">
-                        <img src="{% static 'images/makeup.webp' %}" alt="Скриншот" style="width: 100%; height: 100%; object-fit: cover; border-radius: 28px;">
+                    <!-- Индикаторы -->
+                    <div class="hero-phone-indicators">
+                        <span class="hero-phone-dot active" data-index="0"></span>
+                        <span class="hero-phone-dot" data-index="1"></span>
+                        <span class="hero-phone-dot" data-index="2"></span>
                     </div>
-
-                    <div class="deck-card" style="transform: rotate(-6deg) translateX(-8px) translateY(-4px);">
-                        <img src="{% static 'images/fit.webp' %}" alt="Скриншот" style="width: 100%; height: 100%; object-fit: cover; border-radius: 28px;">
-                    </div>
-
-                    <div class="deck-card" style="transform: rotate(-6deg) translateX(-8px) translateY(-4px);">
-                        <img src="{% static 'images/mechanic.webp' %}" alt="Скриншот" style="width: 100%; height: 100%; object-fit: cover; border-radius: 28px;">
-                    </div>
-
-                    <div class="deck-card" style="transform: rotate(-6deg) translateX(-8px) translateY(-4px);">
-                        <img src="{% static 'images/dentist.webp' %}" alt="Скриншот" style="width: 100%; height: 100%; object-fit: cover; border-radius: 28px;">
-                    </div>
-
-                    
-
-                    
-
-                    <div class="deck-card" style="transform: rotate(-6deg) translateX(-8px) translateY(-4px);">
-                        <img src="{% static 'images/fit.webp' %}" alt="Скриншот" style="width: 100%; height: 100%; object-fit: cover; border-radius: 28px;">
-                    </div>
-
-                    <!-- <div class="deck-card" style="background: linear-gradient(135deg, #8b5cf6, #a78bfa); transform: rotate(2deg) translateX(14px) translateY(-6px);"></div> -->
                 </div>
             </div>
         </div>
@@ -290,78 +281,44 @@
             <p class="section-subtitle">Сервис для мастеров, которые ценят своё время</p>
         </div>
         <div class="row g-3 categories-grid justify-content-center">
-            <!-- 1. Парикмахер -->
-            <div class="col-6 col-md-4 col-lg-3">
-                <div class="category-card">
-                    <div class="category-icon">
-                        <i class="fas fa-cut"></i>
+            <div class="mosaic-grid">
+                    <div class="mosaic-item mosaic-item-1">
+                        <img src="{% static 'images/nail.webp' %}" alt="Мастер">
+                        <div class="mosaic-overlay">
+                            <span class="mosaic-name">Маникюр</span>
+                        </div>
                     </div>
-                    <span class="category-name">Парикмахер</span>
-                </div>
-            </div>
-            <!-- 2. Автомеханик -->
-            <div class="col-6 col-md-4 col-lg-3">
-                <div class="category-card">
-                    <div class="category-icon">
-                        <i class="fas fa-wrench"></i>
+                    <div class="mosaic-item mosaic-item-2">
+                        <img src="{% static 'images/dentist.webp' %}" alt="Мастер">
+                        <div class="mosaic-overlay">
+                            <span class="mosaic-name">Стоматолог</span>
+                        </div>
                     </div>
-                    <span class="category-name">Автомеханик</span>
-                </div>
-            </div>
-            <!-- 3. Стоматолог -->
-            <div class="col-6 col-md-4 col-lg-3">
-                <div class="category-card">
-                    <div class="category-icon">
-                        <i class="fas fa-tooth"></i>
+                    <div class="mosaic-item mosaic-item-3">
+                        <img src="{% static 'images/mechanic.webp' %}" alt="Мастер">
+                        <div class="mosaic-overlay">
+                            <span class="mosaic-name">Автомеханик</span>
+                        </div>
                     </div>
-                    <span class="category-name">Стоматолог</span>
-                </div>
-            </div>
-            <!-- 4. Тренер -->
-            <div class="col-6 col-md-4 col-lg-3">
-                <div class="category-card">
-                    <div class="category-icon">
-                        <i class="fas fa-dumbbell"></i>
+                    <div class="mosaic-item mosaic-item-4">
+                        <img src="{% static 'images/fit.webp' %}" alt="Мастер">
+                        <div class="mosaic-overlay">
+                            <span class="mosaic-name">Тренер</span>
+                        </div>
                     </div>
-                    <span class="category-name">Тренер</span>
-                </div>
-            </div>
-            <!-- 5. Репетитор -->
-            <div class="col-6 col-md-4 col-lg-3">
-                <div class="category-card">
-                    <div class="category-icon">
-                        <i class="fas fa-graduation-cap"></i>
+                    <div class="mosaic-item mosaic-item-5">
+                        <img src="{% static 'images/makeup.webp' %}" alt="Мастер">
+                        <div class="mosaic-overlay">
+                            <span class="mosaic-name">Визажист</span>
+                        </div>
                     </div>
-                    <span class="category-name">Репетитор</span>
-                </div>
-            </div>
-            <!-- 6. Косметолог -->
-            <div class="col-6 col-md-4 col-lg-3">
-                <div class="category-card">
-                    <div class="category-icon">
-                        <i class="fas fa-spa"></i>
+                    <div class="mosaic-item mosaic-item-6">
+                        <img src="{% static 'images/barber.webp' %}" alt="Мастер">
+                        <div class="mosaic-overlay">
+                            <span class="mosaic-name">Барбер</span>
+                        </div>
                     </div>
-                    <span class="category-name">Косметолог</span>
                 </div>
-            </div>
-            <!-- 7. Фотограф -->
-            <div class="col-6 col-md-4 col-lg-3">
-                <div class="category-card">
-                    <div class="category-icon">
-                        <i class="fas fa-camera"></i>
-                    </div>
-                    <span class="category-name">Фотограф</span>
-                </div>
-            </div>
-            <!-- 8. Швея -->
-            <div class="col-6 col-md-4 col-lg-3">
-                <div class="category-card">
-                    <div class="category-icon">
-                        <i class="fas fa-tshirt"></i>
-                    </div>
-                    <span class="category-name">Швея</span>
-                </div>
-            </div>
         </div>
     </div>
 </section>
@@ -624,57 +581,52 @@
 
 
 
-
 <script>
 // ============================================================
-// АНИМАЦИЯ КОЛОДЫ КАРТОЧЕК (тасование)
+// АНИМАЦИЯ СМАРТФОНА В HERO
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
-    const cards = document.querySelectorAll('.deck-card');
+    const screens = document.querySelectorAll('.hero-screenshot');
+    const dots = document.querySelectorAll('.hero-phone-dot');
     let currentIndex = 0;
     let interval;
 
-    // Функция обновления активной карточки
-    function setActiveCard(index) {
-        cards.forEach((card, i) => {
-            card.classList.remove('active');
-            // Возвращаем базовое смещение для неактивных карточек
-            if (i !== index) {
-                // Сброс стилей, чтобы работали nth-child
-                card.style.transform = '';
-            }
+    function showScreen(index) {
+        screens.forEach((s, i) => {
+            s.classList.toggle('active', i === index);
         });
-        cards[index].classList.add('active');
+        dots.forEach((d, i) => {
+            d.classList.toggle('active', i === index);
+        });
         currentIndex = index;
     }
 
-    function nextCard() {
-        const nextIndex = (currentIndex + 1) % cards.length;
-        setActiveCard(nextIndex);
+    function nextScreen() {
+        showScreen((currentIndex + 1) % screens.length);
     }
 
-    function startAnimation() {
+    function startSlider() {
         if (interval) clearInterval(interval);
-        setActiveCard(0);
-        interval = setInterval(nextCard, 2500);
+        interval = setInterval(nextScreen, 3000);
     }
 
-    function stopAnimation() {
-        if (interval) {
+    // Клик по точкам
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', function() {
             clearInterval(interval);
-            interval = null;
-        }
-    }
+            showScreen(index);
+            setTimeout(startSlider, 3000);
+        });
+    });
 
-    // Старт
-    startAnimation();
+    showScreen(0);
+    startSlider();
 
-    // Останавливаем анимацию, если страница не видна
     document.addEventListener('visibilitychange', function() {
         if (document.hidden) {
-            stopAnimation();
+            clearInterval(interval);
         } else {
-            startAnimation();
+            startSlider();
         }
     });
 });
