@@ -1615,13 +1615,19 @@ body {
 /* ========== МОЗАИЧНАЯ СЕТКА (без дёрганья) ========== */
 /* ============================================================ */
 
+/* ============================================================ */
+/* ========== МОЗАИЧНАЯ СЕТКА (БЕЗ ТРАНСФОРМАЦИЙ) ========== */
+/* ============================================================ */
+
 .mosaic-grid {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     grid-template-rows: auto auto;
-    gap: 12px;
-    max-width: 450px;
+    gap: 16px;
+    width: 100%;
+    max-width: 700px;
     margin: 0 auto;
+    padding: 0 20px;
 }
 
 .mosaic-item {
@@ -1630,39 +1636,36 @@ body {
     overflow: hidden;
     aspect-ratio: 3 / 4;
     cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    will-change: transform;
-    backface-visibility: hidden;
+    transition: box-shadow 0.3s ease, outline 0.3s ease, opacity 0.3s ease;
+    outline: 2px solid transparent;
+    outline-offset: -2px;
 }
 
 .mosaic-item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    display: block;
 }
 
-/* Фикс для дёрганья: scale без сдвига соседей */
+/* Активная карточка — рамка + тень */
 .mosaic-item:hover {
-    transform: scale(1.04);
+    outline-offset: -3px;
     z-index: 10;
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 12px 40px rgba(64, 83, 211, 0.15);
 }
 
-/* Затемнение всех карточек при наведении на сетку */
+/* Затемнение остальных */
 .mosaic-grid:hover .mosaic-item:not(:hover) {
     opacity: 0.5;
-    transform: scale(0.97);
 }
 
-.mosaic-item:hover img {
-    transform: scale(1.05);
-}
-
+/* Размеры ячеек */
 .mosaic-item-1 {
     grid-column: 1 / 2;
     grid-row: 1 / 3;
     aspect-ratio: auto;
+    min-height: 300px;
 }
 
 .mosaic-item-2 {
@@ -1694,7 +1697,7 @@ body {
     padding: 20px 16px 16px;
     background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
     opacity: 0;
-    transition: opacity 0.4s ease;
+    transition: opacity 0.3s ease;
     pointer-events: none;
 }
 
@@ -7176,6 +7179,45 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
     color: white;
+}
+
+/* Базовые стили для всех кнопок в футере модалок */
+.modal-footer .btn {
+    min-width: 120px;
+    justify-content: center;
+    transition: none !important;
+}
+
+.modal-footer .btn:disabled {
+    opacity: 0.7;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Для главных кнопок (Сохранить) во всех модалках — чуть шире */
+#scheduleModal .modal-footer .btn-pink,
+#extraDayModal .modal-footer .btn-pink,
+#dayOffModal .modal-footer .btn-pink,
+#serviceModal .modal-footer .btn-pink,
+#categoryModal .modal-footer .btn-pink {
+    min-width: 150px;
+}
+
+/* Мобильная версия */
+@media (max-width: 576px) {
+    .modal-footer .btn {
+        min-width: 100px;
+        font-size: 0.85rem;
+        padding: 8px 12px;
+    }
+    
+    #scheduleModal .modal-footer .btn-pink,
+    #extraDayModal .modal-footer .btn-pink,
+    #dayOffModal .modal-footer .btn-pink,
+    #serviceModal .modal-footer .btn-pink,
+    #categoryModal .modal-footer .btn-pink {
+        min-width: 130px;
+    }
 }
 
 /* ============================================================ */

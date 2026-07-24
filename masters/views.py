@@ -16,6 +16,9 @@ from .models import ExtraWorkingDay, ExtraWorkingDayBreak
 
 
 from .utils.schedule_utils import ScheduleCalculator
+from .utils.response_utils import api_success, api_error
+
+
 from datetime import datetime, timedelta, date
 import random
 import json
@@ -465,54 +468,100 @@ def services(request):
 @login_required
 @require_http_methods(["POST"])
 def api_add_service(request):
-    master = request.user.master
-    data = json.loads(request.body)
-    
-    category_id = data.get('category_id')
-    category = None
-    if category_id:
-        category = get_object_or_404(ServiceCategory, id=category_id, master=master)
-    
-    service = Service.objects.create(
-        master=master,
-        category=category,
-        name=data.get('name'),
-        description=data.get('description', ''),
-        duration=data.get('duration'),
-        price=data.get('price'),
-        is_active=data.get('is_active', True)
-    )
-    return JsonResponse({'success': True, 'service_id': service.id})
+    try:
+        master = request.user.master
+        data = json.loads(request.body)
+        
+        # Валидация
+        if not data.get('name'):
+            return api_error('Название услуги обязательно', status=400)
+        if not data.get('duration'):
+            return api_error('Длительность обязательна', status=400)
+        if not data.get('price'):
+            return api_error('Цена обязательна', status=400)
+        
+        category_id = data.get('category_id')
+        category = None
+        if category_id:
+            try:
+                category = ServiceCategory.objects.get(id=category_id, master=master)
+            except ServiceCategory.DoesNotExist:
+                return api_error('Категория не найдена', status=404)
+        
+        service = Service.objects.create(
+            master=master,
+            category=category,
+            name=data.get('name'),
+            description=data.get('description', ''),
+            duration=data.get('duration'),
+            price=data.get('price'),
+            is_active=data.get('is_active', True)
+        )
+        
+        return api_success({'service_id': service.id})
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except Exception as e:
+        return api_error('Ошибка при создании услуги', status=500)
 
 @login_required
 @require_http_methods(["POST"])
 def api_edit_service(request, service_id):
-    service = get_object_or_404(Service, id=service_id, master=request.user.master)
-    data = json.loads(request.body)
-    
-    category_id = data.get('category_id')
-    category = None
-    if category_id:
-        category = get_object_or_404(ServiceCategory, id=category_id, master=request.user.master)
-    
-    service.category = category
-    service.name = data.get('name')
-    service.description = data.get('description', '')
-    service.duration = data.get('duration')
-    service.price = data.get('price')
-    service.is_active = data.get('is_active', True)
-    service.save()
-    
-    return JsonResponse({'success': True})
+    try:
+        # Проверка существования услуги
+        try:
+            service = Service.objects.get(id=service_id, master=request.user.master)
+        except Service.DoesNotExist:
+            return api_error('Услуга не найдена', status=404)
+        
+        data = json.loads(request.body)
+        
+        # Валидация обязательных полей
+        if not data.get('name'):
+            return api_error('Название услуги обязательно', status=400)
+        if not data.get('duration'):
+            return api_error('Длительность обязательна', status=400)
+        if not data.get('price'):
+            return api_error('Цена обязательна', status=400)
+        
+        # Проверка категории
+        category_id = data.get('category_id')
+        category = None
+        if category_id:
+            try:
+                category = ServiceCategory.objects.get(id=category_id, master=request.user.master)
+            except ServiceCategory.DoesNotExist:
+                return api_error('Категория не найдена', status=404)
+        
+        # Обновляем услугу
+        service.category = category
+        service.name = data.get('name')
+        service.description = data.get('description', '')
+        service.duration = data.get('duration')
+        service.price = data.get('price')
+        service.is_active = data.get('is_active', True)
+        service.save()
+        
+        return api_success({'message': 'Услуга обновлена'})
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except Exception as e:
+        return api_error('Ошибка при обновлении услуги', status=500)
 
 @login_required
 @require_http_methods(["POST"])
 def api_delete_service(request, service_id):
-    """API удаления услуги"""
-    service = get_object_or_404(Service, id=service_id, master=request.user.master)
-    service.delete()
-    
-    return JsonResponse({'success': True})
+    try:
+        service = Service.objects.get(id=service_id, master=request.user.master)
+        service.delete()
+        return api_success({'message': 'Услуга удалена'})
+    except Service.DoesNotExist:
+        return api_error('Услуга не найдена', status=404)
+    except Exception as e:
+        # Логируем реальную ошибку (можно добавить позже)
+        return api_error('Ошибка при удалении услуги', status=500)
 
 
 @login_required
@@ -554,48 +603,82 @@ def get_categories(request):
 @login_required
 @require_http_methods(["POST"])
 def api_add_category(request):
-    master = request.user.master
-    data = json.loads(request.body)
-    
-    category = ServiceCategory.objects.create(
-        master=master,
-        name=data.get('name'),
-        order=data.get('order', 0)
-    )
-    return JsonResponse({'success': True, 'id': category.id})
+    try:
+        master = request.user.master
+        data = json.loads(request.body)
+        
+        if not data.get('name'):
+            return api_error('Название категории обязательно', status=400)
+        
+        category = ServiceCategory.objects.create(
+            master=master,
+            name=data.get('name'),
+            order=data.get('order', 0)
+        )
+        
+        return api_success({'id': category.id})
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except Exception as e:
+        return api_error('Ошибка при создании категории', status=500)
 
 @login_required
 @require_http_methods(["POST"])
 def api_edit_category(request, category_id):
-    category = get_object_or_404(ServiceCategory, id=category_id, master=request.user.master)
-    data = json.loads(request.body)
-    
-    category.name = data.get('name')
-    category.order = data.get('order', 0)
-    category.save()
-    return JsonResponse({'success': True})
+    try:
+        try:
+            category = ServiceCategory.objects.get(id=category_id, master=request.user.master)
+        except ServiceCategory.DoesNotExist:
+            return api_error('Категория не найдена', status=404)
+        
+        data = json.loads(request.body)
+        
+        if not data.get('name'):
+            return api_error('Название категории обязательно', status=400)
+        
+        category.name = data.get('name')
+        category.order = data.get('order', 0)
+        category.save()
+        
+        return api_success({'message': 'Категория обновлена'})
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except Exception as e:
+        return api_error('Ошибка при обновлении категории', status=500)
+
 
 @login_required
 @require_http_methods(["POST"])
 def api_delete_category(request, category_id):
-    category = get_object_or_404(ServiceCategory, id=category_id, master=request.user.master)
-    # Услуги остаются, категория становится null
-    Service.objects.filter(category=category).update(category=None)
-    category.delete()
-    return JsonResponse({'success': True})
+    try:
+        category = ServiceCategory.objects.get(id=category_id, master=request.user.master)
+        Service.objects.filter(category=category).update(category=None)
+        category.delete()
+        return api_success({'message': 'Категория удалена'})
+    except ServiceCategory.DoesNotExist:
+        return api_error('Категория не найдена', status=404)
+    except Exception as e:
+        return api_error('Ошибка при удалении категории', status=500)
 
 @login_required
 def api_get_service(request, service_id):
-    service = get_object_or_404(Service, id=service_id, master=request.user.master)
-    return JsonResponse({
-        'id': service.id,
-        'name': service.name,
-        'description': service.description,
-        'duration': service.duration,
-        'price': float(service.price),
-        'is_active': service.is_active,
-        'category_id': service.category_id
-    }) 
+    try:
+        service = Service.objects.get(id=service_id, master=request.user.master)
+        return api_success({
+            'id': service.id,
+            'name': service.name,
+            'description': service.description,
+            'duration': service.duration,
+            'price': float(service.price),
+            'is_active': service.is_active,
+            'category_id': service.category_id
+        })
+    except Service.DoesNotExist:
+        return api_error('Услуга не найдена', status=404)
+    except Exception as e:
+        return api_error('Ошибка при загрузке услуги', status=500)
 
 def get_master_categories(request, login):
     """API для получения категорий конкретного мастера по логину"""
@@ -650,231 +733,281 @@ import json
 @login_required
 @require_http_methods(["POST"])
 def api_add_schedule(request):
-    """API добавления расписания"""
-    master = request.user.master
-    data = json.loads(request.body)
-    
-    day_of_week = data.get('day_of_week')
-    start_time = data.get('start_time')
-    end_time = data.get('end_time')
-    breaks = data.get('breaks', [])
-    
-    # Проверяем, не существует ли уже
-    if Schedule.objects.filter(master=master, day_of_week=day_of_week).exists():
-        return JsonResponse({'error': 'Расписание для этого дня уже существует'}, status=400)
-    
-    # Создаем расписание
-    schedule = Schedule.objects.create(
-        master=master,
-        day_of_week=day_of_week,
-        start_time=datetime.strptime(start_time, '%H:%M').time(),
-        end_time=datetime.strptime(end_time, '%H:%M').time()
-    )
-    
-    # Добавляем перерывы
-    for break_data in breaks:
-        if break_data.get('start') and break_data.get('end'):
-            Break.objects.create(
-                schedule=schedule,
-                start_time=datetime.strptime(break_data['start'], '%H:%M').time(),
-                end_time=datetime.strptime(break_data['end'], '%H:%M').time()
-            )
-    
-    return JsonResponse({
-        'success': True,
-        'message': 'Расписание добавлено',
-        'schedule': {
-            'id': schedule.id,
-            'day_of_week': schedule.day_of_week,
-            'day_name': schedule.get_day_of_week_display(),
-            'start_time': schedule.start_time.strftime('%H:%M'),
-            'end_time': schedule.end_time.strftime('%H:%M'),
-            'breaks': [{
-                'start': b.start_time.strftime('%H:%M'),
-                'end': b.end_time.strftime('%H:%M')
-            } for b in schedule.breaks.all()]
-        }
-    })
+    try:
+        master = request.user.master
+        data = json.loads(request.body)
+        
+        day_of_week = data.get('day_of_week')
+        start_time = data.get('start_time')
+        end_time = data.get('end_time')
+        breaks = data.get('breaks', [])
+        
+        # Валидация обязательных полей
+        if day_of_week is None:
+            return api_error('Выберите день недели', status=400)
+        if not start_time or not end_time:
+            return api_error('Укажите время начала и окончания работы', status=400)
+        if start_time >= end_time:
+            return api_error('Время начала не может быть позже времени окончания', status=400)
+        
+        # Проверка на дубликат
+        if Schedule.objects.filter(master=master, day_of_week=day_of_week).exists():
+            return api_error('Расписание для этого дня уже существует', status=409)
+        
+        # Создаем расписание
+        schedule = Schedule.objects.create(
+            master=master,
+            day_of_week=day_of_week,
+            start_time=datetime.strptime(start_time, '%H:%M').time(),
+            end_time=datetime.strptime(end_time, '%H:%M').time()
+        )
+        
+        # Добавляем перерывы с проверкой
+        for break_data in breaks:
+            if break_data.get('start') and break_data.get('end'):
+                # Проверка: начало перерыва < конец перерыва
+                if break_data['start'] >= break_data['end']:
+                    return api_error(
+                        f'Перерыв {break_data["start"]}-{break_data["end"]}: время начала не может быть позже окончания',
+                        status=400
+                    )
+                # Проверка: перерыв в пределах рабочего дня
+                if break_data['start'] < start_time or break_data['end'] > end_time:
+                    return api_error(
+                        f'Перерыв {break_data["start"]}-{break_data["end"]} выходит за пределы рабочего дня ({start_time}-{end_time})',
+                        status=400
+                    )
+                Break.objects.create(
+                    schedule=schedule,
+                    start_time=datetime.strptime(break_data['start'], '%H:%M').time(),
+                    end_time=datetime.strptime(break_data['end'], '%H:%M').time()
+                )
+        
+        return api_success({
+            'schedule': {
+                'id': schedule.id,
+                'day_of_week': schedule.day_of_week,
+                'day_name': schedule.get_day_of_week_display(),
+                'start_time': schedule.start_time.strftime('%H:%M'),
+                'end_time': schedule.end_time.strftime('%H:%M'),
+                'breaks': [{
+                    'start': b.start_time.strftime('%H:%M'),
+                    'end': b.end_time.strftime('%H:%M')
+                } for b in schedule.breaks.all()]
+            }
+        })
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except ValueError as e:
+        return api_error(f'Неверный формат времени: {e}', status=400)
+    except Exception as e:
+        return api_error('Ошибка при добавлении расписания', status=500)
 
 @login_required
 @require_http_methods(["POST"])
 def api_edit_schedule(request, schedule_id):
-    """API редактирования расписания"""
-    schedule = get_object_or_404(Schedule, id=schedule_id, master=request.user.master)
-    data = json.loads(request.body)
-    
-    start_time = data.get('start_time')
-    end_time = data.get('end_time')
-    breaks = data.get('breaks', [])
-    
-    # Обновляем основные часы
-    if start_time and end_time:
-        schedule.start_time = datetime.strptime(start_time, '%H:%M').time()
-        schedule.end_time = datetime.strptime(end_time, '%H:%M').time()
-        schedule.save()
-    
-    # Обновляем перерывы
-    schedule.breaks.all().delete()
-    for break_data in breaks:
-        if break_data.get('start') and break_data.get('end'):
-            Break.objects.create(
-                schedule=schedule,
-                start_time=datetime.strptime(break_data['start'], '%H:%M').time(),
-                end_time=datetime.strptime(break_data['end'], '%H:%M').time()
-            )
-    
-    return JsonResponse({
-        'success': True,
-        'message': 'Расписание обновлено',
-        'schedule': {
-            'id': schedule.id,
-            'day_of_week': schedule.day_of_week,
-            'day_name': schedule.get_day_of_week_display(),
-            'start_time': schedule.start_time.strftime('%H:%M'),
-            'end_time': schedule.end_time.strftime('%H:%M'),
-            'breaks': [{
-                'start': b.start_time.strftime('%H:%M'),
-                'end': b.end_time.strftime('%H:%M')
-            } for b in schedule.breaks.all()]
-        }
-    })
+    try:
+        try:
+            schedule = Schedule.objects.get(id=schedule_id, master=request.user.master)
+        except Schedule.DoesNotExist:
+            return api_error('Расписание не найдено', status=404)
+        
+        data = json.loads(request.body)
+        
+        start_time = data.get('start_time')
+        end_time = data.get('end_time')
+        breaks = data.get('breaks', [])
+        
+        # Валидация времени
+        if start_time and end_time:
+            if start_time >= end_time:
+                return api_error('Время начала не может быть позже времени окончания', status=400)
+            schedule.start_time = datetime.strptime(start_time, '%H:%M').time()
+            schedule.end_time = datetime.strptime(end_time, '%H:%M').time()
+            schedule.save()
+        elif start_time or end_time:
+            return api_error('Укажите и начало, и конец работы', status=400)
+        
+        work_start = schedule.start_time.strftime('%H:%M')
+        work_end = schedule.end_time.strftime('%H:%M')
+        
+        # ============================================================
+        # ✅ ПРОВЕРКА ПЕРЕСЕЧЕНИЯ ПЕРЕРЫВОВ (ДОБАВИТЬ ЭТОТ БЛОК!)
+        # ============================================================
+        for i in range(len(breaks)):
+            for j in range(i + 1, len(breaks)):
+                b1 = breaks[i]
+                b2 = breaks[j]
+                if b1.get('start') and b1.get('end') and b2.get('start') and b2.get('end'):
+                    # Преобразуем в объекты времени для корректного сравнения
+                    b1_start = datetime.strptime(b1['start'], '%H:%M').time()
+                    b1_end = datetime.strptime(b1['end'], '%H:%M').time()
+                    b2_start = datetime.strptime(b2['start'], '%H:%M').time()
+                    b2_end = datetime.strptime(b2['end'], '%H:%M').time()
+                    
+                    if b1_start < b2_end and b2_start < b1_end:
+                        return api_error(
+                            f'Перерывы {b1["start"]}-{b1["end"]} и {b2["start"]}-{b2["end"]} пересекаются между собой',
+                            status=400
+                        )
+        # ============================================================
+        
+        # Проверка каждого перерыва на вхождение в рабочий день
+        for break_data in breaks:
+            if break_data.get('start') and break_data.get('end'):
+                if break_data['start'] >= break_data['end']:
+                    return api_error(
+                        f'Перерыв {break_data["start"]}-{break_data["end"]}: время начала не может быть позже окончания',
+                        status=400
+                    )
+                if break_data['start'] < work_start or break_data['end'] > work_end:
+                    return api_error(
+                        f'Перерыв {break_data["start"]}-{break_data["end"]} выходит за пределы рабочего дня ({work_start}-{work_end})',
+                        status=400
+                    )
+        
+        # Обновляем перерывы
+        schedule.breaks.all().delete()
+        for break_data in breaks:
+            if break_data.get('start') and break_data.get('end'):
+                Break.objects.create(
+                    schedule=schedule,
+                    start_time=datetime.strptime(break_data['start'], '%H:%M').time(),
+                    end_time=datetime.strptime(break_data['end'], '%H:%M').time()
+                )
+        
+        return api_success({
+            'schedule': {
+                'id': schedule.id,
+                'day_of_week': schedule.day_of_week,
+                'day_name': schedule.get_day_of_week_display(),
+                'start_time': schedule.start_time.strftime('%H:%M'),
+                'end_time': schedule.end_time.strftime('%H:%M'),
+                'breaks': [{
+                    'start': b.start_time.strftime('%H:%M'),
+                    'end': b.end_time.strftime('%H:%M')
+                } for b in schedule.breaks.all()]
+            }
+        })
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except ValueError as e:
+        return api_error(f'Неверный формат времени: {e}', status=400)
+    except Exception as e:
+        return api_error('Ошибка при обновлении расписания', status=500)
 
 @login_required
 @require_http_methods(["POST"])
 def api_delete_schedule(request, schedule_id):
-    """API удаления расписания"""
-    schedule = get_object_or_404(Schedule, id=schedule_id, master=request.user.master)
-    schedule.delete()
-    
-    return JsonResponse({
-        'success': True,
-        'message': 'Расписание удалено'
-    })
+    try:
+        schedule = Schedule.objects.get(id=schedule_id, master=request.user.master)
+        schedule.delete()
+        return api_success({'message': 'Расписание удалено'})
+    except Schedule.DoesNotExist:
+        return api_error('Расписание не найдено', status=404)
+    except Exception as e:
+        return api_error('Ошибка при удалении расписания', status=500)
 
-
-# @login_required
-# def get_extra_days(request):
-#     """API для получения дополнительных рабочих дней с пагинацией"""
-#     master = request.user.master
-#     page = int(request.GET.get('page', 1))
-#     limit = int(request.GET.get('limit', 30))
-#     offset = (page - 1) * limit
-    
-#     # Все дни (будущие и прошедшие)
-#     extra_days_all = ExtraWorkingDay.objects.filter(master=master).order_by('-date')
-    
-#     total = extra_days_all.count()
-#     has_more = offset + limit < total
-    
-#     extra_days_page = extra_days_all[offset:offset + limit]
-    
-#     # Функция для склонения месяца
-#     def get_month_name(month_num):
-#         months = [
-#             'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-#             'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
-#         ]
-#         return months[month_num - 1]
-    
-#     # Функция для дня недели на русском
-#     def get_weekday_name(date_obj):
-#         weekdays = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']
-#         return weekdays[date_obj.weekday()]
-    
-#     data = []
-#     for day in extra_days_page:
-#         date_obj = day.date
-#         data.append({
-#             'id': day.id,
-#             'date': day.date.strftime('%Y-%m-%d'),
-#             'date_display': f"{date_obj.day} {get_month_name(date_obj.month)} ({get_weekday_name(date_obj)})",
-#             'start_time': day.start_time.strftime('%H:%M'),
-#             'end_time': day.end_time.strftime('%H:%M'),
-#             'breaks': [{
-#                 'start': b.start_time.strftime('%H:%M'),
-#                 'end': b.end_time.strftime('%H:%M')
-#             } for b in day.breaks.all()]
-#         })
-    
-#     return JsonResponse({
-#         'extra_days': data,
-#         'total': total,
-#         'page': page,
-#         'has_more': has_more
-#     })
 
 
 @login_required
 @require_http_methods(["POST"])
 def api_add_extra_day(request):
-    master = request.user.master
-    data = json.loads(request.body)
-    
-    date_str = data.get('date')
-    start_time = data.get('start_time')
-    end_time = data.get('end_time')
-    breaks = data.get('breaks', [])
-    
-    if not date_str or not start_time or not end_time:
-        return JsonResponse({'error': 'Заполните все обязательные поля'}, status=400)
-    
-    target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-    
-    # Удаляем существующий дополнительный день
-    ExtraWorkingDay.objects.filter(master=master, date=target_date).delete()
-    # Удаляем выходной, если есть
-    DayOff.objects.filter(master=master, date=target_date).delete()
-    
-    extra_day = ExtraWorkingDay.objects.create(
-        master=master,
-        date=target_date,
-        start_time=datetime.strptime(start_time, '%H:%M').time(),
-        end_time=datetime.strptime(end_time, '%H:%M').time()
-    )
-    
-    # Добавляем перерывы
-    for break_data in breaks:
-        if break_data.get('start') and break_data.get('end'):
-            ExtraWorkingDayBreak.objects.create(
-                extra_day=extra_day,
-                start_time=datetime.strptime(break_data['start'], '%H:%M').time(),
-                end_time=datetime.strptime(break_data['end'], '%H:%M').time()
-            )
-    
-    return JsonResponse({'success': True})
+    try:
+        master = request.user.master
+        data = json.loads(request.body)
+        
+        date_str = data.get('date')
+        start_time = data.get('start_time')
+        end_time = data.get('end_time')
+        breaks = data.get('breaks', [])
+        
+        # ===== ВСЕ ПРОВЕРКИ ДО СОЗДАНИЯ =====
+        
+        if not date_str or not start_time or not end_time:
+            return api_error('Заполните все обязательные поля', status=400)
+        
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        
+        # 1. Проверка: дата не в прошлом
+        if target_date < date.today():
+            return api_error('Нельзя добавить рабочий день в прошлом', status=400)
+        
+        # 2. Проверка: время начала < время окончания
+        if start_time >= end_time:
+            return api_error('Время начала не может быть позже времени окончания', status=400)
+        
+        # 3. Проверка всех перерывов
+        for break_data in breaks:
+            if break_data.get('start') and break_data.get('end'):
+                if break_data['start'] >= break_data['end']:
+                    return api_error(
+                        f'Перерыв {break_data["start"]}-{break_data["end"]}: время начала не может быть позже окончания',
+                        status=400
+                    )
+                if break_data['start'] < start_time or break_data['end'] > end_time:
+                    return api_error(
+                        f'Перерыв {break_data["start"]}-{break_data["end"]} выходит за пределы рабочего дня ({start_time}-{end_time})',
+                        status=400
+                    )
+        
+        # 4. Проверка пересечения перерывов
+        for i in range(len(breaks)):
+            for j in range(i + 1, len(breaks)):
+                b1 = breaks[i]
+                b2 = breaks[j]
+                if b1.get('start') and b1.get('end') and b2.get('start') and b2.get('end'):
+                    if b1['start'] < b2['end'] and b2['start'] < b1['end']:
+                        return api_error(
+                            f'Перерывы {b1["start"]}-{b1["end"]} и {b2["start"]}-{b2["end"]} пересекаются между собой',
+                            status=400
+                        )
+        
+        # ===== ВСЕ ПРОВЕРКИ ПРОЙДЕНЫ → СОЗДАЕМ =====
+        
+        # Удаляем существующие записи для этой даты
+        ExtraWorkingDay.objects.filter(master=master, date=target_date).delete()
+        DayOff.objects.filter(master=master, date=target_date).delete()
+        
+        extra_day = ExtraWorkingDay.objects.create(
+            master=master,
+            date=target_date,
+            start_time=datetime.strptime(start_time, '%H:%M').time(),
+            end_time=datetime.strptime(end_time, '%H:%M').time()
+        )
+        
+        for break_data in breaks:
+            if break_data.get('start') and break_data.get('end'):
+                ExtraWorkingDayBreak.objects.create(
+                    extra_day=extra_day,
+                    start_time=datetime.strptime(break_data['start'], '%H:%M').time(),
+                    end_time=datetime.strptime(break_data['end'], '%H:%M').time()
+                )
+        
+        return api_success({'message': 'Дополнительный рабочий день добавлен'})
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except ValueError as e:
+        return api_error(f'Неверный формат даты или времени: {e}', status=400)
+    except Exception as e:
+        return api_error('Ошибка при добавлении дополнительного рабочего дня', status=500)
 
 @login_required
 @require_http_methods(["POST"])
 def api_delete_extra_day(request, extra_day_id):
-    """API удаления дополнительного рабочего дня"""
-    extra_day = get_object_or_404(ExtraWorkingDay, id=extra_day_id, master=request.user.master)
-    extra_day.delete()
-    
-    return JsonResponse({
-        'success': True,
-        'message': 'Дополнительный рабочий день удален'
-    })
+    try:
+        extra_day = ExtraWorkingDay.objects.get(id=extra_day_id, master=request.user.master)
+        extra_day.delete()
+        return api_success({'message': 'Дополнительный рабочий день удален'})
+    except ExtraWorkingDay.DoesNotExist:
+        return api_error('Дополнительный рабочий день не найден', status=404)
+    except Exception as e:
+        return api_error('Ошибка при удалении', status=500)
 
 
-# @login_required
-# def get_extra_days_list(request):
-#     master = request.user.master
-#     extra_days = ExtraWorkingDay.objects.filter(master=master)
-    
-#     data = []
-#     for day in extra_days:
-#         data.append({
-#             'id': day.id,
-#             'date': day.date.strftime('%Y-%m-%d'),
-#             'start': day.start_time.strftime('%H:%M'),
-#             'end': day.end_time.strftime('%H:%M'),
-#             'breaks': [{
-#                 'start': b.start_time.strftime('%H:%M'),
-#                 'end': b.end_time.strftime('%H:%M')
-#             } for b in day.breaks.all()]
-#         })
-    
-#     return JsonResponse({'extra_days': data})
 
 @login_required
 def get_days_off_list(request):
@@ -1331,93 +1464,109 @@ def api_delete_booking(request, booking_id):
 # @login_required
 # @require_http_methods(["POST"])
 # def api_add_day_off(request):
-#     """API добавления выходного дня"""
-#     master = request.user.master
-#     data = json.loads(request.body)
-    
-#     date_str = data.get('date')
-#     reason = data.get('reason', '')
-    
-#     if not date_str:
-#         return JsonResponse({'error': 'Выберите дату'}, status=400)
-    
-#     target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-    
-#     # Проверяем на дубликат
-#     if DayOff.objects.filter(master=master, date=target_date).exists():
-#         return JsonResponse({'error': 'Этот день уже отмечен как выходной'}, status=400)
-    
-#     day_off = DayOff.objects.create(
-#         master=master,
-#         date=target_date,
-#         reason=reason
-#     )
-    
-#     return JsonResponse({
-#         'success': True,
-#         'message': 'Выходной день добавлен',
-#         'day_off': {
-#             'id': day_off.id,
-#             'date': day_off.date.strftime('%d.%m.%Y'),
-#             'date_iso': day_off.date.isoformat(),
-#             'weekday': day_off.date.strftime('%A'),
-#             'reason': day_off.reason
-#         }
-#     })
+#     try:
+#         master = request.user.master
+#         data = json.loads(request.body)
+        
+#         date_str = data.get('date')
+#         reason = data.get('reason', '')
+        
+#         if not date_str:
+#             return api_error('Выберите дату', status=400)
+        
+#         target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+#         day_of_week = target_date.weekday()
+        
+#         # Проверяем, является ли день рабочим
+#         has_schedule = Schedule.objects.filter(master=master, day_of_week=day_of_week).exists()
+#         has_extra_day = ExtraWorkingDay.objects.filter(master=master, date=target_date).exists()
+        
+#         # Если день нерабочий (нет расписания и нет доп. дня)
+#         if not has_schedule and not has_extra_day:
+#             return api_error(
+#                 '🎉 В этот день ты и так не работаешь! Хорошего отдыха!',
+#                 status=400
+#             )
+        
+#         # Проверяем, не является ли дата уже выходным
+#         if DayOff.objects.filter(master=master, date=target_date).exists():
+#             return api_error('Этот день уже отмечен как выходной', status=409)
+        
+#         # Создаём выходной
+#         DayOff.objects.create(
+#             master=master,
+#             date=target_date,
+#             reason=reason
+#         )
+        
+#         return api_success({'message': 'Выходной день добавлен'})
+        
+#     except json.JSONDecodeError:
+#         return api_error('Неверный формат данных', status=400)
+#     except ValueError as e:
+#         return api_error(f'Неверный формат даты: {e}', status=400)
+#     except Exception as e:
+#         return api_error('Ошибка при добавлении выходного дня', status=500)
 
 @login_required
 @require_http_methods(["POST"])
 def api_add_day_off(request):
-    """API добавления выходного дня"""
-    master = request.user.master
-    data = json.loads(request.body)
-    
-    date_str = data.get('date')
-    reason = data.get('reason', '')
-    
-    if not date_str:
-        return JsonResponse({'error': 'Выберите дату'}, status=400)
-    
-    target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-    day_of_week = target_date.weekday()
-    
-    # Проверяем, является ли день рабочим
-    has_schedule = Schedule.objects.filter(master=master, day_of_week=day_of_week).exists()
-    has_extra_day = ExtraWorkingDay.objects.filter(master=master, date=target_date).exists()
-    
-    # Если день нерабочий (нет расписания и нет доп. дня)
-    if not has_schedule and not has_extra_day:
-        return JsonResponse({
-            'success': False,
-            'message': '🎉 В этот день ты и так не работаешь! Хорошего отдыха!'
-        }, status=400)
-    
-    # Удаляем существующий выходной, если есть
-    DayOff.objects.filter(master=master, date=target_date).delete()
-    
-    # Создаём выходной
-    DayOff.objects.create(
-        master=master,
-        date=target_date,
-        reason=reason
-    )
-    
-    return JsonResponse({
-        'success': True,
-        'message': 'Выходной день добавлен'
-    })
+    try:
+        master = request.user.master
+        data = json.loads(request.body)
+        
+        date_str = data.get('date')
+        reason = data.get('reason', '')
+        
+        if not date_str:
+            return api_error('Выберите дату', status=400)
+        
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        day_of_week = target_date.weekday()
+        
+        # Проверяем, является ли день рабочим
+        has_schedule = Schedule.objects.filter(master=master, day_of_week=day_of_week).exists()
+        has_extra_day = ExtraWorkingDay.objects.filter(master=master, date=target_date).exists()
+        
+        # Если день нерабочий — показываем уведомление и НЕ создаем DayOff
+        if not has_schedule and not has_extra_day:
+            return api_error(
+                '🎉 В этот день ты и так не работаешь! Хорошего отдыха!',
+                status=400
+            )
+        
+        # Проверяем, не является ли дата уже выходным
+        if DayOff.objects.filter(master=master, date=target_date).exists():
+            return api_error('Этот день уже отмечен как выходной', status=409)
+        
+        # Создаём выходной
+        DayOff.objects.create(
+            master=master,
+            date=target_date,
+            reason=reason
+        )
+        
+        return api_success({'message': 'Выходной день добавлен'})
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except ValueError as e:
+        return api_error(f'Неверный формат даты: {e}', status=400)
+    except Exception as e:
+        return api_error('Ошибка при добавлении выходного дня', status=500)
 
+        
 @login_required
 @require_http_methods(["POST"])
 def api_delete_day_off(request, dayoff_id):
-    """API удаления выходного дня"""
-    day_off = get_object_or_404(DayOff, id=dayoff_id, master=request.user.master)
-    day_off.delete()
-    
-    return JsonResponse({
-        'success': True,
-        'message': 'Выходной день удален'
-    })
+    try:
+        day_off = DayOff.objects.get(id=dayoff_id, master=request.user.master)
+        day_off.delete()
+        return api_success({'message': 'Выходной день удален'})
+    except DayOff.DoesNotExist:
+        return api_error('Выходной день не найден', status=404)
+    except Exception as e:
+        return api_error('Ошибка при удалении выходного дня', status=500)
 
 @login_required
 def clients_statistics(request):

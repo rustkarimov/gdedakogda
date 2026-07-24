@@ -558,7 +558,15 @@ function openAddServiceModal() {
 function editService(id) {
     fetch(`/api/services/${id}/get/`)
         .then(r => r.json())
-        .then(service => {
+        .then(response => {
+            // Проверяем успешность
+            if (!response.success) {
+                showAlert(response.error || 'Ошибка загрузки услуги', 'Ошибка');
+                return;
+            }
+            
+            const service = response.data;  // ← Берем из data!
+            
             document.getElementById('serviceModalTitle').innerHTML = '<i class="fas fa-edit me-2" style="color: var(--primary);"></i>Редактировать услугу';
             document.getElementById('serviceId').value = service.id;
             document.getElementById('serviceCategory').value = service.category_id || '';
@@ -567,7 +575,12 @@ function editService(id) {
             document.getElementById('serviceDuration').value = service.duration;
             document.getElementById('servicePrice').value = service.price;
             document.getElementById('serviceActive').checked = service.is_active;
+            
             new bootstrap.Modal(document.getElementById('serviceModal')).show();
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            showAlert('Ошибка при загрузке услуги', 'Ошибка');
         });
 }
 
