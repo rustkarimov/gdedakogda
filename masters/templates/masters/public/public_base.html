@@ -49,6 +49,90 @@
 
 
     {% block extra_js %}
+
+    <script>
+// ============================================================
+// СТИЛИЗОВАННЫЕ МОДАЛКИ ДЛЯ ПУБЛИЧНЫХ СТРАНИЦ
+// ============================================================
+
+function showAlert(message, title = 'Уведомление') {
+    // Проверяем, есть ли уже модалка
+    let modalElement = document.getElementById('alertModal');
+    
+    if (!modalElement) {
+        // Создаем модалку
+        const modalHtml = `
+            <div class="modal fade" id="alertModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="alertModalTitle">Уведомление</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p id="alertModalMessage"></p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        modalElement = document.getElementById('alertModal');
+    }
+    
+    document.getElementById('alertModalTitle').innerText = title;
+    document.getElementById('alertModalMessage').innerHTML = message;
+    new bootstrap.Modal(modalElement).show();
+}
+
+function showConfirm(message, onConfirm) {
+    let modalElement = document.getElementById('confirmModal');
+    
+    if (!modalElement) {
+        const modalHtml = `
+            <div class="modal fade" id="confirmModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Подтверждение</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p id="confirmModalMessage"></p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" id="confirmModalCancelBtn">Отмена</button>
+                            <button type="button" class="btn btn-primary" id="confirmModalOkBtn">Да</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        modalElement = document.getElementById('confirmModal');
+    }
+    
+    document.getElementById('confirmModalMessage').innerHTML = message;
+    
+    const okBtn = document.getElementById('confirmModalOkBtn');
+    const cancelBtn = document.getElementById('confirmModalCancelBtn');
+    const newOkBtn = okBtn.cloneNode(true);
+    const newCancelBtn = cancelBtn.cloneNode(true);
+    okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+    
+    const modal = new bootstrap.Modal(modalElement);
+    const handleOk = () => { modal.hide(); onConfirm(true); };
+    const handleCancel = () => { modal.hide(); onConfirm(false); };
+    newOkBtn.addEventListener('click', handleOk);
+    newCancelBtn.addEventListener('click', handleCancel);
+    modal.show();
+}
+</script>
+
     {% endblock %}
 </body>
 </html>

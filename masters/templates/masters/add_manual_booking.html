@@ -99,14 +99,7 @@
                             <textarea class="form-control" id="client-comment" rows="2" 
                                       placeholder="Дополнительная информация"></textarea>
                         </div>
-                        
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="force-booking">
-                            <label class="form-check-label" for="force-booking">
-                                Записать принудительно (даже если время занято)
-                            </label>
-                        </div>
-                        
+                                            
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">Добавить запись</button>
                         </div>
@@ -530,7 +523,7 @@ document.getElementById('manual-booking-form').addEventListener('submit', functi
     
     const clientName = document.getElementById('client-name').value.trim();
     let clientPhone = document.getElementById('client-phone').value.trim();
-    const force = document.getElementById('force-booking').checked;
+    const force = false;
     const comment = document.getElementById('client-comment').value;
     
     // Очищаем телефон от пробелов и тире для валидации
@@ -560,7 +553,6 @@ document.getElementById('manual-booking-form').addEventListener('submit', functi
         date: masterSelectedDate,
         start_time: masterSelectedTime,
         comment: comment,
-        force: force,
         created_by: 'master'
     };
     

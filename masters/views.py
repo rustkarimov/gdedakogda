@@ -30,6 +30,11 @@ import os
 from datetime import datetime
 
 
+from django.contrib.auth import authenticate, login
+from .models import PhoneVerification
+import random
+
+
 
 def get_weekday_ru(date_obj):
     weekdays = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
@@ -1206,18 +1211,25 @@ def get_bookings_by_date(request):
 @login_required
 @require_http_methods(["POST"])
 def api_delete_day_off_by_date(request):
-    """API удаления выходного дня по дате"""
-    master = request.user.master
-    data = json.loads(request.body)
-    date_str = data.get('date')
-    
-    if not date_str:
-        return JsonResponse({'error': 'Дата не указана'}, status=400)
-    
-    target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-    DayOff.objects.filter(master=master, date=target_date).delete()
-    
-    return JsonResponse({'success': True})
+    try:
+        master = request.user.master
+        data = json.loads(request.body)
+        date_str = data.get('date')
+        
+        if not date_str:
+            return api_error('Дата не указана', status=400)
+        
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        DayOff.objects.filter(master=master, date=target_date).delete()
+        
+        return api_success({'message': 'Выходной день удален'})
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except ValueError as e:
+        return api_error(f'Неверный формат даты: {e}', status=400)
+    except Exception as e:
+        return api_error('Ошибка при удалении выходного дня', status=500)
 
 @login_required
 def add_manual_booking(request):
@@ -1233,7 +1245,7 @@ def add_manual_booking(request):
         date_str = request.POST.get('date')
         time_str = request.POST.get('time')
         comment = request.POST.get('comment', '')
-        force = request.POST.get('force', False)
+        force = False
         
         if not all([client_name, client_phone, service_id, date_str, time_str]):
             messages.error(request, 'Заполните все обязательные поля')
@@ -1264,8 +1276,8 @@ def add_manual_booking(request):
         slots = calculator.generate_time_slots(booking_date, service.duration)
         
         is_available = any(slot['start'] == time_str for slot in slots)
-        if not is_available and not force:
-            messages.error(request, 'Это время уже занято. Отметьте "Записать принудительно", чтобы подтвердить.')
+        if not is_available:
+            messages.error(request, '❌ Это время уже занято. Выберите другое время.')
             return redirect('add_manual_booking')
         
         # Шифруем ОЧИЩЕННЫЙ телефон
@@ -1383,130 +1395,98 @@ def get_booking_for_edit(request, booking_id):
 @login_required
 @require_http_methods(["POST"])
 def api_update_booking(request, booking_id):
-    """API обновления записи"""
-    booking = get_object_or_404(Booking, id=booking_id, master=request.user.master)
-    data = json.loads(request.body)
-    
-    # Добавьте отладочный вывод
-    print(f"📝 Получены данные для обновления: {data}")
-    
-    service_id = data.get('service_id')
-    client_name = data.get('client_name')
-    client_phone = data.get('client_phone')
-    date_str = data.get('date')
-    time_str = data.get('time')
-    comment = data.get('comment', '')
-    status = data.get('status', 'confirmed')
-    
-    # Проверка обязательных полей
-    if not all([service_id, client_name, client_phone, date_str, time_str]):
-        print("❌ Ошибка: не все поля заполнены")
-        return JsonResponse({'error': 'Заполните все поля'}, status=400)
-    
-    import re
-    client_phone_cleaned = re.sub(r'\D', '', client_phone)
-    if len(client_phone_cleaned) != 11 or not client_phone_cleaned.startswith('7'):
-        print(f"❌ Ошибка: неверный формат телефона {client_phone_cleaned}")
-        return JsonResponse({'error': 'Неверный формат телефона'}, status=400)
-    
-    service = get_object_or_404(Service, id=service_id, master=request.user.master)
-    target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-    target_time = datetime.strptime(time_str, '%H:%M').time()
-    
-    # Проверяем, свободно ли новое время (исключая текущую запись)
-    calculator = ScheduleCalculator(request.user.master)
-    slots = calculator.generate_time_slots(
-        target_date, 
-        service.duration,
-        exclude_booking_id=booking.id,
-        original_booking_id=booking.id
-    )
-    
-    is_available = any(slot['start'] == time_str for slot in slots)
-    
-    # Если время занято и это не текущая запись
-    if not is_available and (booking.date != target_date or booking.time != target_time):
-        print(f"❌ Ошибка: время {time_str} занято")
-        return JsonResponse({'error': 'Это время уже занято'}, status=400)
-    
-    # Шифруем телефон
-    from cryptography.fernet import Fernet
-    key = request.user.master.get_encryption_key()
-    if key:
-        f = Fernet(key)
-        encrypted_phone = f.encrypt(client_phone_cleaned.encode())
-    else:
-        encrypted_phone = client_phone_cleaned.encode()
-    
-    booking.service = service
-    booking.client_name = client_name
-    booking.encrypted_phone = encrypted_phone
-    booking.client_comment = comment
-    booking.date = target_date
-    booking.time = target_time
-    booking.status = status
-    booking.save()
-    
-    print(f"✅ Запись #{booking_id} успешно обновлена")
-    return JsonResponse({'success': True, 'message': 'Запись обновлена'})
+    try:
+        import re
+        from cryptography.fernet import Fernet
+        
+        try:
+            booking = Booking.objects.get(id=booking_id, master=request.user.master)
+        except Booking.DoesNotExist:
+            return api_error('Запись не найдена', status=404)
+        
+        data = json.loads(request.body)
+        
+        service_id = data.get('service_id')
+        client_name = data.get('client_name')
+        client_phone = data.get('client_phone')
+        date_str = data.get('date')
+        time_str = data.get('time')
+        comment = data.get('comment', '')
+        status = data.get('status', 'confirmed')
+        
+        # Валидация обязательных полей
+        if not all([service_id, client_name, client_phone, date_str, time_str]):
+            return api_error('Заполните все поля', status=400)
+        
+        # Валидация телефона
+        client_phone_cleaned = re.sub(r'\D', '', client_phone)
+        if len(client_phone_cleaned) != 11 or not client_phone_cleaned.startswith('7'):
+            return api_error('Неверный формат телефона', status=400)
+        
+        # Проверка услуги
+        try:
+            service = Service.objects.get(id=service_id, master=request.user.master)
+        except Service.DoesNotExist:
+            return api_error('Услуга не найдена', status=404)
+        
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        target_time = datetime.strptime(time_str, '%H:%M').time()
+        
+        # Проверка свободного времени
+        calculator = ScheduleCalculator(request.user.master)
+        slots = calculator.generate_time_slots(
+            target_date, 
+            service.duration,
+            exclude_booking_id=booking.id,
+            original_booking_id=booking.id
+        )
+        
+        is_available = any(slot['start'] == time_str for slot in slots)
+        
+        if not is_available and (booking.date != target_date or booking.time != target_time):
+            return api_error('Это время уже занято', status=409)
+        
+        # Шифрование телефона
+        key = request.user.master.get_encryption_key()
+        if key:
+            f = Fernet(key)
+            encrypted_phone = f.encrypt(client_phone_cleaned.encode())
+        else:
+            encrypted_phone = client_phone_cleaned.encode()
+        
+        # Обновление записи
+        booking.service = service
+        booking.client_name = client_name
+        booking.encrypted_phone = encrypted_phone
+        booking.client_comment = comment
+        booking.date = target_date
+        booking.time = target_time
+        booking.status = status
+        booking.save()
+        
+        return api_success({'message': 'Запись обновлена'})
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except ValueError as e:
+        return api_error(f'Неверный формат даты или времени: {e}', status=400)
+    except Exception as e:
+        return api_error('Ошибка при обновлении записи', status=500)
 
 
 @login_required
 @require_http_methods(["POST"])
 def api_delete_booking(request, booking_id):
-    """API удаления записи"""
-    booking = get_object_or_404(Booking, id=booking_id, master=request.user.master)
-    booking.delete()
-    
-    return JsonResponse({'success': True, 'message': 'Запись удалена'})
+    try:
+        booking = Booking.objects.get(id=booking_id, master=request.user.master)
+        booking.delete()
+        return api_success({'message': 'Запись удалена'})
+    except Booking.DoesNotExist:
+        return api_error('Запись не найдена', status=404)
+    except Exception as e:
+        return api_error('Ошибка при удалении записи', status=500)
     
 
-# @login_required
-# @require_http_methods(["POST"])
-# def api_add_day_off(request):
-#     try:
-#         master = request.user.master
-#         data = json.loads(request.body)
-        
-#         date_str = data.get('date')
-#         reason = data.get('reason', '')
-        
-#         if not date_str:
-#             return api_error('Выберите дату', status=400)
-        
-#         target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-#         day_of_week = target_date.weekday()
-        
-#         # Проверяем, является ли день рабочим
-#         has_schedule = Schedule.objects.filter(master=master, day_of_week=day_of_week).exists()
-#         has_extra_day = ExtraWorkingDay.objects.filter(master=master, date=target_date).exists()
-        
-#         # Если день нерабочий (нет расписания и нет доп. дня)
-#         if not has_schedule and not has_extra_day:
-#             return api_error(
-#                 '🎉 В этот день ты и так не работаешь! Хорошего отдыха!',
-#                 status=400
-#             )
-        
-#         # Проверяем, не является ли дата уже выходным
-#         if DayOff.objects.filter(master=master, date=target_date).exists():
-#             return api_error('Этот день уже отмечен как выходной', status=409)
-        
-#         # Создаём выходной
-#         DayOff.objects.create(
-#             master=master,
-#             date=target_date,
-#             reason=reason
-#         )
-        
-#         return api_success({'message': 'Выходной день добавлен'})
-        
-#     except json.JSONDecodeError:
-#         return api_error('Неверный формат данных', status=400)
-#     except ValueError as e:
-#         return api_error(f'Неверный формат даты: {e}', status=400)
-#     except Exception as e:
-#         return api_error('Ошибка при добавлении выходного дня', status=500)
 
 @login_required
 @require_http_methods(["POST"])
@@ -2011,121 +1991,155 @@ def search_clients_api(request):
 
 @login_required
 def get_decrypted_phone(request, booking_id):
-    """API для расшифровки номера телефона"""
-    booking = get_object_or_404(Booking, id=booking_id, master=request.user.master)
-    
-    from cryptography.fernet import Fernet, InvalidToken
-    import re
-    
-    key = request.user.master.get_encryption_key()
-    
-    if not key:
-        return JsonResponse({'error': 'Ключ шифрования не найден'}, status=400)
-    
     try:
-        f = Fernet(key)
-        decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
-    except InvalidToken:
-        # Если не получилось расшифровать, пробуем как обычную строку
+        booking = Booking.objects.get(id=booking_id, master=request.user.master)
+        
+        from cryptography.fernet import Fernet, InvalidToken
+        import re
+        
+        key = request.user.master.get_encryption_key()
+        
+        if not key:
+            return api_error('Ключ шифрования не найден', status=400)
+        
         try:
-            decrypted = booking.encrypted_phone.decode('utf-8')
-        except:
-            return JsonResponse({'error': 'Ошибка расшифровки'}, status=400)
-    
-    # Форматируем для красивого отображения
-    phone_cleaned = re.sub(r'\D', '', decrypted)
-    if len(phone_cleaned) == 11:
-        formatted_phone = f"{phone_cleaned[0]} {phone_cleaned[1:4]} {phone_cleaned[4:7]}-{phone_cleaned[7:9]}-{phone_cleaned[9:11]}"
-    else:
-        formatted_phone = decrypted
-    
-    return JsonResponse({'phone': formatted_phone})
+            f = Fernet(key)
+            decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
+        except InvalidToken:
+            try:
+                decrypted = booking.encrypted_phone.decode('utf-8')
+            except:
+                return api_error('Ошибка расшифровки', status=400)
+        
+        phone_cleaned = re.sub(r'\D', '', decrypted)
+        if len(phone_cleaned) == 11:
+            formatted_phone = f"{phone_cleaned[0]} {phone_cleaned[1:4]} {phone_cleaned[4:7]}-{phone_cleaned[7:9]}-{phone_cleaned[9:11]}"
+        else:
+            formatted_phone = decrypted
+        
+        return api_success({'phone': formatted_phone})
+        
+    except Booking.DoesNotExist:
+        return api_error('Запись не найдена', status=404)
+    except Exception as e:
+        return api_error('Ошибка при расшифровке', status=500)
 
 
-from django.contrib.auth import authenticate, login
-from .models import PhoneVerification
-import random
 
 @csrf_exempt
 def mobile_login(request):
-    """API вход по телефону и паролю"""
-    data = json.loads(request.body)
-    phone = data.get('phone')
-    password = data.get('password')
-    
-    user = authenticate(request, username=phone, password=password)
-    if user:
-        login(request, user)
-        return JsonResponse({'success': True})
-    return JsonResponse({'success': False, 'error': 'Неверные данные'}, status=400)
+    try:
+        data = json.loads(request.body)
+        phone = data.get('phone')
+        password = data.get('password')
+        
+        if not phone or not password:
+            return api_error('Введите телефон и пароль', status=400)
+        
+        user = authenticate(request, username=phone, password=password)
+        if user:
+            login(request, user)
+            return api_success({'message': 'Вход выполнен'})
+        return api_error('Неверный телефон или пароль', status=400)
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except Exception as e:
+        return api_error('Ошибка при входе', status=500)
 
 @csrf_exempt
 def mobile_register(request):
-    """API регистрация (шаг 1)"""
-    data = json.loads(request.body)
-    phone = data.get('phone')
-    first_name = data.get('first_name', '')
-    password = data.get('password')
-    
-    if CustomUser.objects.filter(phone=phone).exists():
-        return JsonResponse({'error': 'Пользователь уже существует'}, status=400)
-    
-    verification_code = str(random.randint(100000, 999999))
-    PhoneVerification.objects.create(phone=phone, code=verification_code)
-    
-    request.session['reg_phone'] = phone
-    request.session['reg_first_name'] = first_name
-    request.session['reg_password'] = password
-    request.session['test_code'] = verification_code
-    
-    return JsonResponse({'success': True, 'test_code': verification_code})
+    try:
+        data = json.loads(request.body)
+        phone = data.get('phone')
+        first_name = data.get('first_name', '')
+        password = data.get('password')
+        
+        if not phone or not password:
+            return api_error('Введите телефон и пароль', status=400)
+        
+        if CustomUser.objects.filter(phone=phone).exists():
+            return api_error('Пользователь с таким телефоном уже существует', status=409)
+        
+        verification_code = str(random.randint(100000, 999999))
+        PhoneVerification.objects.create(phone=phone, code=verification_code)
+        
+        request.session['reg_phone'] = phone
+        request.session['reg_first_name'] = first_name
+        request.session['reg_password'] = password
+        request.session['test_code'] = verification_code
+        
+        return api_success({'test_code': verification_code})
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except Exception as e:
+        return api_error('Ошибка при регистрации', status=500)
 
 @csrf_exempt
 def mobile_verify(request):
-    """API подтверждение кода (шаг 2)"""
-    data = json.loads(request.body)
-    code = data.get('code')
-    phone = request.session.get('reg_phone')
-    
-    verification = PhoneVerification.objects.filter(phone=phone, code=code, is_used=False).first()
-    test_code = request.session.get('test_code')
-    
-    if verification or (test_code and code == test_code):
-        if verification:
-            verification.is_used = True
-            verification.save()
+    try:
+        data = json.loads(request.body)
+        code = data.get('code')
+        phone = request.session.get('reg_phone')
         
-        user = CustomUser.objects.create_user(
-            phone=phone,
-            password=request.session.get('reg_password'),
-            first_name=request.session.get('reg_first_name', ''),
-        )
-        Master.objects.create(
-            user=user,
-            phone=phone,
-            first_name=request.session.get('reg_first_name', ''),
-        )
-        login(request, user)
+        if not phone:
+            return api_error('Сессия истекла, начните регистрацию заново', status=400)
         
-        # Очищаем сессию
-        for key in ['reg_phone', 'reg_first_name', 'reg_password', 'test_code']:
-            request.session.pop(key, None)
+        verification = PhoneVerification.objects.filter(phone=phone, code=code, is_used=False).first()
+        test_code = request.session.get('test_code')
         
-        return JsonResponse({'success': True})
-    
-    return JsonResponse({'error': 'Неверный код'}, status=400)
+        if verification or (test_code and code == test_code):
+            if verification:
+                verification.is_used = True
+                verification.save()
+            
+            user = CustomUser.objects.create_user(
+                phone=phone,
+                password=request.session.get('reg_password'),
+                first_name=request.session.get('reg_first_name', ''),
+            )
+            Master.objects.create(
+                user=user,
+                phone=phone,
+                first_name=request.session.get('reg_first_name', ''),
+            )
+            login(request, user)
+            
+            # Очищаем сессию
+            for key in ['reg_phone', 'reg_first_name', 'reg_password', 'test_code']:
+                request.session.pop(key, None)
+            
+            return api_success({'message': 'Регистрация завершена'})
+        
+        return api_error('Неверный код подтверждения', status=400)
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except Exception as e:
+        return api_error('Ошибка при подтверждении', status=500)
+
+
 
 @csrf_exempt
 def mobile_resend_code(request):
-    """API повторная отправка кода"""
-    data = json.loads(request.body)
-    phone = data.get('phone') or request.session.get('reg_phone')
-    
-    verification_code = str(random.randint(100000, 999999))
-    PhoneVerification.objects.create(phone=phone, code=verification_code)
-    request.session['test_code'] = verification_code
-    
-    return JsonResponse({'success': True, 'test_code': verification_code})
+    try:
+        data = json.loads(request.body)
+        phone = data.get('phone') or request.session.get('reg_phone')
+        
+        if not phone:
+            return api_error('Телефон не найден', status=400)
+        
+        verification_code = str(random.randint(100000, 999999))
+        PhoneVerification.objects.create(phone=phone, code=verification_code)
+        request.session['test_code'] = verification_code
+        
+        return api_success({'test_code': verification_code})
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except Exception as e:
+        return api_error('Ошибка при отправке кода', status=500)
 
 
 # Выход
@@ -2138,60 +2152,6 @@ from django.http import JsonResponse
 from .utils.schedule_utils import ScheduleCalculator
 import json
 
-# ... (существующий код) ...
-
-# def master_public_page(request, slug):
-#     """Публичная страница мастера для записи"""
-#     master = get_object_or_404(Master, slug=slug)
-#     services = Service.objects.filter(master=master, is_active=True)
-    
-#     return render(request, 'masters/public/master_page.html', {
-#         'master': master,
-#         'services': services
-#     })
-
-
-# def get_available_dates(request, login):
-#     """API для получения доступных дат (поддерживает как одну услугу, так и суммарную длительность)"""
-#     try:
-#         master = get_object_or_404(Master, login=login)
-#         service_id = request.GET.get('service_id')
-#         total_duration = request.GET.get('total_duration')
-        
-#         # Определяем длительность для поиска слотов
-#         duration = None
-        
-#         if total_duration:
-#             # Новый режим: множественный выбор услуг
-#             duration = int(total_duration)
-#         elif service_id:
-#             # Старый режим: одна услуга
-#             try:
-#                 service = Service.objects.get(id=service_id, master=master)
-#                 duration = service.duration
-#             except Service.DoesNotExist:
-#                 return JsonResponse({'error': 'Услуга не найдена'}, status=404)
-#         else:
-#             return JsonResponse({'error': 'Выберите услугу или укажите общую длительность'}, status=400)
-        
-#         calculator = ScheduleCalculator(master)
-#         available_dates = calculator.get_available_dates(
-#             days_ahead=60,
-#             min_service_duration=duration
-#         )
-        
-#         dates_list = [{
-#             'date': d.strftime('%Y-%m-%d'),
-#             'display': f"{d.day} {get_month_ru(d)}",
-#             'day_of_week': get_weekday_ru(d)
-#         } for d in available_dates]
-        
-#         return JsonResponse({'dates': dates_list})
-        
-#     except Exception as e:
-#         import traceback
-#         traceback.print_exc()
-#         return JsonResponse({'error': str(e)}, status=500)
 
 def get_available_dates(request, login):
     try:
@@ -2301,54 +2261,58 @@ def get_available_slots(request, login):
     return JsonResponse({'slots': slots})
 
 def create_booking(request, login):
-    """Создание новой записи (без перезагрузки)"""
     if request.method != 'POST':
-        return JsonResponse({'error': 'Метод не поддерживается'}, status=405)
-    
-    master = get_object_or_404(Master, login=login)
+        return api_error('Метод не поддерживается', status=405)
     
     try:
+        import re
+        from cryptography.fernet import Fernet
+        
+        master = get_object_or_404(Master, login=login)
         data = json.loads(request.body)
+        
         service_id = data.get('service_id')
         client_name = data.get('client_name')
         client_phone = data.get('client_phone')
         date_str = data.get('date')
         time_str = data.get('time')
         comment = data.get('comment', '')
-        force = data.get('force', False)
+        # ❌ УДАЛИТЬ: force = data.get('force', False)
         created_by = data.get('created_by', 'client')
         
-        # Проверяем обязательные поля
+        # Валидация
         if not all([service_id, client_name, client_phone, date_str, time_str]):
-            return JsonResponse({'error': 'Заполните все поля'}, status=400)
+            return api_error('Заполните все поля', status=400)
         
-        # Очищаем и валидируем телефон
-        import re
         client_phone_cleaned = re.sub(r'\D', '', client_phone)
-        
         if len(client_phone_cleaned) != 11:
-            return JsonResponse({'error': 'Номер телефона должен содержать 11 цифр'}, status=400)
-        
+            return api_error('Номер телефона должен содержать 11 цифр', status=400)
         if not client_phone_cleaned.startswith('7'):
-            return JsonResponse({'error': 'Номер должен начинаться с 7'}, status=400)
+            return api_error('Номер должен начинаться с 7', status=400)
         
+        # Проверка черного списка
         if BlacklistedClient.objects.filter(master=master, phone=client_phone_cleaned).exists():
-            return JsonResponse({'error': 'Этот клиент находится в чёрном списке'}, status=403)
+            return api_error('Не получается записаться. Попробуйте позже.', status=403)
         
-        service = Service.objects.get(id=service_id, master=master)
+        # Проверка услуги
+        try:
+            service = Service.objects.get(id=service_id, master=master)
+        except Service.DoesNotExist:
+            return api_error('Услуга не найдена', status=404)
+        
         booking_date = datetime.strptime(date_str, '%Y-%m-%d').date()
         booking_time = datetime.strptime(time_str, '%H:%M').time()
         
-        # Проверяем, свободно ли это время
+        # Проверка свободного времени
         calculator = ScheduleCalculator(master)
         slots = calculator.generate_time_slots(booking_date, service.duration)
-        
         is_available = any(slot['start'] == time_str for slot in slots)
-        if not is_available and not force:
-            return JsonResponse({'error': 'Это время уже занято'}, status=400)
         
-        # Шифруем телефон
-        from cryptography.fernet import Fernet
+        # ✅ Принудительная запись отключена для всех
+        if not is_available:
+            return api_error('Это время уже занято. Выберите другое время.', status=409)
+        
+        # Шифрование телефона
         key = master.get_encryption_key()
         if key:
             f = Fernet(key)
@@ -2356,7 +2320,7 @@ def create_booking(request, login):
         else:
             encrypted_phone = client_phone_cleaned.encode()
         
-        # Создаем запись
+        # Создание записи
         booking = Booking.objects.create(
             master=master,
             service=service,
@@ -2369,8 +2333,7 @@ def create_booking(request, login):
             created_by=created_by
         )
         
-        return JsonResponse({
-            'success': True,
+        return api_success({
             'message': 'Запись создана!',
             'booking': {
                 'id': booking.id,
@@ -2380,20 +2343,27 @@ def create_booking(request, login):
             }
         })
         
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except ValueError as e:
+        return api_error(f'Неверный формат даты или времени: {e}', status=400)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        return api_error('Ошибка при создании записи', status=500)
 
 
 @csrf_exempt
 def create_multiple_bookings(request, login):
-    """Создание нескольких записей подряд (клиент или мастер)"""
     if request.method != 'POST':
-        return JsonResponse({'error': 'Метод не поддерживается'}, status=405)
-    
-    master = get_object_or_404(Master, login=login)
+        return api_error('Метод не поддерживается', status=405)
     
     try:
+        import re
+        from cryptography.fernet import Fernet
+        from datetime import timedelta
+        
+        master = get_object_or_404(Master, login=login)
         data = json.loads(request.body)
+        
         service_ids = data.get('services', [])
         client_name = data.get('client_name')
         client_phone = data.get('client_phone')
@@ -2401,48 +2371,49 @@ def create_multiple_bookings(request, login):
         start_time_str = data.get('start_time')
         comment = data.get('comment', '')
         created_by = data.get('created_by', 'client')
-        force = data.get('force', False)
+        # ❌ УДАЛЯЕМ force
         
-        # Проверяем обязательные поля
+        # Валидация
         if not service_ids or not client_name or not client_phone or not date_str or not start_time_str:
-            return JsonResponse({'error': 'Заполните все поля'}, status=400)
+            return api_error('Заполните все поля', status=400)
         
-        # Очищаем и валидируем телефон
-        import re
         client_phone_cleaned = re.sub(r'\D', '', client_phone)
-        
         if len(client_phone_cleaned) != 11:
-            return JsonResponse({'error': 'Номер телефона должен содержать 11 цифр'}, status=400)
-        
+            return api_error('Номер телефона должен содержать 11 цифр', status=400)
         if not client_phone_cleaned.startswith('7'):
-            return JsonResponse({'error': 'Номер должен начинаться с 7'}, status=400)
-        
-        # Проверка чёрного списка
-        from .models import BlacklistedClient
+            return api_error('Номер должен начинаться с 7', status=400)
+
         if BlacklistedClient.objects.filter(master=master, phone=client_phone_cleaned).exists():
-            return JsonResponse({'error': 'Этот клиент находится в чёрном списке'}, status=403)
+            # Для мастера — показываем причину
+            if created_by == 'master':
+                return api_error('Этот клиент находится в чёрном списке', status=403)
+            else:
+                return api_error('Не получается записаться. Попробуйте позже.', status=403)
         
         # Получаем все услуги
         services = []
         total_duration = 0
         for sid in service_ids:
-            service = get_object_or_404(Service, id=sid, master=master)
-            services.append(service)
-            total_duration += service.duration
+            try:
+                service = Service.objects.get(id=sid, master=master)
+                services.append(service)
+                total_duration += service.duration
+            except Service.DoesNotExist:
+                return api_error(f'Услуга с ID {sid} не найдена', status=404)
         
         booking_date = datetime.strptime(date_str, '%Y-%m-%d').date()
         start_time = datetime.strptime(start_time_str, '%H:%M').time()
         
-        # Проверяем, свободно ли время для всех услуг
+        # Проверка свободного времени
         calculator = ScheduleCalculator(master)
         slots = calculator.generate_time_slots(booking_date, total_duration)
         is_available = any(slot['start'] == start_time_str for slot in slots)
         
-        if not is_available and not force:
-            return JsonResponse({'error': 'Это время не подходит для всех выбранных услуг'}, status=400)
+        # ✅ Принудительная запись отключена для всех
+        if not is_available:
+            return api_error('Это время уже занято. Выберите другое время.', status=409)
         
-        # Шифруем телефон
-        from cryptography.fernet import Fernet
+        # Шифрование телефона
         key = master.get_encryption_key()
         if key:
             f = Fernet(key)
@@ -2450,17 +2421,14 @@ def create_multiple_bookings(request, login):
         else:
             encrypted_phone = client_phone_cleaned.encode()
         
-        # Создаём записи последовательно
+        # Создаём записи
         created_bookings = []
         time_offset = 0
-        
-        # Формируем список услуг для уведомления
         services_list = []
         
         for i, service in enumerate(services):
             booking_time = (datetime.combine(date.today(), start_time) + timedelta(minutes=time_offset)).time()
             
-            # Комментарий с указанием порядка услуг
             if len(services) > 1:
                 service_comment = f"{comment} (услуга {i+1} из {len(services)}: {service.name})"
             else:
@@ -2481,48 +2449,31 @@ def create_multiple_bookings(request, login):
             services_list.append(service.name)
             time_offset += service.duration
         
-        # Получаем время окончания
         end_time = (datetime.combine(date.today(), start_time) + timedelta(minutes=total_duration)).strftime('%H:%M')
         
-        # ========== СОЗДАЁМ УВЕДОМЛЕНИЕ ТОЛЬКО ДЛЯ КЛИЕНТОВ ==========
-        # ========== СОЗДАЁМ УВЕДОМЛЕНИЕ ТОЛЬКО ДЛЯ КЛИЕНТОВ ==========
-        # ========== СОЗДАЁМ УВЕДОМЛЕНИЕ ТОЛЬКО ДЛЯ КЛИЕНТОВ ==========
+        # Уведомление только для клиентов
         if created_by == 'client':
-            # Формируем заголовок (только имя и количество услуг)
-            if len(services_list) == 1:
-                title = f"{client_name}"
-            else:
-                title = f"{client_name} ({len(services_list)} услуги)"
-            
-            # Формируем тело сообщения
+            from .models import Notification
             notification_lines = []
-            
-            # Дата
             notification_lines.append(f"📅 {booking_date.strftime('%d.%m.%Y')}")
             
-            # Услуги с временем
             time_offset = 0
             for i, service in enumerate(services):
                 booking_time = (datetime.combine(date.today(), start_time) + timedelta(minutes=time_offset)).strftime('%H:%M')
                 notification_lines.append(f"⏰ {booking_time} - {service.name}")
                 time_offset += service.duration
             
-            # Время создания
-            notification_lines.append(f"🕐 Создано: {datetime.now().strftime('%d.%m.%Y %H:%M')}")
-            
             notification_message = "\n".join(notification_lines)
             
             Notification.objects.create(
                 master=master,
                 type='new_booking',
-                title=title,
+                title=f"{client_name}" + (f" ({len(services_list)} услуги)" if len(services_list) > 1 else ""),
                 message=notification_message,
                 content_object=created_bookings[0]
             )
-        # ============================================================
         
-        return JsonResponse({
-            'success': True,
+        return api_success({
             'message': f'✅ Запись на {len(created_bookings)} услуг создана!',
             'bookings': [{
                 'id': b.id,
@@ -2534,10 +2485,12 @@ def create_multiple_bookings(request, login):
             'end_time': end_time
         })
         
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except ValueError as e:
+        return api_error(f'Неверный формат даты или времени: {e}', status=400)
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return JsonResponse({'error': str(e)}, status=500)
+        return api_error('Ошибка при создании записи', status=500)
     
 
 def master_by_id(request, master_id):
@@ -2621,63 +2574,28 @@ def get_day_status(request):
         'date': date_str
     })
 
-# @login_required
-# def get_day_status(request):
-#     """API для получения статуса конкретного дня (с перерывами)"""
-#     master = request.user.master
-#     date_str = request.GET.get('date')
-    
-#     if not date_str:
-#         return JsonResponse({'error': 'Дата не указана'}, status=400)
-    
-#     target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-#     day_of_week = target_date.weekday()
-    
-#     extra_day = ExtraWorkingDay.objects.filter(master=master, date=target_date).first()
-#     is_day_off = DayOff.objects.filter(master=master, date=target_date).exists()
-#     schedule = Schedule.objects.filter(master=master, day_of_week=day_of_week).first()
-    
-#     # Формируем список перерывов (из доп. дня ИЛИ из расписания)
-#     breaks = []
-#     if extra_day:
-#         breaks = [{
-#             'start': b.start_time.strftime('%H:%M'),
-#             'end': b.end_time.strftime('%H:%M')
-#         } for b in extra_day.breaks.all()]
-#     elif schedule:
-#         breaks = [{
-#             'start': b.start_time.strftime('%H:%M'),
-#             'end': b.end_time.strftime('%H:%M')
-#         } for b in schedule.breaks.all()]
-    
-#     return JsonResponse({
-#         'is_extra': extra_day is not None,
-#         'is_day_off': is_day_off,
-#         'has_schedule': schedule is not None,
-#         'schedule_start': schedule.start_time.strftime('%H:%M') if schedule else None,
-#         'schedule_end': schedule.end_time.strftime('%H:%M') if schedule else None,
-#         'extra_start': extra_day.start_time.strftime('%H:%M') if extra_day else None,
-#         'extra_end': extra_day.end_time.strftime('%H:%M') if extra_day else None,
-#         'breaks': breaks,
-#         'date': date_str
-#     })
-
-
 @login_required
 @require_http_methods(["POST"])
 def api_delete_extra_day_by_date(request):
-    """API удаления дополнительного рабочего дня по дате"""
-    master = request.user.master
-    data = json.loads(request.body)
-    date_str = data.get('date')
-    
-    if not date_str:
-        return JsonResponse({'error': 'Дата не указана'}, status=400)
-    
-    target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-    ExtraWorkingDay.objects.filter(master=master, date=target_date).delete()
-    
-    return JsonResponse({'success': True})
+    try:
+        master = request.user.master
+        data = json.loads(request.body)
+        date_str = data.get('date')
+        
+        if not date_str:
+            return api_error('Дата не указана', status=400)
+        
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        ExtraWorkingDay.objects.filter(master=master, date=target_date).delete()
+        
+        return api_success({'message': 'Дополнительный рабочий день удален'})
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except ValueError as e:
+        return api_error(f'Неверный формат даты: {e}', status=400)
+    except Exception as e:
+        return api_error('Ошибка при удалении дополнительного рабочего дня', status=500)
 
 
 
@@ -2739,75 +2657,81 @@ def upload_avatar(request):
 @login_required
 @require_http_methods(["POST"])
 def api_blacklist_add(request):
-    """Добавление клиента в чёрный список"""
-    master = request.user.master
-    data = json.loads(request.body)
-    
-    phone = data.get('phone')
-    name = data.get('name', '')
-    reason = data.get('reason', '')
-    
-    import re
-    phone_cleaned = re.sub(r'\D', '', phone)
-    
-    if not phone_cleaned or len(phone_cleaned) != 11:
-        return JsonResponse({'error': 'Неверный формат номера'}, status=400)
-    
-    # Добавляем или обновляем
-    obj, created = BlacklistedClient.objects.update_or_create(
-        master=master,
-        phone=phone_cleaned,
-        defaults={'name': name, 'reason': reason}
-    )
-    
-    # Отменяем все будущие записи этого клиента
-    from django.utils import timezone
-    today = date.today()
-    
-    # Находим все будущие записи этого клиента (нужно расшифровать телефон)
-    from cryptography.fernet import Fernet
-    key = master.get_encryption_key()
-    
-    cancelled_count = 0
-    if key:
-        f = Fernet(key)
-        # Перебираем все будущие записи мастера
-        future_bookings = Booking.objects.filter(
+    try:
+        master = request.user.master
+        data = json.loads(request.body)
+        
+        phone = data.get('phone')
+        name = data.get('name', '')
+        reason = data.get('reason', '')
+        
+        import re
+        phone_cleaned = re.sub(r'\D', '', phone)
+        
+        if not phone_cleaned or len(phone_cleaned) != 11:
+            return api_error('Неверный формат номера', status=400)
+        
+        # Добавляем или обновляем
+        obj, created = BlacklistedClient.objects.update_or_create(
             master=master,
-            date__gte=today,
-            status='confirmed'
+            phone=phone_cleaned,
+            defaults={'name': name, 'reason': reason}
         )
         
-        for booking in future_bookings:
-            try:
-                decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
-                if re.sub(r'\D', '', decrypted) == phone_cleaned:
-                    booking.status = 'cancelled'
-                    booking.save()
-                    cancelled_count += 1
-            except:
-                pass
-    
-    return JsonResponse({
-        'success': True,
-        'created': created,
-        'cancelled_count': cancelled_count,
-        'client': {
-            'id': obj.id,
-            'phone': obj.phone,
-            'name': obj.name,
-            'reason': obj.reason,
-            'created_at': obj.created_at.strftime('%d.%m.%Y %H:%M')
-        }
-    })
+        # Отменяем все будущие записи этого клиента
+        from django.utils import timezone
+        today = date.today()
+        
+        from cryptography.fernet import Fernet
+        key = master.get_encryption_key()
+        
+        cancelled_count = 0
+        if key:
+            f = Fernet(key)
+            future_bookings = Booking.objects.filter(
+                master=master,
+                date__gte=today,
+                status='confirmed'
+            )
+            
+            for booking in future_bookings:
+                try:
+                    decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
+                    if re.sub(r'\D', '', decrypted) == phone_cleaned:
+                        booking.status = 'cancelled'
+                        booking.save()
+                        cancelled_count += 1
+                except:
+                    pass
+        
+        return api_success({
+            'created': created,
+            'cancelled_count': cancelled_count,
+            'client': {
+                'id': obj.id,
+                'phone': obj.phone,
+                'name': obj.name,
+                'reason': obj.reason,
+                'created_at': obj.created_at.strftime('%d.%m.%Y %H:%M')
+            }
+        })
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except Exception as e:
+        return api_error('Ошибка при добавлении в черный список', status=500)
 
 @login_required
 @require_http_methods(["POST"])
 def api_blacklist_delete(request, client_id):
-    """Удаление из чёрного списка"""
-    client = get_object_or_404(BlacklistedClient, id=client_id, master=request.user.master)
-    client.delete()
-    return JsonResponse({'success': True})
+    try:
+        client = BlacklistedClient.objects.get(id=client_id, master=request.user.master)
+        client.delete()
+        return api_success({'message': 'Клиент удален из черного списка'})
+    except BlacklistedClient.DoesNotExist:
+        return api_error('Клиент не найден', status=404)
+    except Exception as e:
+        return api_error('Ошибка при удалении из черного списка', status=500)
 
 
 # views.py
@@ -2889,23 +2813,27 @@ def get_support_messages(request):
 @login_required
 @require_http_methods(["POST"])
 def send_support_message(request):
-    """Отправить сообщение в поддержку"""
-    master = request.user.master
-    data = json.loads(request.body)
-    message = data.get('message', '').strip()
-    
-    if not message:
-        return JsonResponse({'error': 'Сообщение не может быть пустым'}, status=400)
-    
-    SupportMessage.objects.create(
-        master=master,
-        direction='user',
-        message=message.strip(),
-        is_read=False  # ← Теперь сообщение будет непрочитанным
-
-    )
-    
-    return JsonResponse({'success': True, 'message': 'Сообщение отправлено'})
+    try:
+        master = request.user.master
+        data = json.loads(request.body)
+        message = data.get('message', '').strip()
+        
+        if not message:
+            return api_error('Сообщение не может быть пустым', status=400)
+        
+        SupportMessage.objects.create(
+            master=master,
+            direction='user',
+            message=message.strip(),
+            is_read=False
+        )
+        
+        return api_success({'message': 'Сообщение отправлено'})
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except Exception as e:
+        return api_error('Ошибка при отправке сообщения', status=500)
 
 
 @login_required

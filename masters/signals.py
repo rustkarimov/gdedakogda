@@ -18,8 +18,8 @@ def save_master_profile(sender, instance, **kwargs):
 
 @receiver(post_save, sender=Booking)
 def create_booking_notification(sender, instance, created, **kwargs):
-    print(f"📅 Сигнал: created={created}, created_by='{instance.created_by}', id={instance.id}")
-    print(f"📝 Комментарий: '{instance.client_comment}'")
+    # print(f"📅 Сигнал: created={created}, created_by='{instance.created_by}', id={instance.id}")
+    # print(f"📝 Комментарий: '{instance.client_comment}'")
     
     # Уведомления только для новых записей
     if not created:

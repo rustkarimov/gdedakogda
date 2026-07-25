@@ -842,19 +842,19 @@ document.getElementById('booking-form').addEventListener('submit', function(e) {
     const comment = document.getElementById('client-comment').value;
     
     if (!clientName || !clientPhone || clientPhone.length !== 11) {
-        alert('Заполните имя и телефон (11 цифр)');
+        showAlert('❌ Заполните имя и телефон (11 цифр)', 'Ошибка');  // ✅
         return;
     }
     
     const serviceIds = MultiService.selectedServices.map(s => s.id);
     
     if (serviceIds.length === 0) {
-        alert('Выберите хотя бы одну услугу');
+        showAlert('❌ Выберите хотя бы одну услугу', 'Ошибка');  // ✅
         return;
     }
     
     if (!selectedDate || !selectedTime) {
-        alert('Выберите дату и время');
+        showAlert('❌ Выберите дату и время', 'Ошибка');  // ✅
         return;
     }
     
@@ -896,12 +896,12 @@ document.getElementById('booking-form').addEventListener('submit', function(e) {
             MultiService.clear();
             smoothScrollTo('confirmation-card');
         } else {
-            alert('Ошибка: ' + data.error);
+            showAlert('❌ ' + data.error, 'Ошибка');  // ✅
         }
     })
     .catch(error => {
         console.error('Ошибка:', error);
-        alert('Произошла ошибка при записи');
+        showAlert('❌ Произошла ошибка при записи', 'Ошибка');  // ✅
     })
     .finally(() => {
         submitBtn.innerHTML = originalText;

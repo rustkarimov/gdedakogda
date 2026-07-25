@@ -361,10 +361,7 @@
                             <label class="form-label">Комментарий</label>
                             <textarea class="form-control" id="add_comment" rows="2"></textarea>
                         </div>
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" id="add_force_booking">
-                            <label class="form-check-label" for="add_force_booking">Записать принудительно</label>
-                        </div>
+                        
                     </form>
                     <button class="btn btn-pink w-100 mt-3" onclick="saveMultipleBooking()">
                         <i class="fas fa-save me-2"></i>Добавить запись
@@ -1276,6 +1273,18 @@ function masterLoadDatesForServices() {
                 });
                 html += '</div>';
                 container.innerHTML = html;
+                
+                // ✅ АВТОМАТИЧЕСКИ ВЫБИРАЕМ ДАТУ И ЗАГРУЖАЕМ СЛОТЫ
+                if (masterSelectedDate) {
+                    const dateCard = document.querySelector(`#add_dates_list .date-card[data-date="${masterSelectedDate}"]`);
+                    if (dateCard) {
+                        // Небольшая задержка, чтобы DOM обновился
+                        setTimeout(() => {
+                            masterSelectDate(masterSelectedDate, dateCard);
+                        }, 100);
+                    }
+                }
+                
             } else {
                 container.innerHTML = '<div class="col-12 text-center text-muted">Нет доступных дат</div>';
             }
@@ -1345,7 +1354,8 @@ function saveMultipleBooking() {
     clientPhone = clientPhone.replace(/\D/g, '');
     if (clientPhone.length === 10) clientPhone = '7' + clientPhone;
     const comment = document.getElementById('add_comment').value;
-    const force = document.getElementById('add_force_booking').checked;
+    // const force = document.getElementById('add_force_booking').checked;
+    const force = false;
     
     if (!clientName || !clientPhone || clientPhone.length !== 11) {
         showAlert('Заполните имя и телефон (11 цифр)', 'Ошибка');
@@ -1382,7 +1392,7 @@ function saveMultipleBooking() {
             date: masterSelectedDate,
             start_time: masterSelectedTime,
             comment: comment,
-            force: force,
+            // force: force,
             created_by: 'master'
         })
     })
@@ -1392,7 +1402,7 @@ function saveMultipleBooking() {
             document.getElementById('add_client_name').value = '';
             document.getElementById('add_client_phone').value = '';
             document.getElementById('add_comment').value = '';
-            document.getElementById('add_force_booking').checked = false;
+            // document.getElementById('add_force_booking').checked = false;
             
             masterClearServices();
             masterSelectedDate = null;
@@ -1465,6 +1475,7 @@ function showAddBookingPanel() {
     }
 }
 
+
 function highlightCurrentDate() {
     if (!masterSelectedDate) return;
     
@@ -1472,11 +1483,12 @@ function highlightCurrentDate() {
     dateCards.forEach(card => {
         if (card.getAttribute('data-date') === masterSelectedDate) {
             card.classList.add('border-pink');
-            // Автоматически загружаем слоты для этой даты
+            // ✅ Автоматически загружаем слоты для этой даты
             masterSelectDate(masterSelectedDate, card);
         }
     });
 }
+
 
 function backToDayView() {
     document.getElementById('viewDayPanel').style.display = 'block';
@@ -1642,7 +1654,8 @@ function saveNewBooking() {
         clientPhone = '7' + clientPhone;
     }
     const comment = document.getElementById('add_comment').value;
-    const force = document.getElementById('add_force_booking').checked;
+    // const force = document.getElementById('add_force_booking').checked;
+    const force = false;
     
     if (!clientName || !clientPhone || clientPhone.length !== 11 || !addSelectedServiceId || !addSelectedDate || !addSelectedTime) {
         showAlert('Заполните все поля правильно. Телефон должен содержать 11 цифр.', 'Ошибка');
@@ -1678,7 +1691,7 @@ function saveNewBooking() {
             document.getElementById('add_client_name').value = '';
             document.getElementById('add_client_phone').value = '';
             document.getElementById('add_comment').value = '';
-            document.getElementById('add_force_booking').checked = false;
+            // document.getElementById('add_force_booking').checked = false;
             addSelectedServiceId = null;
             addSelectedTime = null;
             
@@ -1994,59 +2007,6 @@ function saveEditedBooking() {
         saveBtn.disabled = false;
     });
 }
-
-// function deleteGroupedBooking(bookingIds, clientName, time) {
-//     const ids = Array.isArray(bookingIds) ? bookingIds : JSON.parse(bookingIds);
-//     const count = ids.length;
-//     const message = count > 1 
-//         ? `Удалить ${count} записи клиента "${clientName}" на ${time}?`
-//         : `Удалить запись клиента "${clientName}" на ${time}?`;
-    
-//     showConfirm(message, (confirmed) => {
-//         if (confirmed) {
-//             let deleted = 0;
-//             let errors = 0;
-            
-//             ids.forEach(id => {
-//                 fetch(`/api/booking/${id}/delete/`, {
-//                     method: 'POST',
-//                     headers: {
-//                         'Content-Type': 'application/json',
-//                         'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-//                     }
-//                 })
-//                 .then(response => response.json())
-//                 .then(data => {
-//                     if (data.success) {
-//                         deleted++;
-//                     } else {
-//                         errors++;
-//                     }
-                    
-//                     // Если все обработаны
-//                     if (deleted + errors === ids.length) {
-//                         if (errors === 0) {
-//                             showToast(`✅ ${deleted} запись(ей) удалена`, 'success');
-//                         } else {
-//                             showToast(`⚠️ Удалено ${deleted}, ошибок ${errors}`, 'error');
-//                         }
-//                         loadCalendar();
-//                         loadBookings(1, false);
-//                         if (currentSelectedDate) {
-//                             fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
-//                                 .then(r => r.json())
-//                                 .then(data => renderDayBookings(data.bookings));
-//                         }
-//                     }
-//                 })
-//                 .catch(error => {
-//                     console.error('Ошибка:', error);
-//                     errors++;
-//                 });
-//             });
-//         }
-//     });
-// }
 
 function deleteBooking(bookingId, clientName, time) {
     showConfirm(`Удалить запись клиента "${clientName}" на ${time}?`, (confirmed) => {
