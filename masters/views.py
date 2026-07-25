@@ -109,29 +109,6 @@ def dashboard(request):
     }
     return render(request, 'masters/dashboard.html', context)
     
-# # Личный кабинет
-# @login_required
-# def dashboard(request):
-#     try:
-#         master = request.user.master
-#     except Master.DoesNotExist:
-#         master = Master.objects.create(user=request.user)
-    
-#     total_bookings = Booking.objects.filter(master=master).count()
-#     upcoming_bookings = Booking.objects.filter(
-#         master=master, 
-#         status='confirmed'
-#     ).order_by('date', 'time')[:5]
-    
-#     total_services = Service.objects.filter(master=master).count()
-    
-#     context = {
-#         'master': master,
-#         'total_bookings': total_bookings,
-#         'upcoming_bookings': upcoming_bookings,
-#         'total_services': total_services,
-#     }
-#     return render(request, 'masters/dashboard.html', context)
 
 @login_required
 def get_calendar_schedule(request):
@@ -2026,7 +2003,6 @@ def get_decrypted_phone(request, booking_id):
 
 
 
-@csrf_exempt
 def mobile_login(request):
     try:
         data = json.loads(request.body)
@@ -2047,7 +2023,6 @@ def mobile_login(request):
     except Exception as e:
         return api_error('Ошибка при входе', status=500)
 
-@csrf_exempt
 def mobile_register(request):
     try:
         data = json.loads(request.body)
@@ -2076,7 +2051,6 @@ def mobile_register(request):
     except Exception as e:
         return api_error('Ошибка при регистрации', status=500)
 
-@csrf_exempt
 def mobile_verify(request):
     try:
         data = json.loads(request.body)
@@ -2120,8 +2094,6 @@ def mobile_verify(request):
         return api_error('Ошибка при подтверждении', status=500)
 
 
-
-@csrf_exempt
 def mobile_resend_code(request):
     try:
         data = json.loads(request.body)
@@ -2351,7 +2323,6 @@ def create_booking(request, login):
         return api_error('Ошибка при создании записи', status=500)
 
 
-@csrf_exempt
 def create_multiple_bookings(request, login):
     if request.method != 'POST':
         return api_error('Метод не поддерживается', status=405)

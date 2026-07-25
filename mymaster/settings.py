@@ -41,9 +41,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
-
-    # 'masters',
     'masters.apps.MastersConfig',
     'crispy_forms',
     'crispy_bootstrap5',
@@ -79,6 +76,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'mymaster.wsgi.application'
 
+
+# Чтобы JavaScript мог читать CSRF-токен из cookies
+CSRF_COOKIE_HTTPONLY = False
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases

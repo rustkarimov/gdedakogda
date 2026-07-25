@@ -453,12 +453,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const phone = document.getElementById('login-phone').value.replace(/\D/g, '');
         const password = document.getElementById('login-password').value;
         
+        // ✅ СПИННЕР
+        const btn = this.querySelector('button[type="submit"]');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Вход...';
+        btn.disabled = true;
+        
         const response = await fetch('/api/mobile/login/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
             body: JSON.stringify({ phone, password })
         });
         const data = await response.json();
+        
+        // ✅ ВОЗВРАЩАЕМ КНОПКУ
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
         if (data.success) {
             window.location.href = '/dashboard/';
         } else {
@@ -479,12 +490,23 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        // ✅ СПИННЕР
+        const btn = this.querySelector('button[type="submit"]');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Отправка...';
+        btn.disabled = true;
+        
         const response = await fetch('/api/mobile/register/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
             body: JSON.stringify({ phone, first_name, password })
         });
         const data = await response.json();
+        
+        // ✅ ВОЗВРАЩАЕМ КНОПКУ
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
         if (data.success) {
             document.getElementById('verify-phone-display').innerText = `На номер ${phone} отправлен код подтверждения`;
             document.getElementById('test-code-display').innerHTML = `<strong>🧪 ТЕСТОВЫЙ РЕЖИМ:</strong><br>Ваш код: <strong class="h4">${data.test_code}</strong>`;
@@ -501,12 +523,23 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const code = document.getElementById('verify-code').value;
         
+        // ✅ СПИННЕР
+        const btn = this.querySelector('button[type="submit"]');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Проверка...';
+        btn.disabled = true;
+        
         const response = await fetch('/api/mobile/verify/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
             body: JSON.stringify({ code, ...window.tempRegistrationData })
         });
         const data = await response.json();
+        
+        // ✅ ВОЗВРАЩАЕМ КНОПКУ
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
         if (data.success) {
             window.location.href = '/dashboard/';
         } else {

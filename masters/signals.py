@@ -46,3 +46,4 @@ def create_booking_notification(sender, instance, created, **kwargs):
     #     message=f'{instance.client_name} записался на {instance.service.name} {instance.date} в {instance.time}',
     #     content_object=instance
     # )
+

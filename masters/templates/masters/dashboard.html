@@ -107,31 +107,8 @@
         <div class="stat-label">Клиентов</div>
     </div>
 </div>
-<!-- <div class="stats-container mb-4">
-    <div class="row g-3">
-        <div class="col-4">
-            <div class="dashboard-stat">
-                <i class="fas fa-calendar-check"></i>
-                <h3>{{ total_bookings }}</h3>
-                <p>Записей</p>
-            </div>
-        </div>
-        <div class="col-4">
-            <div class="dashboard-stat">
-                <i class="fas fa-cut"></i>
-                <h3>{{ total_services }}</h3>
-                <p>Услуг</p>
-            </div>
-        </div>
-        <div class="col-4">
-            <div class="dashboard-stat">
-                <i class="fas fa-users"></i>
-                <h3>{{ total_clients }}</h3>
-                <p>Клиентов</p>
-            </div>
-        </div>
-    </div>
-</div> -->
+
+
 
 <!-- Ваша страница для записи -->
 <!-- Ваша страница для записи -->
@@ -697,96 +674,6 @@ function changeMonth(delta) {
     currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
     loadCalendar();
 }
-
-// function openDayModal(dateStr) {
-//     currentSelectedDate = dateStr;
-//     const dateObj = new Date(dateStr);
-//     const monthNames = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-//     const weekdays = ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'];
-//     document.getElementById('dayModalDate').innerHTML = `${dateObj.getDate()} ${monthNames[dateObj.getMonth()]} (${weekdays[dateObj.getDay()]})`;
-
-//     document.getElementById('viewDayPanel').style.display = 'block';
-//     document.getElementById('addBookingPanel').style.display = 'none';
-//     document.getElementById('dayModalTitle').innerHTML = '<i class="far fa-calendar-alt me-2" style="color: var(--primary);"></i> Редактирование дня';
-    
-//     // Сбрасываем режим редактирования
-//     cancelEditWorkTime();
-//     document.getElementById('dayBookingsContainer').innerHTML = '<div class="text-center py-2"><div class="spinner-border spinner-border-sm" style="color: #7c3aed;"></div></div>';
-
-//     fetch(`/api/bookings/by-date/?date=${dateStr}`)
-//         .then(r => r.json())
-//         .then(data => renderDayBookings(data.bookings));
-
-//     const today = new Date();
-//     today.setHours(0, 0, 0, 0);
-//     const isPast = new Date(dateStr) < today;
-
-//     fetch(`/api/day-status/?date=${dateStr}`)
-//         .then(r => r.json())
-//         .then(data => {
-//             currentDayData = data;
-            
-//             // ======== УНИФИЦИРОВАННАЯ ЛОГИКА ========
-//             const isWorking = data.has_schedule || data.is_extra;
-//             const isDayOff = data.is_day_off || !isWorking;
-            
-//             // Получаем элементы
-//             const workTimeRow = document.getElementById('workTimeRow');
-//             const workDisplay = document.getElementById('workTimeDisplay');
-//             const breaksContainer = document.getElementById('breaksContainer');
-//             const editBtn = document.getElementById('editWorkTimeBtn');
-//             const makeDayOffBtn = document.getElementById('makeDayOffBtn');
-//             const dayOffActions = document.getElementById('dayOffActions');
-//             const addBookingBtn = document.querySelector('#dayActionsContainer .btn-pink');
-            
-//             // ===== СБРАСЫВАЕМ ВСЁ К НАЧАЛЬНОМУ СОСТОЯНИЮ (через setProperty) =====
-//             workTimeRow.style.setProperty('display', 'flex', 'important');
-//             breaksContainer.style.setProperty('display', 'block', 'important');
-//             makeDayOffBtn.style.display = 'none';
-//             dayOffActions.style.display = 'none';
-//             editBtn.style.display = 'inline-block';
-//             addBookingBtn.style.display = 'inline-block';
-//             workDisplay.style.color = 'inherit';
-            
-//             if (isDayOff) {
-//                 // Выходной день — скрываем через setProperty
-//                 workTimeRow.style.setProperty('display', 'none', 'important');
-//                 breaksContainer.style.setProperty('display', 'none', 'important');
-//                 addBookingBtn.style.display = 'none';
-//                 dayOffActions.style.display = 'block';
-//                 renderBreaks([]);
-//             } else {
-//                 // Рабочий день
-//                 let workStart = data.extra_start || data.schedule_start || '--:--';
-//                 let workEnd = data.extra_end || data.schedule_end || '--:--';
-//                 workDisplay.textContent = workStart + ' - ' + workEnd;
-//                 makeDayOffBtn.style.display = 'inline-block';
-//                 renderBreaks(data.breaks || []);
-//             }
-//         });
-
-//     const modalElement = document.getElementById('dayModal');
-//     const modal = new bootstrap.Modal(modalElement);
-//     modal.show();
-    
-//     // Фиксируем высоту
-//     setTimeout(() => {
-//         const dialog = modalElement.querySelector('.modal-dialog');
-//         const body = modalElement.querySelector('.modal-body');
-        
-//         if (dialog && window.innerWidth > 768) {
-//             const currentHeight = dialog.offsetHeight;
-//             if (currentHeight > 0) {
-//                 dialog.style.height = currentHeight + 'px';
-//                 dialog.style.maxHeight = currentHeight + 'px';
-//             }
-//             if (body) {
-//                 body.style.overflowY = 'auto';
-//                 body.style.maxHeight = (currentHeight - 140) + 'px';
-//             }
-//         }
-//     }, 150);
-// }
 
 
 function openDayModal(dateStr) {

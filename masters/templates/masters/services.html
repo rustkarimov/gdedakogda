@@ -519,6 +519,13 @@ function saveCategory() {
     }
     
     const url = id ? `/api/categories/${id}/edit/` : '/api/categories/add/';
+    
+    // ✅ СПИННЕР
+    const btn = document.querySelector('#categoryModal .btn-pink');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
+    btn.disabled = true;
+    
     fetch(url, {
         method: 'POST',
         headers: {
@@ -529,6 +536,10 @@ function saveCategory() {
     })
     .then(r => r.json())
     .then(data => {
+        // ✅ ВОЗВРАЩАЕМ КНОПКУ
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
         if (data.success) {
             document.getElementById('categoryId').value = '';
             document.getElementById('categoryName').value = '';
@@ -539,6 +550,11 @@ function saveCategory() {
         } else {
             showAlert(data.error || 'Ошибка', 'Ошибка');
         }
+    })
+    .catch(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        showAlert('Произошла ошибка', 'Ошибка');
     });
 }
 
@@ -599,6 +615,13 @@ function saveService() {
     }
     
     const url = id ? `/api/services/${id}/edit/` : '/api/services/add/';
+    
+    // ✅ СПИННЕР
+    const btn = document.querySelector('#serviceModal .btn-pink');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
+    btn.disabled = true;
+    
     fetch(url, {
         method: 'POST',
         headers: {
@@ -612,12 +635,21 @@ function saveService() {
     })
     .then(r => r.json())
     .then(data => {
+        // ✅ ВОЗВРАЩАЕМ КНОПКУ
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
         if (data.success) {
             bootstrap.Modal.getInstance(document.getElementById('serviceModal')).hide();
             loadServices();
         } else {
             showAlert(data.error || 'Ошибка', 'Ошибка');
         }
+    })
+    .catch(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        showAlert('Произошла ошибка', 'Ошибка');
     });
 }
 
