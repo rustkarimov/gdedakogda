@@ -240,6 +240,7 @@ def get_bookings_api(request):
             'client_name': booking.client_name,
             'service_name': service_name,  # ← теперь с категорией
             'phone': formatted_phone,
+            'confirmed_by_master': booking.confirmed_by_master,
         })
     
     return JsonResponse({
@@ -437,6 +438,34 @@ def schedule(request):
         'schedules': schedules,
     })
 
+# Подтверждение записи
+@login_required
+@require_http_methods(["POST"])
+def api_confirm_booking(request, booking_id):
+    try:
+        booking = Booking.objects.get(id=booking_id, master=request.user.master)
+        booking.confirmed_by_master = True
+        booking.save()
+        return api_success({'message': 'Запись подтверждена'})
+    except Booking.DoesNotExist:
+        return api_error('Запись не найдена', status=404)
+    except Exception as e:
+        return api_error('Ошибка подтверждения', status=500)
+
+@login_required
+@require_http_methods(["POST"])
+def api_unconfirm_booking(request, booking_id):
+    try:
+        booking = Booking.objects.get(id=booking_id, master=request.user.master)
+        booking.confirmed_by_master = False
+        booking.save()
+        return api_success({'message': 'Подтверждение снято'})
+    except Booking.DoesNotExist:
+        return api_error('Запись не найдена', status=404)
+    except Exception as e:
+        return api_error('Ошибка снятия подтверждения', status=500)
+
+    
 
 # +++++++++++++++++++  УСЛУГИ  +++++++++++++++++
 

@@ -71,6 +71,10 @@ class Master(models.Model):
     encryption_key = models.BinaryField(verbose_name="Ключ шифрования", null=True, blank=True, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    telegram_username = models.CharField(max_length=100, blank=True, null=True, verbose_name="Telegram @username")
+    max_link = models.CharField(max_length=255, blank=True, null=True, verbose_name="Ссылка на профиль MAX")
+    whatsapp_number = models.CharField(max_length=20, blank=True, null=True, verbose_name="Номер WhatsApp")
     
     class Meta:
         verbose_name = "Самозанятый мастер"
@@ -278,6 +282,8 @@ class Booking(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    confirmed_by_master = models.BooleanField(default=False, verbose_name="Подтверждено мастером")
     
     class Meta:
         verbose_name = "Запись"

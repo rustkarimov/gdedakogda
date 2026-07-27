@@ -20,6 +20,9 @@ urlpatterns = [
     path('api/schedule/calendar/', views.get_calendar_schedule, name='api_calendar_schedule'),
     path('api/bookings/', views.get_bookings_api, name='api_bookings'),
 
+    path('api/booking/<int:booking_id>/confirm/', views.api_confirm_booking, name='api_confirm_booking'),
+    path('api/booking/<int:booking_id>/unconfirm/', views.api_unconfirm_booking, name='api_unconfirm_booking'),
+
     # Детали записи
     path('api/booking/<int:booking_id>/details/', views.get_booking_details, name='api_booking_details'),
     

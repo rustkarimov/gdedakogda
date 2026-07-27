@@ -2099,6 +2099,7 @@ function renderBookings(b) {
     c.innerHTML = h;
 }
 
+
 function createBookingRow(b) {
     const now = new Date();
     const today = now.toISOString().split('T')[0];
@@ -2130,46 +2131,320 @@ function createBookingRow(b) {
         isPast = true;
     }
     
-    let statusBadge = '';
     let rowClass = '';
     
     if (isPast) {
-        statusBadge = '<span class="badge bg-secondary">Прошла</span>';
         rowClass = 'booking-past';
     } else if (isVerySoon) {
-        statusBadge = '<span class="badge bg-success">Подтверждена</span>';
         rowClass = 'booking-very-soon';
     } else if (isSoon) {
-        statusBadge = '<span class="badge bg-success">Подтверждена</span>';
         rowClass = 'booking-soon';
     } else {
-        statusBadge = '<span class="badge bg-success">Подтверждена</span>';
         rowClass = 'booking-future';
     }
     
-    // Формируем строку с ID для удаления
-    let allIds = JSON.stringify([b.id]).replace(/"/g, '&quot;');
+    // ============================================================
+    // ✅ СТАТУС ПОДТВЕРЖДЕНИЯ (из БД)
+    // ============================================================
     
-    return '<tr class="' + rowClass + '">' +
+    const isConfirmed = b.confirmed_by_master === true;
+    
+    // ============================================================
+    // ✅ ТЕЛЕФОН ДЛЯ СВЯЗИ
+    // ============================================================
+    
+    const phone = b.phone || '';
+    const cleanPhone = phone.replace(/\D/g, '');
+    const masterMaxLink = "{{ master.max_link|default:'' }}";
+    
+    // ============================================================
+    // ✅ ВЫПАДАЮЩЕЕ МЕНЮ (десктоп)
+    // ============================================================
+    
+    const contactDropdown = `
+        <div class="contact-dropdown-wrapper">
+            <button class="contact-dropdown-btn" onclick="toggleContactDropdown(this)">
+                <i class="fas fa-phone-alt"></i>
+                <span>Связаться</span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="contact-dropdown-menu" style="display: none;">
+                <button onclick="callClient('${cleanPhone}')">
+                    <i class="fas fa-phone"></i> Позвонить
+                </button>
+                <button onclick="sendSms('${cleanPhone}')">
+                    <i class="fas fa-sms"></i> SMS
+                </button>
+                <button onclick="openTelegram('${cleanPhone}')">
+                    <i class="fab fa-telegram-plane"></i> Telegram
+                </button>
+                <button onclick="openWhatsApp('${cleanPhone}')">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </button>
+                <button onclick="openMax('${masterMaxLink}')" ${!masterMaxLink ? 'disabled' : ''}>
+                    <span class="max-icon">M</span> MAX
+                </button>
+            </div>
+        </div>
+    `;
+    
+    // ============================================================
+    // ✅ КНОПКА ПОДТВЕРЖДЕНИЯ (десктоп)
+    // ============================================================
+    
+    const confirmButton = `
+        <button class="confirm-btn ${isConfirmed ? 'confirmed' : ''}" 
+                onclick="toggleBookingConfirm(this, ${b.id})" 
+                title="${isConfirmed ? 'Запись подтверждена' : 'Подтвердить запись'}">
+            <i class="fas ${isConfirmed ? 'fa-check-circle' : 'fa-circle'}"></i>
+        </button>
+    `;
+    
+    // ============================================================
+    // ✅ МОБИЛЬНЫЕ КНОПКИ (Связаться + Галочка)
+    // ============================================================
+    
+    const mobileRow1 = `
+        <div class="mobile-row-1">
+            <button class="mobile-contact-btn" onclick="toggleContactDropdown(this)" title="Связаться">
+                <i class="fas fa-phone-alt"></i>
+                <span>Связаться</span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <button class="mobile-confirm-btn ${isConfirmed ? 'confirmed' : ''}" 
+                    onclick="toggleBookingConfirm(this, ${b.id})" 
+                    title="${isConfirmed ? 'Запись подтверждена' : 'Подтвердить запись'}">
+                <i class="fas ${isConfirmed ? 'fa-check-circle' : 'fa-circle'}"></i>
+            </button>
+        </div>
+    `;
+    
+    // ============================================================
+    // ✅ МОБИЛЬНЫЕ КНОПКИ (Инфо, Редактировать, Удалить)
+    // ============================================================
+    
+    const mobileRow2 = `
+        <div class="mobile-row-2">
+            <button class="btn btn-sm" onclick="showBookingDetails(${b.id})" title="Подробности">
+                <i class="fas fa-info-circle"></i>
+            </button>
+            <button class="btn btn-sm" onclick="editBookingInModal(${b.id})" title="Редактировать">
+                <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn btn-sm" onclick="deleteBooking(${b.id}, '${escapeHtml(b.client_name)}', '${b.time}')" title="Удалить">
+                <i class="fas fa-trash"></i>
+            </button>
+        </div>
+    `;
+    
+    // ============================================================
+    // ✅ СТАРЫЕ КНОПКИ ДЕЙСТВИЙ (десктоп)
+    // ============================================================
+    
+    const actionButtons = `
+        <button class="btn btn-sm" onclick="showBookingDetails(${b.id})" title="Подробности">
+            <i class="fas fa-info-circle"></i>
+        </button>
+        <button class="btn btn-sm" onclick="editBookingInModal(${b.id})" title="Редактировать">
+            <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn btn-sm" onclick="deleteBooking(${b.id}, '${escapeHtml(b.client_name)}', '${b.time}')" title="Удалить">
+            <i class="fas fa-trash"></i>
+        </button>
+    `;
+    
+    // ============================================================
+    // ✅ ВОЗВРАЩАЕМ СТРОКУ
+    // ============================================================
+    
+    return '<tr class="' + rowClass + '" data-booking-id="' + b.id + '">' +
         '<td data-label="Дата">' + escapeHtml(b.date) + '</td>' +
         '<td data-label="Время">' + escapeHtml(b.time) + '</td>' +
         '<td data-label="Клиент">' + escapeHtml(b.client_name) + '</td>' +
         '<td data-label="Услуги">' + escapeHtml(b.service_name) + '</td>' +
-        '<td class="actions-cell">' +
-            '<div class="action-icons">' +
-                '<button class="btn btn-sm" onclick="showBookingDetails(' + b.id + ')" title="Подробности">' +
-                    '<i class="fas fa-info-circle"></i>' +
-                '</button>' +
-                '<button class="btn btn-sm" onclick="editBookingInModal(' + b.id + ')" title="Редактировать">' +
-                    '<i class="fas fa-edit"></i>' +
-                '</button>' +
-                '<button class="btn btn-sm" onclick="deleteBooking(' + b.id + ', \'' + escapeHtml(b.client_name) + '\', \'' + b.time + '\')" title="Удалить">' +
-                    '<i class="fas fa-trash"></i>' +
-                '</button>' +
-            '</div>' +
-            '<div class="status-badge">' + statusBadge + '</div>' +
+        '<td data-label="Связь" class="contact-cell">' + contactDropdown + '</td>' +
+        '<td data-label="Подтверждение" class="confirm-cell">' + confirmButton + '</td>' +
+        '<td data-label="Действия" class="actions-cell">' +
+            '<div class="action-icons">' + actionButtons + '</div>' +
+            mobileRow1 +  // ← Связаться + Галочка
+            mobileRow2 +  // ← Инфо + Редактировать + Удалить
         '</td>' +
         '</tr>';
+}
+
+// ============================================================
+// ВЫПАДАЮЩЕЕ МЕНЮ "СВЯЗАТЬСЯ"
+// ============================================================
+
+function toggleContactDropdown(btn) {
+    const wrapper = btn.closest('.contact-dropdown-wrapper');
+    const menu = wrapper.querySelector('.contact-dropdown-menu');
+    const isOpen = menu.style.display === 'block';
+    
+    // Закрываем все другие меню
+    document.querySelectorAll('.contact-dropdown-menu').forEach(el => {
+        el.style.display = 'none';
+    });
+    
+    if (!isOpen) {
+        menu.style.display = 'block';
+    }
+}
+
+// Закрытие меню при клике вне его
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.contact-dropdown-wrapper')) {
+        document.querySelectorAll('.contact-dropdown-menu').forEach(el => {
+            el.style.display = 'none';
+        });
+    }
+});
+
+// ============================================================
+// СВЯЗЬ С КЛИЕНТОМ
+// ============================================================
+
+function callClient(phone) {
+    if (!phone) return;
+    window.location.href = `tel:+${phone}`;
+}
+
+function sendSms(phone) {
+    if (!phone) return;
+    window.location.href = `sms:+${phone}`;
+}
+
+function openWhatsApp(phone) {
+    if (!phone) return;
+    const cleanPhone = phone.replace(/\D/g, '');
+    window.open(`https://wa.me/${cleanPhone}`, '_blank');
+}
+
+function openTelegram(phone) {
+    if (!phone) return;
+    const cleanPhone = phone.replace(/\D/g, '');
+    const tgLink = `tg://resolve?phone=${cleanPhone}`;
+    window.location.href = tgLink;
+    setTimeout(() => {
+        if (document.hasFocus()) {
+            showAlert('💬 Telegram не установлен или не открылся.\nСвяжитесь с клиентом по телефону.', 'Подсказка');
+        }
+    }, 2000);
+}
+
+function openMax(maxLink) {
+    if (!maxLink) {
+        showAlert('⚠️ Ссылка на MAX не настроена.\nДобавьте её в настройках профиля.', 'Подсказка');
+        return;
+    }
+    window.open(maxLink, '_blank');
+}
+
+// ============================================================
+// ПОДТВЕРЖДЕНИЕ ЗАПИСИ
+// ============================================================
+
+function confirmBooking(bookingId) {
+    showConfirm('Подтвердить запись клиента?', (confirmed) => {
+        if (confirmed) {
+            fetch(`/api/booking/${bookingId}/confirm/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('✅ Запись подтверждена!', 'Готово');
+                    loadBookings(1, false);
+                    if (currentSelectedDate) {
+                        fetch(`/api/bookings/by-date/?date=${currentSelectedDate}`)
+                            .then(r => r.json())
+                            .then(data => renderDayBookings(data.bookings));
+                    }
+                } else {
+                    showAlert(data.error || 'Ошибка подтверждения', 'Ошибка');
+                }
+            })
+            .catch(() => {
+                showAlert('Произошла ошибка', 'Ошибка');
+            });
+        }
+    });
+}
+
+// ============================================================
+// ПОДТВЕРЖДЕНИЕ ЗАПИСИ (переключение)
+// ============================================================
+
+// ============================================================
+// ПОДТВЕРЖДЕНИЕ ЗАПИСИ (БЕЗ МОДАЛОК)
+// ============================================================
+
+// ============================================================
+// ПОДТВЕРЖДЕНИЕ ЗАПИСИ (ПЕРЕКЛЮЧЕНИЕ)
+// ============================================================
+
+function toggleBookingConfirm(btn, bookingId) {
+    // Определяем текущее состояние по классу кнопки
+    const isCurrentlyConfirmed = btn.classList.contains('confirmed');
+    const newStatus = !isCurrentlyConfirmed; // true = confirmed, false = pending
+    
+    // Меняем иконку сразу (оптимистичное обновление)
+    const icon = btn.querySelector('i');
+    if (newStatus) {
+        // Становимся подтвержденным (зеленая галочка)
+        btn.classList.add('confirmed');
+        icon.className = 'fas fa-check-circle';
+        btn.title = 'Запись подтверждена';
+    } else {
+        // Становимся неподтвержденным (серый круг)
+        btn.classList.remove('confirmed');
+        icon.className = 'fas fa-circle';
+        btn.title = 'Подтвердить запись';
+    }
+    
+    // Отправляем запрос на сервер
+    const action = newStatus ? 'confirm' : 'unconfirm';
+    fetch(`/api/booking/${bookingId}/${action}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (!data.success) {
+            // Если ошибка — возвращаем старый статус
+            showAlert(data.error || 'Ошибка', 'Ошибка');
+            // Возвращаем старый статус
+            if (newStatus) {
+                btn.classList.remove('confirmed');
+                icon.className = 'fas fa-circle';
+                btn.title = 'Подтвердить запись';
+            } else {
+                btn.classList.add('confirmed');
+                icon.className = 'fas fa-check-circle';
+                btn.title = 'Запись подтверждена';
+            }
+        }
+    })
+    .catch(() => {
+        // Если ошибка — возвращаем старый статус
+        showAlert('Произошла ошибка', 'Ошибка');
+        if (newStatus) {
+            btn.classList.remove('confirmed');
+            icon.className = 'fas fa-circle';
+            btn.title = 'Подтвердить запись';
+        } else {
+            btn.classList.add('confirmed');
+            icon.className = 'fas fa-check-circle';
+            btn.title = 'Запись подтверждена';
+        }
+    });
 }
 
 // ============================================================
@@ -3401,308 +3676,6 @@ function makeWorkingFromDayOff() {
 <style>
 
 
-#breaksContainer .break-item {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    flex-wrap: wrap !important;
-    margin-bottom: 4px !important;
-    width: 100% !important;
-
-    height: 36px !important;        /* ← ДОБАВИТЬ ЭТУ СТРОКУ */
-    min-height: 36px !important;   /* ← ДОБАВИТЬ ЭТУ СТРОКУ */
-}
-
-#breaksContainer .break-item .break-view-mode {
-    display: flex !important;
-    align-items: center !important;
-    gap: 4px !important;
-
-    height: 36px !important;        /* ← ДОБАВИТЬ ЭТУ СТРОКУ */
-}
-
-#breaksContainer .break-item .break-edit-mode {
-    display: none;
-    align-items: center !important;
-    gap: 4px !important;
-
-    height: 36px !important;        /* ← ДОБАВИТЬ ЭТУ СТРОКУ */
-}
-
-#breaksContainer .break-item .btn {
-    padding: 0 4px !important;
-    font-size: 0.85rem !important;
-    color: var(--gray-600) !important;
-    background: transparent !important;
-    border: none !important;
-    min-width: auto !important;
-    width: auto !important;
-    height: auto !important;
-    line-height: 1 !important;
-}
-
-#breaksContainer .break-item .btn-success {
-    color: #28a745 !important;
-}
-
-#breaksContainer .break-item .btn-success:hover {
-    color: #1e7e34 !important;
-}
-
-#breaksContainer .break-item .btn-outline-secondary {
-    color: var(--gray-600) !important;
-}
-
-#breaksContainer .break-item .btn-outline-secondary:hover {
-    color: var(--gray-800) !important;
-}
-
-#breaksContainer .break-item .edit-break-btn,
-#breaksContainer .break-item .delete-break-btn,
-#breaksContainer .break-item .add-break-btn {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-}
-
-#breaksContainer .break-item .edit-break-btn i,
-#breaksContainer .break-item .delete-break-btn i,
-#breaksContainer .break-item .add-break-btn i,
-#breaksContainer .break-item .btn i {
-    font-size: 0.85rem !important;
-}
-
-
-
-/* Для мобильной версии */
-@media (max-width: 768px) {
-    #breaksContainer .break-item {
-        flex-wrap: nowrap !important;
-        gap: 5px !important;
-        padding: 4px 0 !important;
-    }
-    
-    #breaksContainer .break-item .break-view-mode,
-    #breaksContainer .break-item .break-edit-mode {
-        flex-wrap: wrap !important;
-    }
-    
-    #breaksContainer .break-item .form-control-sm {
-        width: 50px !important;
-        font-size: 0.7rem !important;
-        padding: 2px 6px !important;
-        height: 28px !important;
-    }
-    
-    #breaksContainer .break-item .btn i {
-        font-size: 0.75rem !important;
-    }
-
-    #breaksContainer .break-item .break-label {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 4px !important;
-    font-size: 15px !important;
-}
-#breaksContainer .break-item .break-edit-mode span {
-    font-size: 0.55rem !important;
-}
-
-#breaksContainer .break-item .break-display {
-    font-size: 15px !important;
-}
-
-#breaksContainer .break-item .break-view-mode {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 4px !important;
-    margin-right: 5px !important;
-}
-
-#breaksContainer .break-item .break-edit-mode {
-    display: none;
-    align-items: center !important;
-    gap: 4px !important;
-}
-
-#breaksContainer .break-item .btn {
-    padding: 0 4px !important;
-    font-size: 0.85rem !important;
-    color: var(--gray-600) !important;
-    background: transparent !important;
-    border: none !important;
-    min-width: auto !important;
-    width: auto !important;
-    height: auto !important;
-    line-height: 1 !important;
-}
-
-#breaksContainer .break-item .btn-success {
-    color: #28a745 !important;
-}
-
-#breaksContainer .break-item .btn-success:hover {
-    color: #1e7e34 !important;
-}
-
-#breaksContainer .break-item .btn-outline-secondary {
-    color: var(--gray-600) !important;
-}
-
-#breaksContainer .break-item .btn-outline-secondary:hover {
-    color: var(--gray-800) !important;
-}
-
-#breaksContainer .break-item .edit-break-btn,
-#breaksContainer .break-item .delete-break-btn,
-#breaksContainer .break-item .add-break-btn {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-}
-
-#breaksContainer .break-item .edit-break-btn i,
-#breaksContainer .break-item .delete-break-btn i,
-#breaksContainer .break-item .add-break-btn i,
-#breaksContainer .break-item .btn i {
-    font-size: 0.85rem !important;
-}
-}
-
-/* ============================================================ */
-/* ========== РАБОЧЕЕ ВРЕМЯ - РЕДАКТИРОВАНИЕ ========== */
-/* ============================================================ */
-
-/* ============================================================ */
-/* ========== РАБОЧЕЕ ВРЕМЯ - РЕДАКТИРОВАНИЕ ========== */
-/* ============================================================ */
-
-.work-time-row {
-    height: 36px !important;
-    min-height: 36px !important;
-}
-
-.work-time-row > div {
-    height: 36px !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 4px !important;
-}
-
-.work-time-input {
-    width: 80px !important;
-    height: 30px !important;
-    padding: 2px 6px !important;
-    font-size: 0.8rem !important;
-    border-radius: 6px !important;
-    border: 1px solid var(--gray-300) !important;
-    display: inline-block !important;
-}
-
-.work-time-input:focus {
-    border-color: var(--primary) !important;
-    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15) !important;
-    outline: none !important;
-}
-
-.work-save-btn,
-.work-cancel-btn {
-    padding: 2px 6px !important;
-    font-size: 0.75rem !important;
-    border-radius: 6px !important;
-    border: none !important;
-    background: transparent !important;
-    color: var(--gray-500) !important;
-    transition: all 0.2s ease !important;
-    height: 30px !important;
-    width: 30px !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-}
-
-.work-save-btn:hover {
-    background: #dcfce7 !important;
-    color: #16a34a !important;
-}
-
-.work-cancel-btn:hover {
-    background: #fef2f2 !important;
-    color: #dc2626 !important;
-}
-
-.work-save-btn i,
-.work-cancel-btn i {
-    font-size: 0.75rem !important;
-}
-
-#editWorkTimeBtn {
-    height: 36px !important;
-    width: 36px !important;
-    /* display: inline-flex !important; */
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 0 !important;
-}
-
-#editWorkTimeBtn i {
-    font-size: 0.85rem !important;
-}
-
-.work-time-separator {
-    font-size: 0.8rem !important;
-    color: var(--gray-500) !important;
-    padding: 0 4px !important;
-    line-height: 30px !important;
-    display: inline-block !important;
-}
-
-@media (max-width: 768px) {
-           .work-time-row {
-        height: 36px !important;
-        min-height: 36px !important;
-        display: flex !important;
-        align-items: center !important;
-        flex-wrap: nowrap !important;
-    }
-    
-    .work-time-row > div {
-        height: 36px !important;
-        min-height: 36px !important;
-        display: flex !important;
-        align-items: center !important;
-        flex-wrap: nowrap !important;
-        gap: 1px !important;
-    }
-    
-    /* Чтобы поля и текст не переносились */
-    .work-view-mode,
-    .work-edit-mode {
-        white-space: nowrap !important;
-        /* display: inline-flex !important; */
-        align-items: center !important;
-    }
-    
-    .work-time-input {
-        width: 55px !important;
-        height: 28px !important;
-        font-size: 0.7rem !important;
-    }
-    
-    #editWorkTimeBtn {
-        height: 30px !important;
-        width: 30px !important;
-    }
-    
-    #workTimeLabel {
-        white-space: nowrap !important;
-    }
-    
-    .work-time-separator {
-    font-size: 0.55rem !important;
-    padding: 0 1px !important;   /* было 0 2px */
-}
-}
 
 
 </style>
