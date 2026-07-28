@@ -2082,8 +2082,7 @@ function renderBookings(b) {
     h += '<th>Время</th>';
     h += '<th>Клиент</th>';
     h += '<th>Услуги</th>';
-    h += '<th>Действия</th>';
-    h += '<th>Статус</th>';
+    h += '<th></th>';  // ← Пустой заголовок для всех кнопок
     h += '</tr>';
     h += '</thead>';
     h += '<tbody>';
@@ -2101,66 +2100,12 @@ function renderBookings(b) {
 
 
 function createBookingRow(b) {
-    const now = new Date();
-    const today = now.toISOString().split('T')[0];
-    const bookingDate = b.date.includes('сегодня') ? today : parseDateFromDisplay(b.date);
-    
-    let isPast = false;
-    let isSoon = false;
-    let isVerySoon = false;
-    
-    if (bookingDate === today) {
-        const [hours, minutes] = b.time.split(':');
-        const bookingTime = new Date();
-        bookingTime.setHours(parseInt(hours), parseInt(minutes), 0);
-        
-        const timeDiff = bookingTime - now;
-        const minutesDiff = Math.floor(timeDiff / (1000 * 60));
-        
-        isPast = bookingTime < now;
-        
-        if (!isPast) {
-            if (minutesDiff <= 15) {
-                isVerySoon = true;
-                isSoon = true;
-            } else if (minutesDiff <= 30) {
-                isSoon = true;
-            }
-        }
-    } else if (bookingDate < today) {
-        isPast = true;
-    }
-    
-    let rowClass = '';
-    
-    if (isPast) {
-        rowClass = 'booking-past';
-    } else if (isVerySoon) {
-        rowClass = 'booking-very-soon';
-    } else if (isSoon) {
-        rowClass = 'booking-soon';
-    } else {
-        rowClass = 'booking-future';
-    }
-    
-    // ============================================================
-    // ✅ СТАТУС ПОДТВЕРЖДЕНИЯ (из БД)
-    // ============================================================
-    
     const isConfirmed = b.confirmed_by_master === true;
-    
-    // ============================================================
-    // ✅ ТЕЛЕФОН ДЛЯ СВЯЗИ
-    // ============================================================
-    
     const phone = b.phone || '';
     const cleanPhone = phone.replace(/\D/g, '');
     const masterMaxLink = "{{ master.max_link|default:'' }}";
     
-    // ============================================================
-    // ✅ ВЫПАДАЮЩЕЕ МЕНЮ (десктоп)
-    // ============================================================
-    
+    // Кнопка "Связаться" с выпадающим меню
     const contactDropdown = `
         <div class="contact-dropdown-wrapper">
             <button class="contact-dropdown-btn" onclick="toggleContactDropdown(this)">
@@ -2188,10 +2133,7 @@ function createBookingRow(b) {
         </div>
     `;
     
-    // ============================================================
-    // ✅ КНОПКА ПОДТВЕРЖДЕНИЯ (десктоп)
-    // ============================================================
-    
+    // Кнопка подтверждения
     const confirmButton = `
         <button class="confirm-btn ${isConfirmed ? 'confirmed' : ''}" 
                 onclick="toggleBookingConfirm(this, ${b.id})" 
@@ -2200,31 +2142,9 @@ function createBookingRow(b) {
         </button>
     `;
     
-    // ============================================================
-    // ✅ МОБИЛЬНЫЕ КНОПКИ (Связаться + Галочка)
-    // ============================================================
-    
-    const mobileRow1 = `
-        <div class="mobile-row-1">
-            <button class="mobile-contact-btn" onclick="toggleContactDropdown(this)" title="Связаться">
-                <i class="fas fa-phone-alt"></i>
-                <span>Связаться</span>
-                <i class="fas fa-chevron-down"></i>
-            </button>
-            <button class="mobile-confirm-btn ${isConfirmed ? 'confirmed' : ''}" 
-                    onclick="toggleBookingConfirm(this, ${b.id})" 
-                    title="${isConfirmed ? 'Запись подтверждена' : 'Подтвердить запись'}">
-                <i class="fas ${isConfirmed ? 'fa-check-circle' : 'fa-circle'}"></i>
-            </button>
-        </div>
-    `;
-    
-    // ============================================================
-    // ✅ МОБИЛЬНЫЕ КНОПКИ (Инфо, Редактировать, Удалить)
-    // ============================================================
-    
-    const mobileRow2 = `
-        <div class="mobile-row-2">
+    // Все кнопки в одной строке (десктоп + мобильные)
+    const allButtons = `
+        <div class="all-buttons-row">
             <button class="btn btn-sm" onclick="showBookingDetails(${b.id})" title="Подробности">
                 <i class="fas fa-info-circle"></i>
             </button>
@@ -2234,41 +2154,17 @@ function createBookingRow(b) {
             <button class="btn btn-sm" onclick="deleteBooking(${b.id}, '${escapeHtml(b.client_name)}', '${b.time}')" title="Удалить">
                 <i class="fas fa-trash"></i>
             </button>
+            ${contactDropdown}
+            ${confirmButton}
         </div>
     `;
     
-    // ============================================================
-    // ✅ СТАРЫЕ КНОПКИ ДЕЙСТВИЙ (десктоп)
-    // ============================================================
-    
-    const actionButtons = `
-        <button class="btn btn-sm" onclick="showBookingDetails(${b.id})" title="Подробности">
-            <i class="fas fa-info-circle"></i>
-        </button>
-        <button class="btn btn-sm" onclick="editBookingInModal(${b.id})" title="Редактировать">
-            <i class="fas fa-edit"></i>
-        </button>
-        <button class="btn btn-sm" onclick="deleteBooking(${b.id}, '${escapeHtml(b.client_name)}', '${b.time}')" title="Удалить">
-            <i class="fas fa-trash"></i>
-        </button>
-    `;
-    
-    // ============================================================
-    // ✅ ВОЗВРАЩАЕМ СТРОКУ
-    // ============================================================
-    
-    return '<tr class="' + rowClass + '" data-booking-id="' + b.id + '">' +
+    return '<tr data-booking-id="' + b.id + '">' +
         '<td data-label="Дата">' + escapeHtml(b.date) + '</td>' +
         '<td data-label="Время">' + escapeHtml(b.time) + '</td>' +
         '<td data-label="Клиент">' + escapeHtml(b.client_name) + '</td>' +
         '<td data-label="Услуги">' + escapeHtml(b.service_name) + '</td>' +
-        '<td data-label="Связь" class="contact-cell">' + contactDropdown + '</td>' +
-        '<td data-label="Подтверждение" class="confirm-cell">' + confirmButton + '</td>' +
-        '<td data-label="Действия" class="actions-cell">' +
-            '<div class="action-icons">' + actionButtons + '</div>' +
-            mobileRow1 +  // ← Связаться + Галочка
-            mobileRow2 +  // ← Инфо + Редактировать + Удалить
-        '</td>' +
+        '<td data-label="" class="actions-cell">' + allButtons + '</td>' +
         '</tr>';
 }
 
@@ -2277,8 +2173,13 @@ function createBookingRow(b) {
 // ============================================================
 
 function toggleContactDropdown(btn) {
+    // Находим ближайший wrapper
     const wrapper = btn.closest('.contact-dropdown-wrapper');
+    if (!wrapper) return;
+    
     const menu = wrapper.querySelector('.contact-dropdown-menu');
+    if (!menu) return;
+    
     const isOpen = menu.style.display === 'block';
     
     // Закрываем все другие меню
