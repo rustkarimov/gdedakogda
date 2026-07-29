@@ -48,7 +48,6 @@ def get_month_ru(date_obj):
     return months[date_obj.month - 1]
 
 
-
 # Главная страница
 def home(request):
     return render(request, 'masters/public/index.html')
@@ -2278,7 +2277,6 @@ def create_booking(request, login):
         date_str = data.get('date')
         time_str = data.get('time')
         comment = data.get('comment', '')
-        # ❌ УДАЛИТЬ: force = data.get('force', False)
         created_by = data.get('created_by', 'client')
         
         # Валидация
