@@ -40,7 +40,7 @@ urlpatterns = [
     path('api/services/<int:service_id>/get/', views.api_get_service, name='api_get_service'),
 
     # API для категорий мастера (публичная страница)
-    path('api/master/<str:login>/categories/', views.get_master_categories, name='api_master_categories'),
+    # path('api/master/<str:login>/categories/', views.get_master_categories, name='api_master_categories'),
     
     # Расписание
     path('schedule/', views.schedule, name='schedule'),
@@ -91,9 +91,17 @@ urlpatterns = [
     path('<str:login>/', views.master_by_login, name='master_by_login'),
     
     # API для AJAX-запросов
-    path('api/<str:login>/dates/', views.get_available_dates, name='api_dates'),
-    path('api/<str:login>/slots/', views.get_available_slots, name='api_slots'),
-    path('api/<str:login>/book/', views.create_booking, name='api_book'),
+    # path('api/<str:login>/dates/', views.get_available_dates, name='api_dates'),
+    # path('api/<str:login>/slots/', views.get_available_slots, name='api_slots'),
+    # path('api/<str:login>/book/', views.create_booking, name='api_book'),
+    # path('api/<str:login>/book-multiple/', views.create_multiple_bookings, name='api_book_multiple'),
+
+
+    path('api/master/<str:identifier>/categories/', views.get_master_categories, name='api_master_categories'),
+    path('api/<str:identifier>/dates/', views.get_available_dates, name='api_dates'),
+    path('api/<str:identifier>/slots/', views.get_available_slots, name='api_slots'),
+    path('api/<str:identifier>/book/', views.create_booking, name='api_book'),
+    path('api/<str:identifier>/book-multiple/', views.create_multiple_bookings, name='api_book_multiple'),
 
     # Мобильные/модальные API
     path('api/mobile/login/', views.mobile_login, name='mobile_login'),
@@ -115,7 +123,6 @@ urlpatterns = [
     path('api/notifications/<int:notification_id>/unread/', views.mark_notification_unread, name='api_mark_unread'),
     path('api/notifications/mark-all-read/', views.mark_all_read, name='api_mark_all_read'),
 
-    path('api/<str:login>/book-multiple/', views.create_multiple_bookings, name='api_book_multiple'),
 
     path('api/support/messages/', views.get_support_messages, name='api_support_messages'),
     path('api/support/send/', views.send_support_message, name='api_support_send'),

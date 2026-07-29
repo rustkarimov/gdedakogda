@@ -18,6 +18,9 @@ from .models import ExtraWorkingDay, ExtraWorkingDayBreak
 from .utils.schedule_utils import ScheduleCalculator
 from .utils.response_utils import api_success, api_error
 
+from .utils.master_utils import get_master_by_identifier
+from django.http import Http404
+
 
 from datetime import datetime, timedelta, date
 import random
@@ -390,7 +393,6 @@ def profile(request):
     
     if request.method == 'POST':
         # Обновляем данные мастера
-        # master.phone = request.POST.get('phone', '')
         master.first_name = request.POST.get('first_name', '')
         master.last_name = request.POST.get('last_name', '')
         master.bio = request.POST.get('bio', '')
@@ -398,18 +400,28 @@ def profile(request):
         # Обновляем логин
         new_login = request.POST.get('login', '').strip()
         if new_login != (master.login or ''):
-            # Валидация логина
             import re
             if new_login:
+                # Проверка длины
                 if len(new_login) < 3:
                     messages.error(request, 'Логин должен содержать минимум 3 символа')
                     return redirect('profile')
+                
+                # Проверка допустимых символов
                 if not re.match(r'^[a-zA-Z0-9_-]+$', new_login):
                     messages.error(request, 'Логин может содержать только латиницу, цифры, дефис и подчеркивание')
                     return redirect('profile')
+                
+                # Проверка: логин не должен начинаться с 'id'
+                if new_login.lower().startswith('id'):
+                    messages.error(request, 'Логин не может начинаться с "id"')
+                    return redirect('profile')
+                
+                # Проверка уникальности
                 if Master.objects.exclude(pk=master.pk).filter(login=new_login).exists():
                     messages.error(request, 'Этот логин уже занят')
                     return redirect('profile')
+                
                 master.login = new_login
             else:
                 master.login = None
@@ -423,7 +435,6 @@ def profile(request):
         user.last_name = master.last_name
         user.save()
         
-        # messages.success(request, 'Профиль обновлен!')
         return redirect('profile')
     
     return render(request, 'masters/profile.html', {'master': master})
@@ -692,12 +703,13 @@ def api_get_service(request, service_id):
     except Exception as e:
         return api_error('Ошибка при загрузке услуги', status=500)
 
-def get_master_categories(request, login):
-    """API для получения категорий конкретного мастера по логину"""
-    master = get_object_or_404(Master, login=login)
-    categories = ServiceCategory.objects.filter(master=master, is_active=True)
+def get_master_categories(request, identifier):
+    try:
+        master = get_master_by_identifier(identifier)
+    except Http404:
+        return JsonResponse({'error': 'Мастер не найден'}, status=404)
     
-    # Получаем услуги без категории
+    categories = ServiceCategory.objects.filter(master=master, is_active=True)
     uncategorized = Service.objects.filter(master=master, category__isnull=True, is_active=True)
     
     data = []
@@ -2282,36 +2294,37 @@ from .utils.schedule_utils import ScheduleCalculator
 import json
 
 
-def get_available_dates(request, login):
+def get_available_dates(request, identifier):
     try:
-        master = get_object_or_404(Master, login=login)
-        service_id = request.GET.get('service_id')
-        total_duration = request.GET.get('total_duration')
-        page = int(request.GET.get('page', 1))
-        limit = int(request.GET.get('limit', 30))
-        
-        duration = None
-        
-        if total_duration:
-            duration = int(total_duration)
-        elif service_id:
-            try:
-                service = Service.objects.get(id=service_id, master=master)
-                duration = service.duration
-            except Service.DoesNotExist:
-                return JsonResponse({'error': 'Услуга не найдена'}, status=404)
-        else:
-            return JsonResponse({'error': 'Выберите услугу или укажите общую длительность'}, status=400)
-        
+        master = get_master_by_identifier(identifier)
+    except Http404:
+        return JsonResponse({'error': 'Мастер не найден'}, status=404)
+    
+    service_id = request.GET.get('service_id')
+    total_duration = request.GET.get('total_duration')
+    page = int(request.GET.get('page', 1))
+    limit = int(request.GET.get('limit', 30))
+    
+    duration = None
+    
+    if total_duration:
+        duration = int(total_duration)
+    elif service_id:
+        try:
+            service = Service.objects.get(id=service_id, master=master)
+            duration = service.duration
+        except Service.DoesNotExist:
+            return JsonResponse({'error': 'Услуга не найдена'}, status=404)
+    else:
+        return JsonResponse({'error': 'Выберите услугу или укажите общую длительность'}, status=400)
+    
+    try:
         calculator = ScheduleCalculator(master)
-        
-        # Получаем все даты (без пагинации)
         all_dates = calculator.get_available_dates(
             days_ahead=180,
             min_service_duration=duration
         )
         
-        # Пагинация вручную
         total = len(all_dates)
         start = (page - 1) * limit
         end = start + limit
@@ -2338,9 +2351,12 @@ def get_available_dates(request, login):
         return JsonResponse({'error': str(e)}, status=500)
 
 
-def get_available_slots(request, login):
-    """API для получения свободных слотов на выбранную дату (поддерживает как service_id, так и total_duration)"""
-    master = get_object_or_404(Master, login=login)
+def get_available_slots(request, identifier):
+    try:
+        master = get_master_by_identifier(identifier)
+    except Http404:
+        return JsonResponse({'error': 'Мастер не найден'}, status=404)
+    
     service_id = request.GET.get('service_id')
     total_duration = request.GET.get('total_duration')
     date_str = request.GET.get('date')
@@ -2350,14 +2366,11 @@ def get_available_slots(request, login):
     if not date_str:
         return JsonResponse({'error': 'Не указана дата'}, status=400)
     
-    # Определяем длительность
     duration = None
     
     if total_duration:
-        # Множественный выбор: используем суммарную длительность
         duration = int(total_duration)
     elif service_id:
-        # Одна услуга
         try:
             service = Service.objects.get(id=service_id, master=master)
             duration = service.duration
@@ -2371,25 +2384,29 @@ def get_available_slots(request, login):
     except ValueError:
         return JsonResponse({'error': 'Неверный формат даты'}, status=400)
     
-    calculator = ScheduleCalculator(master)
-    
-    # Определяем, нужно ли передавать текущее время
-    current_time = None
-    if target_date == date.today():
-        from datetime import datetime as dt
-        current_time = dt.now().time()
-    
-    slots = calculator.generate_time_slots(
-        target_date, 
-        duration,
-        exclude_booking_id=int(exclude_booking_id) if exclude_booking_id else None,
-        current_time=current_time,
-        original_booking_id=int(original_booking_id) if original_booking_id else None
-    )
-    
-    return JsonResponse({'slots': slots})
+    try:
+        calculator = ScheduleCalculator(master)
+        current_time = None
+        if target_date == date.today():
+            from datetime import datetime as dt
+            current_time = dt.now().time()
+        
+        slots = calculator.generate_time_slots(
+            target_date, 
+            duration,
+            exclude_booking_id=int(exclude_booking_id) if exclude_booking_id else None,
+            current_time=current_time,
+            original_booking_id=int(original_booking_id) if original_booking_id else None
+        )
+        
+        return JsonResponse({'slots': slots})
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'error': str(e)}, status=500)
 
-def create_booking(request, login):
+def create_booking(request, identifier):
     if request.method != 'POST':
         return api_error('Метод не поддерживается', status=405)
     
@@ -2397,7 +2414,11 @@ def create_booking(request, login):
         import re
         from cryptography.fernet import Fernet
         
-        master = get_object_or_404(Master, login=login)
+        try:
+            master = get_master_by_identifier(identifier)
+        except Http404:
+            return api_error('Мастер не найден', status=404)
+        
         data = json.loads(request.body)
         
         service_id = data.get('service_id')
@@ -2408,7 +2429,6 @@ def create_booking(request, login):
         comment = data.get('comment', '')
         created_by = data.get('created_by', 'client')
         
-        # Валидация
         if not all([service_id, client_name, client_phone, date_str, time_str]):
             return api_error('Заполните все поля', status=400)
         
@@ -2418,11 +2438,9 @@ def create_booking(request, login):
         if not client_phone_cleaned.startswith('7'):
             return api_error('Номер должен начинаться с 7', status=400)
         
-        # Проверка черного списка
         if BlacklistedClient.objects.filter(master=master, phone=client_phone_cleaned).exists():
             return api_error('Не получается записаться. Попробуйте позже.', status=403)
         
-        # Проверка услуги
         try:
             service = Service.objects.get(id=service_id, master=master)
         except Service.DoesNotExist:
@@ -2431,16 +2449,13 @@ def create_booking(request, login):
         booking_date = datetime.strptime(date_str, '%Y-%m-%d').date()
         booking_time = datetime.strptime(time_str, '%H:%M').time()
         
-        # Проверка свободного времени
         calculator = ScheduleCalculator(master)
         slots = calculator.generate_time_slots(booking_date, service.duration)
         is_available = any(slot['start'] == time_str for slot in slots)
         
-        # ✅ Принудительная запись отключена для всех
         if not is_available:
             return api_error('Это время уже занято. Выберите другое время.', status=409)
         
-        # Шифрование телефона
         key = master.get_encryption_key()
         if key:
             f = Fernet(key)
@@ -2448,7 +2463,6 @@ def create_booking(request, login):
         else:
             encrypted_phone = client_phone_cleaned.encode()
         
-        # Создание записи
         booking = Booking.objects.create(
             master=master,
             service=service,
@@ -2479,7 +2493,7 @@ def create_booking(request, login):
         return api_error('Ошибка при создании записи', status=500)
 
 
-def create_multiple_bookings(request, login):
+def create_multiple_bookings(request, identifier):
     if request.method != 'POST':
         return api_error('Метод не поддерживается', status=405)
     
@@ -2488,7 +2502,11 @@ def create_multiple_bookings(request, login):
         from cryptography.fernet import Fernet
         from datetime import timedelta
         
-        master = get_object_or_404(Master, login=login)
+        try:
+            master = get_master_by_identifier(identifier)
+        except Http404:
+            return api_error('Мастер не найден', status=404)
+        
         data = json.loads(request.body)
         
         service_ids = data.get('services', [])
@@ -2498,9 +2516,7 @@ def create_multiple_bookings(request, login):
         start_time_str = data.get('start_time')
         comment = data.get('comment', '')
         created_by = data.get('created_by', 'client')
-        # ❌ УДАЛЯЕМ force
         
-        # Валидация
         if not service_ids or not client_name or not client_phone or not date_str or not start_time_str:
             return api_error('Заполните все поля', status=400)
         
@@ -2511,13 +2527,11 @@ def create_multiple_bookings(request, login):
             return api_error('Номер должен начинаться с 7', status=400)
 
         if BlacklistedClient.objects.filter(master=master, phone=client_phone_cleaned).exists():
-            # Для мастера — показываем причину
             if created_by == 'master':
                 return api_error('Этот клиент находится в чёрном списке', status=403)
             else:
                 return api_error('Не получается записаться. Попробуйте позже.', status=403)
         
-        # Получаем все услуги
         services = []
         total_duration = 0
         for sid in service_ids:
@@ -2531,16 +2545,13 @@ def create_multiple_bookings(request, login):
         booking_date = datetime.strptime(date_str, '%Y-%m-%d').date()
         start_time = datetime.strptime(start_time_str, '%H:%M').time()
         
-        # Проверка свободного времени
         calculator = ScheduleCalculator(master)
         slots = calculator.generate_time_slots(booking_date, total_duration)
         is_available = any(slot['start'] == start_time_str for slot in slots)
         
-        # ✅ Принудительная запись отключена для всех
         if not is_available:
             return api_error('Это время уже занято. Выберите другое время.', status=409)
         
-        # Шифрование телефона
         key = master.get_encryption_key()
         if key:
             f = Fernet(key)
@@ -2548,7 +2559,6 @@ def create_multiple_bookings(request, login):
         else:
             encrypted_phone = client_phone_cleaned.encode()
         
-        # Создаём записи
         created_bookings = []
         time_offset = 0
         services_list = []
@@ -2578,7 +2588,6 @@ def create_multiple_bookings(request, login):
         
         end_time = (datetime.combine(date.today(), start_time) + timedelta(minutes=total_duration)).strftime('%H:%M')
         
-        # Уведомление только для клиентов
         if created_by == 'client':
             from .models import Notification
             notification_lines = []

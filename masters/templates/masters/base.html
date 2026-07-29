@@ -140,14 +140,6 @@
 
             <!-- Контент -->
             <div class="content-wrapper">
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
                 
                 {% block content %}{% endblock %}
             </div>
@@ -209,6 +201,8 @@
         </div>
     </div>
 
+    
+
     <!-- МОДАЛЬНОЕ ОКНО ЧАТА ПОДДЕРЖКИ -->
     <div class="modal fade" id="supportChatModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -240,6 +234,36 @@
             </div>
         </div>
     </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО ДЛЯ СООБЩЕНИЙ (ОШИБКИ/УСПЕХ) -->
+    <div class="modal fade" id="alertModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="alertModalTitle">
+                        <i class="fas fa-info-circle me-2" style="color: var(--primary);"></i>
+                        Уведомление
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="alertModalMessage"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Контейнер для сообщений от Django -->
+    {% if messages %}
+        <div id="django-messages-data" style="display: none;">
+            {% for message in messages %}
+                <div data-message="{{ message|escape }}" data-tags="{{ message.tags }}"></div>
+            {% endfor %}
+        </div>
+    {% endif %}
 
     <!-- Bootstrap JS -->
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
@@ -871,6 +895,52 @@ document.getElementById('chat-send-btn')?.addEventListener('click', sendSupportM
             });
         }
     </script>
+
+<script>
+
+    // ============================================================
+// МОДАЛЬНОЕ ОКНО УВЕДОМЛЕНИЯ
+// ============================================================
+
+    function showAlert(message, title = 'Уведомление') {
+        const modalElement = document.getElementById('alertModal');
+        if (!modalElement) {
+            console.error('Модальное окно #alertModal не найдено');
+            return;
+        }
+        document.getElementById('alertModalTitle').innerHTML = title;
+        document.getElementById('alertModalMessage').innerHTML = message;
+        new bootstrap.Modal(modalElement).show();
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Проверяем, есть ли сообщения от Django
+        const messagesContainer = document.getElementById('django-messages-data');
+        if (messagesContainer) {
+            const items = messagesContainer.querySelectorAll('[data-message]');
+            let firstMessage = null;
+            let firstTag = null;
+            
+            items.forEach(el => {
+                if (!firstMessage) {
+                    firstMessage = el.dataset.message;
+                    firstTag = el.dataset.tags || 'info';
+                }
+            });
+            
+            if (firstMessage) {
+                const titles = {
+                    'success': '✅ Готово!',
+                    'error': '❌ Ошибка',
+                    'warning': '⚠️ Внимание',
+                    'info': 'ℹ️ Уведомление'
+                };
+                const title = titles[firstTag] || 'ℹ️ Уведомление';
+                showAlert(firstMessage, title);
+            }
+        }
+    });
+</script>
 
     {% block extra_js %}{% endblock %}
 </body>
