@@ -170,13 +170,19 @@
                     onclick="togglePassword('login-password', this)"></i>
                 </div>
                     <button type="submit" class="btn btn-pink w-100" style="justify-content: center;">Войти</button>
-                </form>
-                <div class="mt-3 text-center">
-                    <p class="mb-0">Нет аккаунта? 
-                        <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#registerModal" 
-                           style="color: var(--primary);">Зарегистрироваться</a>
-                    </p>
-                </div>
+                    </form>
+                    <div class="mt-3 text-center">
+                        <p class="mb-0">Нет аккаунта? 
+                            <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#registerModal" 
+                            style="color: var(--primary);">Зарегистрироваться</a>
+                        </p>
+                    </div>
+                    <div class="text-center mt-2">
+                        <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#resetPasswordModal" 
+                        style="color: var(--gray-500); font-size: 0.85rem;">
+                            Забыли пароль?
+                        </a>
+                    </div>
             </div>
         </div>
     </div>
@@ -277,6 +283,67 @@
                 <div class="mt-3 text-center">
                     <a href="#" id="resend-code-link" style="color: var(--primary);">Отправить код повторно</a>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Модальное окно восстановления пароля -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-phone-alt me-2" style="color: var(--primary);"></i>
+                    Восстановление пароля
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Шаг 1: Ввод телефона -->
+                <div id="reset-step-1">
+                    <p class="text-muted">Введите номер телефона, и мы позвоним вам для подтверждения.</p>
+                    <div class="mb-3">
+                        <label class="form-label">Номер телефона</label>
+                        <input type="tel" class="form-control" id="reset-phone" placeholder="7 999 123-45-67">
+                    </div>
+                    <button class="btn btn-pink w-100" onclick="requestResetCall()">
+                        <i class="fas fa-phone me-2"></i>Позвонить
+                    </button>
+                </div>
+                
+                <!-- Шаг 2: Ожидание звонка -->
+                <div id="reset-step-2" style="display: none;">
+                    <div class="text-center py-3">
+                        <div class="spinner-border" style="color: var(--primary);"></div>
+                        <p class="mt-2" id="reset-call-info"></p>
+                        <!-- <p class="text-muted small">Ожидаем звонка...</p> -->
+                        <button class="btn btn-outline-secondary btn-sm mt-2" onclick="checkResetStatus()">
+                            <i class="fas fa-sync me-1"></i>Проверить статус
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Шаг 3: Новый пароль -->
+                <div id="reset-step-3" style="display: none;">
+                    <p class="text-success"><i class="fas fa-check-circle me-2"></i>Телефон подтверждён!</p>
+                    <p class="text-muted">Придумайте новый пароль.</p>
+                    <div class="mb-3">
+                        <label class="form-label">Новый пароль</label>
+                        <input type="password" class="form-control" id="reset-new-password" placeholder="Минимум 6 символов">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Подтвердите пароль</label>
+                        <input type="password" class="form-control" id="reset-confirm-password" placeholder="Повторите пароль">
+                    </div>
+                    <button class="btn btn-pink w-100" onclick="confirmResetPassword()">
+                        <i class="fas fa-save me-2"></i>Сохранить пароль
+                    </button>
+                </div>
+                
+                <!-- Статусные сообщения -->
+                <div id="reset-status" class="mt-2"></div>
             </div>
         </div>
     </div>
@@ -413,6 +480,25 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    // ============================================================
+    // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+    // ============================================================
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
     // Функция для маски телефона
     function phoneMask(input) {
         let value = input.value.replace(/\D/g, '');
@@ -491,29 +577,26 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        // ✅ СПИННЕР
         const btn = this.querySelector('button[type="submit"]');
         const originalText = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Отправка...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Регистрация...';
         btn.disabled = true;
         
         const response = await fetch('/api/mobile/register/', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
             body: JSON.stringify({ phone, first_name, password })
         });
         const data = await response.json();
         
-        // ✅ ВОЗВРАЩАЕМ КНОПКУ
         btn.innerHTML = originalText;
         btn.disabled = false;
         
         if (data.success) {
-            document.getElementById('verify-phone-display').innerText = `На номер ${phone} отправлен код подтверждения`;
-            document.getElementById('test-code-display').innerHTML = `<strong>🧪 ТЕСТОВЫЙ РЕЖИМ:</strong><br>Ваш код: <strong class="h4">${data.test_code}</strong>`;
-            bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
-            new bootstrap.Modal(document.getElementById('verifyModal')).show();
-            window.tempRegistrationData = data;
+            window.location.href = '/dashboard/';
         } else {
             alert(data.error || 'Ошибка регистрации');
         }
@@ -524,7 +607,6 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const code = document.getElementById('verify-code').value;
         
-        // ✅ СПИННЕР
         const btn = this.querySelector('button[type="submit"]');
         const originalText = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Проверка...';
@@ -532,19 +614,18 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const response = await fetch('/api/mobile/verify/', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
-            body: JSON.stringify({ code, ...window.tempRegistrationData })
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ code })
         });
         const data = await response.json();
         
-        // ✅ ВОЗВРАЩАЕМ КНОПКУ
         btn.innerHTML = originalText;
         btn.disabled = false;
         
         if (data.success) {
             window.location.href = '/dashboard/';
         } else {
-            alert('Неверный код подтверждения');
+            alert(data.error || 'Неверный код подтверждения');
         }
     });
 
@@ -553,15 +634,173 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         const response = await fetch('/api/mobile/resend-code/', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
             body: JSON.stringify({ phone: window.tempRegistrationData?.phone })
         });
         const data = await response.json();
         if (data.success) {
-            document.getElementById('test-code-display').innerHTML = `<strong>🧪 ТЕСТОВЫЙ РЕЖИМ:</strong><br>Новый код: <strong class="h4">${data.test_code}</strong>`;
+            document.getElementById('test-code-display').innerHTML = `<div class="text-muted">Новый код отправлен</div>`;
             alert('Новый код отправлен');
+        } else {
+            alert(data.error || 'Ошибка при отправке кода');
         }
     });
+</script>
+
+<script>
+
+// ============================================================
+// ВОССТАНОВЛЕНИЕ ПАРОЛЯ (ЗВОНОК)
+// ============================================================
+
+let resetCheckInterval = null;
+
+function requestResetCall() {
+    const phone = document.getElementById('reset-phone').value.replace(/\D/g, '');
+    
+    if (!phone || phone.length !== 11) {
+        showResetStatus('Введите корректный номер телефона (11 цифр)', 'danger');
+        return;
+    }
+    
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Отправка...';
+    btn.disabled = true;
+    
+    fetch('/api/reset-call/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ phone: phone })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('reset-step-1').style.display = 'none';
+            document.getElementById('reset-step-2').style.display = 'block';
+            document.getElementById('reset-call-info').innerHTML = `
+                <strong>Позвоните на номер:</strong><br>
+                <a href="tel:${data.data.call_phone}" 
+                style="font-size: 1.8rem; font-weight: 700; color: var(--primary); text-decoration: none; display: inline-block; padding: 8px 0;">
+                    ${data.data.call_phone_pretty}
+                </a>
+                <br><small class="text-muted">Вам ответит робот</small>
+                <br><small class="text-muted">Звонок бесплатный (даже в роуминге)</small>
+            `;
+            
+            if (resetCheckInterval) clearInterval(resetCheckInterval);
+            resetCheckInterval = setInterval(checkResetStatus, 5000);
+            
+            setTimeout(checkResetStatus, 3000);
+        } else {
+            showResetStatus(data.error || 'Ошибка', 'danger');
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    })
+    .catch(error => {
+        showResetStatus('Произошла ошибка', 'danger');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
+
+function checkResetStatus() {
+    fetch('/api/reset-check/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        console.log('📞 Статус звонка:', data);  // ← добавили лог
+        
+        if (data.success) {
+            if (data.data && data.data.is_confirmed) {
+                clearInterval(resetCheckInterval);
+                document.getElementById('reset-step-2').style.display = 'none';
+                document.getElementById('reset-step-3').style.display = 'block';
+                // showResetStatus('✅ Телефон подтверждён!', 'success');
+            } else {
+                // showResetStatus('⏳ Ожидаем звонка...', 'info');
+            }
+        } else {
+            showResetStatus('Ошибка: ' + (data.error || 'Неизвестная ошибка'), 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('❌ Ошибка проверки статуса:', error);
+        showResetStatus('Ошибка связи с сервером', 'danger');
+    });
+}
+
+function confirmResetPassword() {
+    const newPassword = document.getElementById('reset-new-password').value;
+    const confirmPassword = document.getElementById('reset-confirm-password').value;
+    
+    if (!newPassword || newPassword.length < 6) {
+        showResetStatus('Пароль должен содержать минимум 6 символов', 'danger');
+        return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+        showResetStatus('Пароли не совпадают', 'danger');
+        return;
+    }
+    
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Сохранение...';
+    btn.disabled = true;
+    
+    fetch('/api/reset-confirm/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            new_password: newPassword,
+            confirm_password: confirmPassword
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showResetStatus('✅ Пароль изменён! Войдите с новым паролем.', 'success');
+            setTimeout(() => {
+                bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal')).hide();
+                window.location.reload();
+            }, 1500);
+        } else {
+            showResetStatus(data.error || 'Ошибка', 'danger');
+        }
+    })
+    .catch(error => {
+        showResetStatus('Произошла ошибка', 'danger');
+    })
+    .finally(() => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
+
+function showResetStatus(message, type = 'info') {
+    const statusEl = document.getElementById('reset-status');
+    const colors = {
+        'info': 'text-info',
+        'danger': 'text-danger',
+        'success': 'text-success',
+        'warning': 'text-warning'
+    };
+    statusEl.innerHTML = `<p class="${colors[type] || 'text-muted'} mb-0">${message}</p>`;
+}
+
 </script>
 
 <script>

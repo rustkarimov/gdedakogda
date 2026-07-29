@@ -101,6 +101,10 @@ urlpatterns = [
     path('api/mobile/verify/', views.mobile_verify, name='mobile_verify'),
     path('api/mobile/resend-code/', views.mobile_resend_code, name='mobile_resend_code'),
 
+    path('api/reset-call/', views.request_reset_call, name='api_reset_call'),
+    path('api/reset-check/', views.check_reset_call_status, name='api_reset_check'),
+    path('api/reset-confirm/', views.reset_password_confirm, name='api_reset_confirm'),
+
     path('api/upload-avatar/', views.upload_avatar, name='upload_avatar'),
 
     path('api/blacklist/add/', views.api_blacklist_add, name='api_blacklist_add'),

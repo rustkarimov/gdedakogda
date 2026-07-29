@@ -1305,6 +1305,57 @@ body {
     }
 }
 
+
+/* ============================================================ */
+/* ========== ВОССТАНОВЛЕНИЕ ПАРОЛЯ (МОБИЛЬНЫЙ АДАПТИВ) ========== */
+/* ============================================================ */
+
+@media (max-width: 768) {
+    /* Шаг 1: форма */
+    #reset-step-1 .form-control {
+        font-size: 16px !important; /* чтобы не зумало на iPhone */
+        padding: 12px !important;
+    }
+    
+    #reset-step-1 .btn {
+        font-size: 16px !important;
+        padding: 14px !important;
+    }
+    
+    /* Шаг 2: номер для звонка */
+    #reset-call-info .h4 {
+        font-size: 1.5rem !important;
+        word-break: break-all;
+    }
+    
+    #reset-call-info small {
+        font-size: 0.8rem !important;
+        display: block;
+        margin-top: 4px;
+    }
+    
+    /* Шаг 3: новый пароль */
+    #reset-step-3 .form-control {
+        font-size: 16px !important;
+        padding: 12px !important;
+    }
+    
+    #reset-step-3 .btn {
+        font-size: 16px !important;
+        padding: 14px !important;
+    }
+    
+    /* Спиннер и текст */
+    #reset-step-2 .spinner-border {
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+    }
+    
+    #reset-step-2 .text-muted {
+        font-size: 0.85rem !important;
+    }
+}
+
 /* ============================================================ */
 /* ========== ДАШБОРД (СТИЛИ ДЛЯ ДЕСКТОПА И МОБАЙЛА) ========== */
 /* ============================================================ */

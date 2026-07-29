@@ -80,9 +80,10 @@ WSGI_APPLICATION = 'mymaster.wsgi.application'
 # Чтобы JavaScript мог читать CSRF-токен из cookies
 CSRF_COOKIE_HTTPONLY = False
 
+
+
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
 
 DATABASES = {
     'default': {

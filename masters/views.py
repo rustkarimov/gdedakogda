@@ -34,6 +34,8 @@ from django.contrib.auth import authenticate, login
 from .models import PhoneVerification
 import random
 
+from .utils.sms_utils import send_sms
+from .utils.call_utils import request_call_verification, check_call_status
 
 
 def get_weekday_ru(date_obj):
@@ -2064,15 +2066,22 @@ def mobile_register(request):
         if CustomUser.objects.filter(phone=phone).exists():
             return api_error('Пользователь с таким телефоном уже существует', status=409)
         
-        verification_code = str(random.randint(100000, 999999))
-        PhoneVerification.objects.create(phone=phone, code=verification_code)
+        # Сразу создаём пользователя
+        user = CustomUser.objects.create_user(
+            phone=phone,
+            password=password,
+            first_name=first_name,
+        )
+        Master.objects.create(
+            user=user,
+            phone=phone,
+            first_name=first_name,
+        )
         
-        request.session['reg_phone'] = phone
-        request.session['reg_first_name'] = first_name
-        request.session['reg_password'] = password
-        request.session['test_code'] = verification_code
+        # Сразу логиним
+        login(request, user)
         
-        return api_success({'test_code': verification_code})
+        return api_success({'message': 'Регистрация завершена'})
         
     except json.JSONDecodeError:
         return api_error('Неверный формат данных', status=400)
@@ -2089,12 +2098,10 @@ def mobile_verify(request):
             return api_error('Сессия истекла, начните регистрацию заново', status=400)
         
         verification = PhoneVerification.objects.filter(phone=phone, code=code, is_used=False).first()
-        test_code = request.session.get('test_code')
         
-        if verification or (test_code and code == test_code):
-            if verification:
-                verification.is_used = True
-                verification.save()
+        if verification:
+            verification.is_used = True
+            verification.save()
             
             user = CustomUser.objects.create_user(
                 phone=phone,
@@ -2109,7 +2116,7 @@ def mobile_verify(request):
             login(request, user)
             
             # Очищаем сессию
-            for key in ['reg_phone', 'reg_first_name', 'reg_password', 'test_code']:
+            for key in ['reg_phone', 'reg_first_name', 'reg_password']:
                 request.session.pop(key, None)
             
             return api_success({'message': 'Регистрация завершена'})
@@ -2132,15 +2139,137 @@ def mobile_resend_code(request):
         
         verification_code = str(random.randint(100000, 999999))
         PhoneVerification.objects.create(phone=phone, code=verification_code)
-        request.session['test_code'] = verification_code
         
-        return api_success({'test_code': verification_code})
+        # Отправляем реальное SMS
+        success, result = send_sms(phone, verification_code)
+        if not success:
+            print(f"SMS не отправлено: {result}")
+        
+        return api_success({'message': 'Код отправлен повторно'})
         
     except json.JSONDecodeError:
         return api_error('Неверный формат данных', status=400)
     except Exception as e:
         return api_error('Ошибка при отправке кода', status=500)
 
+
+def request_reset_call(request):
+    """Запрашивает звонок для восстановления пароля"""
+    if request.method != 'POST':
+        return api_error('Метод не поддерживается', status=405)
+    
+    try:
+        data = json.loads(request.body)
+        phone = data.get('phone')
+        
+        if not phone:
+            return api_error('Введите номер телефона', status=400)
+        
+        # Проверяем, есть ли пользователь с таким телефоном
+        try:
+            user = CustomUser.objects.get(phone=phone)
+        except CustomUser.DoesNotExist:
+            return api_error('Пользователь с таким номером не найден', status=404)
+        
+        # Запрашиваем звонок
+        success, check_id, call_phone, call_phone_pretty, error = request_call_verification(phone)
+        
+        if not success:
+            return api_error(error or 'Ошибка при запросе звонка', status=500)
+        
+        # Сохраняем check_id в сессии
+        request.session['reset_check_id'] = check_id
+        request.session['reset_phone'] = phone
+        
+        return api_success({
+            'check_id': check_id,
+            'call_phone': call_phone,
+            'call_phone_pretty': call_phone_pretty,
+            'message': f'Позвоните на номер {call_phone_pretty} для подтверждения'
+        })
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except Exception as e:
+        return api_error('Ошибка при запросе звонка', status=500)
+
+
+def check_reset_call_status(request):
+    """Проверяет статус звонка"""
+    if request.method != 'POST':
+        return api_error('Метод не поддерживается', status=405)
+    
+    try:
+        check_id = request.session.get('reset_check_id')
+        
+        if not check_id:
+            return api_error('Сессия истекла, начните восстановление заново', status=400)
+        
+        success, is_confirmed, status_text, error = check_call_status(check_id)
+        
+        if not success:
+            return api_error(error or 'Ошибка проверки статуса', status=500)
+        
+        return api_success({
+            'is_confirmed': is_confirmed,
+            'status_text': status_text
+        })
+        
+    except Exception as e:
+        return api_error('Ошибка при проверке статуса', status=500)
+
+
+def reset_password_confirm(request):
+    """Подтверждает новый пароль после звонка"""
+    if request.method != 'POST':
+        return api_error('Метод не поддерживается', status=405)
+    
+    try:
+        data = json.loads(request.body)
+        new_password = data.get('new_password')
+        confirm_password = data.get('confirm_password')
+        
+        if not new_password or not confirm_password:
+            return api_error('Введите пароль дважды', status=400)
+        
+        if new_password != confirm_password:
+            return api_error('Пароли не совпадают', status=400)
+        
+        if len(new_password) < 6:
+            return api_error('Пароль должен содержать минимум 6 символов', status=400)
+        
+        # Проверяем статус звонка
+        check_id = request.session.get('reset_check_id')
+        phone = request.session.get('reset_phone')
+        
+        if not check_id or not phone:
+            return api_error('Сессия истекла, начните восстановление заново', status=400)
+        
+        success, is_confirmed, status_text, error = check_call_status(check_id)
+        
+        if not success:
+            return api_error(error or 'Ошибка проверки статуса', status=500)
+        
+        if not is_confirmed:
+            return api_error('Звонок ещё не подтверждён. Позвоните по номеру.', status=400)
+        
+        # Меняем пароль
+        user = CustomUser.objects.get(phone=phone)
+        user.set_password(new_password)
+        user.save()
+        
+        # Очищаем сессию
+        request.session.pop('reset_check_id', None)
+        request.session.pop('reset_phone', None)
+        
+        return api_success({'message': 'Пароль успешно изменён'})
+        
+    except CustomUser.DoesNotExist:
+        return api_error('Пользователь не найден', status=404)
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except Exception as e:
+        return api_error('Ошибка при смене пароля', status=500)
 
 # Выход
 def logout_view(request):
