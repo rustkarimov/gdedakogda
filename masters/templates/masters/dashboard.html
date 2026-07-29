@@ -11,6 +11,34 @@
     </a>
 </div> -->
 
+<!-- Ближайшие записи -->
+<div class="card mb-4">
+    <div class="card-header bg-white">
+        <h5 class="mb-0"><i class="fas fa-clock me-2" style="color: var(--primary);"></i>Ближайшие записи</h5>
+    </div>
+    <div class="card-body">
+        <div id="upcoming-bookings-container">
+            <div class="text-center">
+                <div class="spinner-border" style="color: var(--primary);"></div>
+            </div>
+        </div>
+    </div>
+    <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center pt-0 flex-wrap">
+        <button id="load-more-bookings" class="btn btn-sm btn-outline-primary" style="display: none;" onclick="loadMoreBookings()">
+            <i class="fas fa-chevron-down me-1"></i>Показать еще
+        </button>
+        <div class="d-flex align-items-center gap-2">
+            <label class="form-label me-1 mb-0 small">Показывать:</label>
+            <select id="bookings-limit-select" class="form-select form-select-sm" style="width: 70px;">
+                <option value="3" selected>3</option>
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="15">15</option>
+            </select>
+            <span class="badge bg-primary" id="total-bookings-count">0</span>
+        </div>
+    </div>
+</div>
 
 <!-- Календарь -->
 <div class="card mb-4">
@@ -54,34 +82,7 @@
 
 
 
-<!-- Ближайшие записи -->
-<div class="card mb-4">
-    <div class="card-header bg-white">
-        <h5 class="mb-0"><i class="fas fa-clock me-2" style="color: var(--primary);"></i>Ближайшие записи</h5>
-    </div>
-    <div class="card-body">
-        <div id="upcoming-bookings-container">
-            <div class="text-center">
-                <div class="spinner-border" style="color: var(--primary);"></div>
-            </div>
-        </div>
-    </div>
-    <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center pt-0 flex-wrap">
-        <button id="load-more-bookings" class="btn btn-sm btn-outline-primary" style="display: none;" onclick="loadMoreBookings()">
-            <i class="fas fa-chevron-down me-1"></i>Показать еще
-        </button>
-        <div class="d-flex align-items-center gap-2">
-            <label class="form-label me-1 mb-0 small">Показывать:</label>
-            <select id="bookings-limit-select" class="form-select form-select-sm" style="width: 70px;">
-                <option value="3" selected>3</option>
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="15">15</option>
-            </select>
-            <span class="badge bg-primary" id="total-bookings-count">0</span>
-        </div>
-    </div>
-</div>
+
 
 
 
