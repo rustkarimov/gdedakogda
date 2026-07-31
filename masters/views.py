@@ -11,10 +11,6 @@ from django.views.decorators.http import require_http_methods
 from .models import BlacklistedClient, Master, Service, Booking, Schedule, DayOff, PhoneVerification, CustomUser, Break, ExtraWorkingDay, ExtraWorkingDayBreak, ServiceCategory, Notification, SupportMessage
 from .forms import PhoneRegistrationForm, PhoneVerificationForm
 
-from django.views.decorators.http import require_http_methods
-from .models import ExtraWorkingDay, ExtraWorkingDayBreak
-
-
 from .utils.schedule_utils import ScheduleCalculator
 from .utils.response_utils import api_success, api_error
 
@@ -30,16 +26,13 @@ from PIL import Image
 from io import BytesIO
 from django.core.files.base import ContentFile
 import os
-from datetime import datetime
-
-
-from django.contrib.auth import authenticate, login
-from .models import PhoneVerification
-import random
 
 from .utils.sms_utils import send_sms
 from .utils.call_utils import request_call_verification, check_call_status
 
+# ============================================================
+# ======================= УТИЛИТЫ ============================
+# ============================================================ 
 
 def get_weekday_ru(date_obj):
     weekdays = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
@@ -52,8 +45,18 @@ def get_month_ru(date_obj):
     ]
     return months[date_obj.month - 1]
 
+def format_phone(phone):
+    """Форматирует 79991234567 -> 7 999 123-45-67"""
+    if not phone or len(phone) != 11:
+        return phone
+    return f"{phone[0]} {phone[1:4]} {phone[4:7]}-{phone[7:9]}-{phone[9:11]}"
 
-# Главная страница
+
+
+# ============================================================
+# ======================= ГЛАВНЫЕ ============================
+# ============================================================ 
+
 def home(request):
     return render(request, 'masters/public/index.html')
 
@@ -113,6 +116,10 @@ def dashboard(request):
     }
     return render(request, 'masters/dashboard.html', context)
     
+
+# ============================================================
+# ======================= API Дашборда ============================
+# ============================================================ 
 
 @login_required
 def get_calendar_schedule(request):
@@ -232,7 +239,7 @@ def get_bookings_api(request):
         else:
             formatted_phone = phone
         
-        # 👇 ФОРМИРУЕМ НАЗВАНИЕ УСЛУГИ С КАТЕГОРИЕЙ
+        # ФОРМИРУЕМ НАЗВАНИЕ УСЛУГИ С КАТЕГОРИЕЙ
         service_name = booking.service.name
         if booking.service.category:
             service_name = f"{booking.service.category.name}: {service_name}"
@@ -253,7 +260,6 @@ def get_bookings_api(request):
         'page': page,
         'has_more': has_more
     })
-
 
 @login_required
 def get_booking_details(request, booking_id):
@@ -381,9 +387,296 @@ def get_booking_details(request, booking_id):
         traceback.print_exc()
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
+# Подтверждение записи
+@login_required
+@require_http_methods(["POST"])
+def api_confirm_booking(request, booking_id):
+    try:
+        booking = Booking.objects.get(id=booking_id, master=request.user.master)
+        booking.confirmed_by_master = True
+        booking.save()
+        return api_success({'message': 'Запись подтверждена'})
+    except Booking.DoesNotExist:
+        return api_error('Запись не найдена', status=404)
+    except Exception as e:
+        return api_error('Ошибка подтверждения', status=500)
+
+@login_required
+@require_http_methods(["POST"])
+def api_unconfirm_booking(request, booking_id):
+    try:
+        booking = Booking.objects.get(id=booking_id, master=request.user.master)
+        booking.confirmed_by_master = False
+        booking.save()
+        return api_success({'message': 'Подтверждение снято'})
+    except Booking.DoesNotExist:
+        return api_error('Запись не найдена', status=404)
+    except Exception as e:
+        return api_error('Ошибка снятия подтверждения', status=500)
 
 
-# Профиль
+# ============================================================
+# ======================= МАСТЕР ДОБАВЛЯЕТ ===================
+# ============================================================ 
+
+@login_required
+def add_manual_booking(request):
+    """Ручное добавление записи мастером"""
+    master = request.user.master
+
+    prefill_date = request.GET.get('date', '')
+    
+    if request.method == 'POST':
+        client_name = request.POST.get('client_name')
+        client_phone = request.POST.get('client_phone')
+        service_id = request.POST.get('service')
+        date_str = request.POST.get('date')
+        time_str = request.POST.get('time')
+        comment = request.POST.get('comment', '')
+        force = False
+        
+        if not all([client_name, client_phone, service_id, date_str, time_str]):
+            messages.error(request, 'Заполните все обязательные поля')
+            return redirect('add_manual_booking')
+        
+        # ОЧИЩАЕМ И ВАЛИДИРУЕМ ТЕЛЕФОН
+        import re
+        client_phone_cleaned = re.sub(r'\D', '', client_phone)
+        
+        # Проверяем формат российского номера
+        if BlacklistedClient.objects.filter(master=master, phone=client_phone_cleaned).exists():
+            return JsonResponse({'error': 'Этот клиент находится в чёрном списке'}, status=403)
+    
+        if len(client_phone_cleaned) != 11:
+            messages.error(request, 'Номер телефона должен содержать 11 цифр')
+            return redirect('add_manual_booking')
+        
+        if not client_phone_cleaned.startswith('7'):
+            messages.error(request, 'Номер должен начинаться с 7')
+            return redirect('add_manual_booking')
+        
+        service = get_object_or_404(Service, id=service_id, master=master)
+        booking_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        booking_time = datetime.strptime(time_str, '%H:%M').time()
+        
+        # Проверяем, не занято ли время
+        calculator = ScheduleCalculator(master)
+        slots = calculator.generate_time_slots(booking_date, service.duration)
+        
+        is_available = any(slot['start'] == time_str for slot in slots)
+        if not is_available:
+            messages.error(request, '❌ Это время уже занято. Выберите другое время.')
+            return redirect('add_manual_booking')
+        
+        # Шифруем ОЧИЩЕННЫЙ телефон
+        from cryptography.fernet import Fernet
+        key = master.get_encryption_key()
+        if key:
+            f = Fernet(key)
+            encrypted_phone = f.encrypt(client_phone_cleaned.encode())
+        else:
+            encrypted_phone = client_phone_cleaned.encode()
+        
+        booking = Booking.objects.create(
+            master=master,
+            service=service,
+            client_name=client_name,
+            encrypted_phone=encrypted_phone,
+            client_comment=comment,
+            date=booking_date,
+            time=booking_time,
+            status='confirmed',
+            created_by='master'
+        )
+
+        print(f"🔍 Создана запись #{booking.id}, created_by={booking.created_by}")
+        
+        messages.success(request, f'Запись для {client_name} добавлена!')
+        return redirect('dashboard')
+    
+    # GET запрос - показываем форму
+    services = Service.objects.filter(master=master, is_active=True)
+    today = date.today()
+    
+    return render(request, 'masters/add_manual_booking.html', {
+        'services': services,
+        'today': today,
+        'master': master,
+        'prefill_date': prefill_date
+    })
+
+@login_required
+def get_booking_slots_for_master(request):
+    """API для получения слотов при ручном добавлении"""
+    master = request.user.master
+    service_id = request.GET.get('service_id')
+    date_str = request.GET.get('date')
+    
+    if not service_id or not date_str:
+        return JsonResponse({'error': 'Не указаны параметры'}, status=400)
+    
+    try:
+        service = Service.objects.get(id=service_id, master=master)
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    except (Service.DoesNotExist, ValueError):
+        return JsonResponse({'error': 'Неверные параметры'}, status=404)
+    
+    calculator = ScheduleCalculator(master)
+    
+    # Определяем, нужно ли передавать текущее время
+    current_time = None
+    if target_date == date.today():
+        from datetime import datetime
+        current_time = datetime.now().time()
+    
+    slots = calculator.generate_time_slots(
+        target_date, 
+        service.duration,
+        current_time=current_time
+    )
+    
+    return JsonResponse({'slots': slots})
+
+
+
+@login_required
+def get_booking_for_edit(request, booking_id):
+    """API для получения данных записи для редактирования"""
+    booking = get_object_or_404(Booking, id=booking_id, master=request.user.master)
+    
+    # Расшифровываем телефон
+    from cryptography.fernet import Fernet, InvalidToken
+    import re
+    key = request.user.master.get_encryption_key()
+    
+    phone = ''
+    if key:
+        try:
+            f = Fernet(key)
+            decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
+            phone = decrypted
+        except (InvalidToken, Exception):
+            try:
+                phone = booking.encrypted_phone.decode('utf-8')
+            except:
+                phone = str(booking.encrypted_phone)
+    else:
+        try:
+            phone = booking.encrypted_phone.decode('utf-8')
+        except:
+            phone = str(booking.encrypted_phone)
+    
+    return JsonResponse({
+        'id': booking.id,
+        'client_name': booking.client_name,
+        'client_phone': phone,
+        'service_id': booking.service.id,
+        'service_name': booking.service.name,
+        'service_duration': booking.service.duration,
+        'date': booking.date.strftime('%Y-%m-%d'),
+        'time': booking.time.strftime('%H:%M'),
+        'comment': booking.client_comment,
+        'status': booking.status
+    })
+
+@login_required
+@require_http_methods(["POST"])
+def api_update_booking(request, booking_id):
+    try:
+        import re
+        from cryptography.fernet import Fernet
+        
+        try:
+            booking = Booking.objects.get(id=booking_id, master=request.user.master)
+        except Booking.DoesNotExist:
+            return api_error('Запись не найдена', status=404)
+        
+        data = json.loads(request.body)
+        
+        service_id = data.get('service_id')
+        client_name = data.get('client_name')
+        client_phone = data.get('client_phone')
+        date_str = data.get('date')
+        time_str = data.get('time')
+        comment = data.get('comment', '')
+        status = data.get('status', 'confirmed')
+        
+        # Валидация обязательных полей
+        if not all([service_id, client_name, client_phone, date_str, time_str]):
+            return api_error('Заполните все поля', status=400)
+        
+        # Валидация телефона
+        client_phone_cleaned = re.sub(r'\D', '', client_phone)
+        if len(client_phone_cleaned) != 11 or not client_phone_cleaned.startswith('7'):
+            return api_error('Неверный формат телефона', status=400)
+        
+        # Проверка услуги
+        try:
+            service = Service.objects.get(id=service_id, master=request.user.master)
+        except Service.DoesNotExist:
+            return api_error('Услуга не найдена', status=404)
+        
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        target_time = datetime.strptime(time_str, '%H:%M').time()
+        
+        # Проверка свободного времени
+        calculator = ScheduleCalculator(request.user.master)
+        slots = calculator.generate_time_slots(
+            target_date, 
+            service.duration,
+            exclude_booking_id=booking.id,
+            original_booking_id=booking.id
+        )
+        
+        is_available = any(slot['start'] == time_str for slot in slots)
+        
+        if not is_available and (booking.date != target_date or booking.time != target_time):
+            return api_error('Это время уже занято', status=409)
+        
+        # Шифрование телефона
+        key = request.user.master.get_encryption_key()
+        if key:
+            f = Fernet(key)
+            encrypted_phone = f.encrypt(client_phone_cleaned.encode())
+        else:
+            encrypted_phone = client_phone_cleaned.encode()
+        
+        # Обновление записи
+        booking.service = service
+        booking.client_name = client_name
+        booking.encrypted_phone = encrypted_phone
+        booking.client_comment = comment
+        booking.date = target_date
+        booking.time = target_time
+        booking.status = status
+        booking.save()
+        
+        return api_success({'message': 'Запись обновлена'})
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except ValueError as e:
+        return api_error(f'Неверный формат даты или времени: {e}', status=400)
+    except Exception as e:
+        return api_error('Ошибка при обновлении записи', status=500)
+
+@login_required
+@require_http_methods(["POST"])
+def api_delete_booking(request, booking_id):
+    try:
+        booking = Booking.objects.get(id=booking_id, master=request.user.master)
+        booking.delete()
+        return api_success({'message': 'Запись удалена'})
+    except Booking.DoesNotExist:
+        return api_error('Запись не найдена', status=404)
+    except Exception as e:
+        return api_error('Ошибка при удалении записи', status=500)
+
+    
+# ============================================================
+# ======================= ПРОФИЛь ============================
+# ============================================================ 
+
 @login_required
 def profile(request):
     try:
@@ -439,6 +732,64 @@ def profile(request):
     
     return render(request, 'masters/profile.html', {'master': master})
 
+@login_required
+def upload_avatar(request):
+    """Загрузка и сжатие аватара в WebP"""
+    if request.method == 'POST' and request.FILES.get('avatar'):
+        master = request.user.master
+        avatar_file = request.FILES['avatar']
+        
+        # Открываем изображение (любой формат)
+        try:
+            img = Image.open(avatar_file)
+        except Exception:
+            return JsonResponse({'error': 'Неверный формат изображения'}, status=400)
+        
+        # Конвертируем в RGB если нужно (для PNG с прозрачностью)
+        if img.mode in ('RGBA', 'P'):
+            # Сохраняем прозрачность для WebP
+            pass  # WebP поддерживает прозрачность, не конвертируем
+        elif img.mode != 'RGB':
+            img = img.convert('RGB')
+        
+        # Сжимаем до 300x300
+        max_size = (300, 300)
+        img.thumbnail(max_size, Image.Resampling.LANCZOS)
+        
+        # Сохраняем в буфер в формате WebP
+        buffer = BytesIO()
+        img.save(
+            buffer,
+            format='WEBP',
+            quality=80,      # Хорошее качество
+            method=6,        # Максимальное сжатие
+            lossless=False   # С потерями (для фото)
+        )
+        buffer.seek(0)
+        
+        # Формируем имя файла
+        filename = f"avatar_{master.id}_{datetime.now().strftime('%Y%m%d%H%M%S')}.webp"
+        
+        # Удаляем старый аватар, если есть
+        if master.avatar:
+            old_path = master.avatar.path
+            if os.path.isfile(old_path):
+                os.remove(old_path)
+        
+        # Сохраняем новый аватар
+        master.avatar.save(filename, ContentFile(buffer.getvalue()), save=True)
+        
+        return JsonResponse({
+            'success': True,
+            'avatar_url': master.avatar.url
+        })
+    
+    return JsonResponse({'error': 'Неверный запрос'}, status=400)
+
+
+# ============================================================
+# ======================= РАСПИСАНИЕ ============================
+# ============================================================ 
 
 @login_required
 def schedule(request):
@@ -450,36 +801,603 @@ def schedule(request):
         'schedules': schedules,
     })
 
-# Подтверждение записи
 @login_required
-@require_http_methods(["POST"])
-def api_confirm_booking(request, booking_id):
-    try:
-        booking = Booking.objects.get(id=booking_id, master=request.user.master)
-        booking.confirmed_by_master = True
-        booking.save()
-        return api_success({'message': 'Запись подтверждена'})
-    except Booking.DoesNotExist:
-        return api_error('Запись не найдена', status=404)
-    except Exception as e:
-        return api_error('Ошибка подтверждения', status=500)
+def delete_schedule(request, schedule_id):
+    """Удаление расписания"""
+    schedule = get_object_or_404(Schedule, id=schedule_id, master=request.user.master)
+    schedule.delete()
+    messages.success(request, 'Расписание удалено')
+    return redirect('schedule')
+
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 @login_required
 @require_http_methods(["POST"])
-def api_unconfirm_booking(request, booking_id):
+def api_add_schedule(request):
     try:
-        booking = Booking.objects.get(id=booking_id, master=request.user.master)
-        booking.confirmed_by_master = False
-        booking.save()
-        return api_success({'message': 'Подтверждение снято'})
-    except Booking.DoesNotExist:
-        return api_error('Запись не найдена', status=404)
+        master = request.user.master
+        data = json.loads(request.body)
+        
+        day_of_week = data.get('day_of_week')
+        start_time = data.get('start_time')
+        end_time = data.get('end_time')
+        breaks = data.get('breaks', [])
+        
+        # Валидация обязательных полей
+        if day_of_week is None:
+            return api_error('Выберите день недели', status=400)
+        if not start_time or not end_time:
+            return api_error('Укажите время начала и окончания работы', status=400)
+        if start_time >= end_time:
+            return api_error('Время начала не может быть позже времени окончания', status=400)
+        
+        # Проверка на дубликат
+        if Schedule.objects.filter(master=master, day_of_week=day_of_week).exists():
+            return api_error('Расписание для этого дня уже существует', status=409)
+        
+        # Создаем расписание
+        schedule = Schedule.objects.create(
+            master=master,
+            day_of_week=day_of_week,
+            start_time=datetime.strptime(start_time, '%H:%M').time(),
+            end_time=datetime.strptime(end_time, '%H:%M').time()
+        )
+        
+        # Добавляем перерывы с проверкой
+        for break_data in breaks:
+            if break_data.get('start') and break_data.get('end'):
+                # Проверка: начало перерыва < конец перерыва
+                if break_data['start'] >= break_data['end']:
+                    return api_error(
+                        f'Перерыв {break_data["start"]}-{break_data["end"]}: время начала не может быть позже окончания',
+                        status=400
+                    )
+                # Проверка: перерыв в пределах рабочего дня
+                if break_data['start'] < start_time or break_data['end'] > end_time:
+                    return api_error(
+                        f'Перерыв {break_data["start"]}-{break_data["end"]} выходит за пределы рабочего дня ({start_time}-{end_time})',
+                        status=400
+                    )
+                Break.objects.create(
+                    schedule=schedule,
+                    start_time=datetime.strptime(break_data['start'], '%H:%M').time(),
+                    end_time=datetime.strptime(break_data['end'], '%H:%M').time()
+                )
+        
+        return api_success({
+            'schedule': {
+                'id': schedule.id,
+                'day_of_week': schedule.day_of_week,
+                'day_name': schedule.get_day_of_week_display(),
+                'start_time': schedule.start_time.strftime('%H:%M'),
+                'end_time': schedule.end_time.strftime('%H:%M'),
+                'breaks': [{
+                    'start': b.start_time.strftime('%H:%M'),
+                    'end': b.end_time.strftime('%H:%M')
+                } for b in schedule.breaks.all()]
+            }
+        })
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except ValueError as e:
+        return api_error(f'Неверный формат времени: {e}', status=400)
     except Exception as e:
-        return api_error('Ошибка снятия подтверждения', status=500)
+        return api_error('Ошибка при добавлении расписания', status=500)
 
+@login_required
+@require_http_methods(["POST"])
+def api_edit_schedule(request, schedule_id):
+    try:
+        try:
+            schedule = Schedule.objects.get(id=schedule_id, master=request.user.master)
+        except Schedule.DoesNotExist:
+            return api_error('Расписание не найдено', status=404)
+        
+        data = json.loads(request.body)
+        
+        start_time = data.get('start_time')
+        end_time = data.get('end_time')
+        breaks = data.get('breaks', [])
+        
+        # Валидация времени
+        if start_time and end_time:
+            if start_time >= end_time:
+                return api_error('Время начала не может быть позже времени окончания', status=400)
+            schedule.start_time = datetime.strptime(start_time, '%H:%M').time()
+            schedule.end_time = datetime.strptime(end_time, '%H:%M').time()
+            schedule.save()
+        elif start_time or end_time:
+            return api_error('Укажите и начало, и конец работы', status=400)
+        
+        work_start = schedule.start_time.strftime('%H:%M')
+        work_end = schedule.end_time.strftime('%H:%M')
+        
+        # ============================================================
+        # ✅ ПРОВЕРКА ПЕРЕСЕЧЕНИЯ ПЕРЕРЫВОВ (ДОБАВИТЬ ЭТОТ БЛОК!)
+        # ============================================================
+        for i in range(len(breaks)):
+            for j in range(i + 1, len(breaks)):
+                b1 = breaks[i]
+                b2 = breaks[j]
+                if b1.get('start') and b1.get('end') and b2.get('start') and b2.get('end'):
+                    # Преобразуем в объекты времени для корректного сравнения
+                    b1_start = datetime.strptime(b1['start'], '%H:%M').time()
+                    b1_end = datetime.strptime(b1['end'], '%H:%M').time()
+                    b2_start = datetime.strptime(b2['start'], '%H:%M').time()
+                    b2_end = datetime.strptime(b2['end'], '%H:%M').time()
+                    
+                    if b1_start < b2_end and b2_start < b1_end:
+                        return api_error(
+                            f'Перерывы {b1["start"]}-{b1["end"]} и {b2["start"]}-{b2["end"]} пересекаются между собой',
+                            status=400
+                        )
+        # ============================================================
+        
+        # Проверка каждого перерыва на вхождение в рабочий день
+        for break_data in breaks:
+            if break_data.get('start') and break_data.get('end'):
+                if break_data['start'] >= break_data['end']:
+                    return api_error(
+                        f'Перерыв {break_data["start"]}-{break_data["end"]}: время начала не может быть позже окончания',
+                        status=400
+                    )
+                if break_data['start'] < work_start or break_data['end'] > work_end:
+                    return api_error(
+                        f'Перерыв {break_data["start"]}-{break_data["end"]} выходит за пределы рабочего дня ({work_start}-{work_end})',
+                        status=400
+                    )
+        
+        # Обновляем перерывы
+        schedule.breaks.all().delete()
+        for break_data in breaks:
+            if break_data.get('start') and break_data.get('end'):
+                Break.objects.create(
+                    schedule=schedule,
+                    start_time=datetime.strptime(break_data['start'], '%H:%M').time(),
+                    end_time=datetime.strptime(break_data['end'], '%H:%M').time()
+                )
+        
+        return api_success({
+            'schedule': {
+                'id': schedule.id,
+                'day_of_week': schedule.day_of_week,
+                'day_name': schedule.get_day_of_week_display(),
+                'start_time': schedule.start_time.strftime('%H:%M'),
+                'end_time': schedule.end_time.strftime('%H:%M'),
+                'breaks': [{
+                    'start': b.start_time.strftime('%H:%M'),
+                    'end': b.end_time.strftime('%H:%M')
+                } for b in schedule.breaks.all()]
+            }
+        })
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except ValueError as e:
+        return api_error(f'Неверный формат времени: {e}', status=400)
+    except Exception as e:
+        return api_error('Ошибка при обновлении расписания', status=500)
+
+@login_required
+@require_http_methods(["POST"])
+def api_delete_schedule(request, schedule_id):
+    try:
+        schedule = Schedule.objects.get(id=schedule_id, master=request.user.master)
+        schedule.delete()
+        return api_success({'message': 'Расписание удалено'})
+    except Schedule.DoesNotExist:
+        return api_error('Расписание не найдено', status=404)
+    except Exception as e:
+        return api_error('Ошибка при удалении расписания', status=500)
+
+
+# ============================================================
+# ================ ДОПДНИ и ВЫХОДНЫЕ =========================
+# ============================================================ 
+
+@login_required
+@require_http_methods(["POST"])
+def api_add_extra_day(request):
+    try:
+        master = request.user.master
+        data = json.loads(request.body)
+        
+        date_str = data.get('date')
+        start_time = data.get('start_time')
+        end_time = data.get('end_time')
+        breaks = data.get('breaks', [])
+        
+        # ===== ВСЕ ПРОВЕРКИ ДО СОЗДАНИЯ =====
+        
+        if not date_str or not start_time or not end_time:
+            return api_error('Заполните все обязательные поля', status=400)
+        
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        
+        # 1. Проверка: дата не в прошлом
+        if target_date < date.today():
+            return api_error('Нельзя добавить рабочий день в прошлом', status=400)
+        
+        # 2. Проверка: время начала < время окончания
+        if start_time >= end_time:
+            return api_error('Время начала не может быть позже времени окончания', status=400)
+        
+        # 3. Проверка всех перерывов
+        for break_data in breaks:
+            if break_data.get('start') and break_data.get('end'):
+                if break_data['start'] >= break_data['end']:
+                    return api_error(
+                        f'Перерыв {break_data["start"]}-{break_data["end"]}: время начала не может быть позже окончания',
+                        status=400
+                    )
+                if break_data['start'] < start_time or break_data['end'] > end_time:
+                    return api_error(
+                        f'Перерыв {break_data["start"]}-{break_data["end"]} выходит за пределы рабочего дня ({start_time}-{end_time})',
+                        status=400
+                    )
+        
+        # 4. Проверка пересечения перерывов
+        for i in range(len(breaks)):
+            for j in range(i + 1, len(breaks)):
+                b1 = breaks[i]
+                b2 = breaks[j]
+                if b1.get('start') and b1.get('end') and b2.get('start') and b2.get('end'):
+                    if b1['start'] < b2['end'] and b2['start'] < b1['end']:
+                        return api_error(
+                            f'Перерывы {b1["start"]}-{b1["end"]} и {b2["start"]}-{b2["end"]} пересекаются между собой',
+                            status=400
+                        )
+        
+        # ===== ВСЕ ПРОВЕРКИ ПРОЙДЕНЫ → СОЗДАЕМ =====
+        
+        # Удаляем существующие записи для этой даты
+        ExtraWorkingDay.objects.filter(master=master, date=target_date).delete()
+        DayOff.objects.filter(master=master, date=target_date).delete()
+        
+        extra_day = ExtraWorkingDay.objects.create(
+            master=master,
+            date=target_date,
+            start_time=datetime.strptime(start_time, '%H:%M').time(),
+            end_time=datetime.strptime(end_time, '%H:%M').time()
+        )
+        
+        for break_data in breaks:
+            if break_data.get('start') and break_data.get('end'):
+                ExtraWorkingDayBreak.objects.create(
+                    extra_day=extra_day,
+                    start_time=datetime.strptime(break_data['start'], '%H:%M').time(),
+                    end_time=datetime.strptime(break_data['end'], '%H:%M').time()
+                )
+        
+        return api_success({'message': 'Дополнительный рабочий день добавлен'})
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except ValueError as e:
+        return api_error(f'Неверный формат даты или времени: {e}', status=400)
+    except Exception as e:
+        return api_error('Ошибка при добавлении дополнительного рабочего дня', status=500)
+
+@login_required
+@require_http_methods(["POST"])
+def api_delete_extra_day(request, extra_day_id):
+    try:
+        extra_day = ExtraWorkingDay.objects.get(id=extra_day_id, master=request.user.master)
+        extra_day.delete()
+        return api_success({'message': 'Дополнительный рабочий день удален'})
+    except ExtraWorkingDay.DoesNotExist:
+        return api_error('Дополнительный рабочий день не найден', status=404)
+    except Exception as e:
+        return api_error('Ошибка при удалении', status=500)
+
+
+
+@login_required
+def get_days_off_list(request):
+    """API для получения списка выходных дней (только будущие)"""
+    master = request.user.master
+    today = date.today()
+    days_off = DayOff.objects.filter(
+        master=master,
+        date__gte=today
+    ).order_by('date')
+    
+    def get_month_name(month_num):
+        months = [
+            'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+            'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+        ]
+        return months[month_num - 1]
+    
+    def get_weekday_name(date_obj):
+        weekdays = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']
+        return weekdays[date_obj.weekday()]
+    
+    data = [{
+        'id': d.id,
+        'date': d.date.strftime('%Y-%m-%d'),
+        'date_display': f"{d.date.day} {get_month_name(d.date.month)} ({get_weekday_name(d.date)})",
+        'reason': d.reason
+    } for d in days_off]
+    
+    return JsonResponse({'days_off': data})
+
+
+@login_required
+def get_extra_days_upcoming(request):
+    """API для получения будущих дополнительных рабочих дней (все сразу)"""
+    master = request.user.master
+    today = date.today()
+    
+    extra_days = ExtraWorkingDay.objects.filter(
+        master=master,
+        date__gte=today
+    ).order_by('date')
+    
+    def get_month_name(month_num):
+        months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+                  'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
+        return months[month_num - 1]
+    
+    def get_weekday_name(date_obj):
+        weekdays = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']
+        return weekdays[date_obj.weekday()]
+    
+    data = []
+    for day in extra_days:
+        date_obj = day.date
+        data.append({
+            'id': day.id,
+            'date': day.date.strftime('%Y-%m-%d'),
+            'date_display': f"{date_obj.day} {get_month_name(date_obj.month)} ({get_weekday_name(date_obj)})",
+            'start_time': day.start_time.strftime('%H:%M'),
+            'end_time': day.end_time.strftime('%H:%M'),
+            'breaks': [{
+                'start': b.start_time.strftime('%H:%M'),
+                'end': b.end_time.strftime('%H:%M')
+            } for b in day.breaks.all()]
+        })
+    
+    return JsonResponse({'future_days': data})
+
+
+@login_required
+def get_extra_days_past(request):
+    """API для получения прошедших дополнительных рабочих дней с пагинацией"""
+    master = request.user.master
+    page = int(request.GET.get('page', 1))
+    limit = int(request.GET.get('limit', 30))
+    offset = (page - 1) * limit
+    today = date.today()
+    
+    extra_days_all = ExtraWorkingDay.objects.filter(
+        master=master,
+        date__lt=today
+    ).order_by('-date')
+    
+    total = extra_days_all.count()
+    has_more = offset + limit < total
+    
+    extra_days_page = extra_days_all[offset:offset + limit]
+    
+    def get_month_name(month_num):
+        months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+                  'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
+        return months[month_num - 1]
+    
+    def get_weekday_name(date_obj):
+        weekdays = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']
+        return weekdays[date_obj.weekday()]
+    
+    data = []
+    for day in extra_days_page:
+        date_obj = day.date
+        data.append({
+            'id': day.id,
+            'date': day.date.strftime('%Y-%m-%d'),
+            'date_display': f"{date_obj.day} {get_month_name(date_obj.month)} ({get_weekday_name(date_obj)})",
+            'start_time': day.start_time.strftime('%H:%M'),
+            'end_time': day.end_time.strftime('%H:%M'),
+            'breaks': [{
+                'start': b.start_time.strftime('%H:%M'),
+                'end': b.end_time.strftime('%H:%M')
+            } for b in day.breaks.all()]
+        })
+    
+    return JsonResponse({
+        'past_days': data,
+        'total': total,
+        'page': page,
+        'has_more': has_more
+    })
+
+@login_required
+@require_http_methods(["POST"])
+def api_add_day_off(request):
+    try:
+        master = request.user.master
+        data = json.loads(request.body)
+        
+        date_str = data.get('date')
+        reason = data.get('reason', '')
+        
+        if not date_str:
+            return api_error('Выберите дату', status=400)
+        
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        day_of_week = target_date.weekday()
+        
+        # Проверяем, является ли день рабочим
+        has_schedule = Schedule.objects.filter(master=master, day_of_week=day_of_week).exists()
+        has_extra_day = ExtraWorkingDay.objects.filter(master=master, date=target_date).exists()
+        
+        # Если день нерабочий — показываем уведомление и НЕ создаем DayOff
+        if not has_schedule and not has_extra_day:
+            return api_error(
+                '🎉 В этот день ты и так не работаешь! Хорошего отдыха!',
+                status=400
+            )
+        
+        # Проверяем, не является ли дата уже выходным
+        if DayOff.objects.filter(master=master, date=target_date).exists():
+            return api_error('Этот день уже отмечен как выходной', status=409)
+        
+        # Создаём выходной
+        DayOff.objects.create(
+            master=master,
+            date=target_date,
+            reason=reason
+        )
+        
+        return api_success({'message': 'Выходной день добавлен'})
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except ValueError as e:
+        return api_error(f'Неверный формат даты: {e}', status=400)
+    except Exception as e:
+        return api_error('Ошибка при добавлении выходного дня', status=500)
+
+        
+@login_required
+@require_http_methods(["POST"])
+def api_delete_day_off(request, dayoff_id):
+    try:
+        day_off = DayOff.objects.get(id=dayoff_id, master=request.user.master)
+        day_off.delete()
+        return api_success({'message': 'Выходной день удален'})
+    except DayOff.DoesNotExist:
+        return api_error('Выходной день не найден', status=404)
+    except Exception as e:
+        return api_error('Ошибка при удалении выходного дня', status=500)
+
+@login_required
+@require_http_methods(["POST"])
+def api_delete_day_off_by_date(request):
+    try:
+        master = request.user.master
+        data = json.loads(request.body)
+        date_str = data.get('date')
+        
+        if not date_str:
+            return api_error('Дата не указана', status=400)
+        
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        DayOff.objects.filter(master=master, date=target_date).delete()
+        
+        return api_success({'message': 'Выходной день удален'})
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except ValueError as e:
+        return api_error(f'Неверный формат даты: {e}', status=400)
+    except Exception as e:
+        return api_error('Ошибка при удалении выходного дня', status=500)
     
 
-# +++++++++++++++++++  УСЛУГИ  +++++++++++++++++
+@login_required
+def get_bookings_counts(request):
+    """API для получения количества записей по датам"""
+    master = request.user.master
+    bookings = Booking.objects.filter(master=master, status='confirmed')
+    
+    counts = {}
+    for booking in bookings:
+        date_str = booking.date.strftime('%Y-%m-%d')
+        counts[date_str] = counts.get(date_str, 0) + 1
+    
+    return JsonResponse({'counts': counts})
+
+
+@login_required
+def get_bookings_by_date(request):
+    """API для получения записей на конкретную дату"""
+    master = request.user.master
+    date_str = request.GET.get('date')
+    
+    if not date_str:
+        return JsonResponse({'error': 'Дата не указана'}, status=400)
+    
+    target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+    
+    bookings = Booking.objects.filter(
+        master=master,
+        date=target_date,
+        status='confirmed'
+    ).order_by('time').select_related('service')
+    
+    from cryptography.fernet import Fernet, InvalidToken
+    import re
+    key = master.get_encryption_key()
+    
+    data = []
+    for booking in bookings:
+        # Расшифровываем телефон
+        phone = ''
+        if key:
+            try:
+                f = Fernet(key)
+                decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
+                phone = decrypted
+            except (InvalidToken, Exception):
+                try:
+                    phone = booking.encrypted_phone.decode('utf-8')
+                except:
+                    phone = str(booking.encrypted_phone)
+        else:
+            try:
+                phone = booking.encrypted_phone.decode('utf-8')
+            except:
+                phone = str(booking.encrypted_phone)
+        
+        # Форматируем телефон
+        phone_cleaned = re.sub(r'\D', '', phone)
+        if len(phone_cleaned) == 11:
+            formatted_phone = f"{phone_cleaned[0]} {phone_cleaned[1:4]} {phone_cleaned[4:7]}-{phone_cleaned[7:9]}-{phone_cleaned[9:11]}"
+        else:
+            formatted_phone = phone
+        
+        data.append({
+            'id': booking.id,
+            'time': booking.time.strftime('%H:%M'),
+            'client_name': booking.client_name,
+            'service_name': booking.service.name,
+            'category_name': booking.service.category.name if booking.service.category else None,
+            'service_duration': booking.service.duration,  # ← ДОБАВЬТЕ ЭТУ СТРОКУ
+            'phone': formatted_phone
+        })
+    
+    return JsonResponse({'bookings': data})
+
+@login_required
+@require_http_methods(["POST"])
+def api_delete_extra_day_by_date(request):
+    try:
+        master = request.user.master
+        data = json.loads(request.body)
+        date_str = data.get('date')
+        
+        if not date_str:
+            return api_error('Дата не указана', status=400)
+        
+        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        ExtraWorkingDay.objects.filter(master=master, date=target_date).delete()
+        
+        return api_success({'message': 'Дополнительный рабочий день удален'})
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except ValueError as e:
+        return api_error(f'Неверный формат даты: {e}', status=400)
+    except Exception as e:
+        return api_error('Ошибка при удалении дополнительного рабочего дня', status=500)
+
+
+# ============================================================
+# ======================= УСЛУГИ =============================
+# ============================================================ 
 
 @login_required
 def services(request):
@@ -742,830 +1660,9 @@ def get_master_categories(request, identifier):
     }) 
 
 
-@login_required
-def delete_schedule(request, schedule_id):
-    """Удаление расписания"""
-    schedule = get_object_or_404(Schedule, id=schedule_id, master=request.user.master)
-    schedule.delete()
-    messages.success(request, 'Расписание удалено')
-    return redirect('schedule')
-
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
-import json
-
-@login_required
-@require_http_methods(["POST"])
-def api_add_schedule(request):
-    try:
-        master = request.user.master
-        data = json.loads(request.body)
-        
-        day_of_week = data.get('day_of_week')
-        start_time = data.get('start_time')
-        end_time = data.get('end_time')
-        breaks = data.get('breaks', [])
-        
-        # Валидация обязательных полей
-        if day_of_week is None:
-            return api_error('Выберите день недели', status=400)
-        if not start_time or not end_time:
-            return api_error('Укажите время начала и окончания работы', status=400)
-        if start_time >= end_time:
-            return api_error('Время начала не может быть позже времени окончания', status=400)
-        
-        # Проверка на дубликат
-        if Schedule.objects.filter(master=master, day_of_week=day_of_week).exists():
-            return api_error('Расписание для этого дня уже существует', status=409)
-        
-        # Создаем расписание
-        schedule = Schedule.objects.create(
-            master=master,
-            day_of_week=day_of_week,
-            start_time=datetime.strptime(start_time, '%H:%M').time(),
-            end_time=datetime.strptime(end_time, '%H:%M').time()
-        )
-        
-        # Добавляем перерывы с проверкой
-        for break_data in breaks:
-            if break_data.get('start') and break_data.get('end'):
-                # Проверка: начало перерыва < конец перерыва
-                if break_data['start'] >= break_data['end']:
-                    return api_error(
-                        f'Перерыв {break_data["start"]}-{break_data["end"]}: время начала не может быть позже окончания',
-                        status=400
-                    )
-                # Проверка: перерыв в пределах рабочего дня
-                if break_data['start'] < start_time or break_data['end'] > end_time:
-                    return api_error(
-                        f'Перерыв {break_data["start"]}-{break_data["end"]} выходит за пределы рабочего дня ({start_time}-{end_time})',
-                        status=400
-                    )
-                Break.objects.create(
-                    schedule=schedule,
-                    start_time=datetime.strptime(break_data['start'], '%H:%M').time(),
-                    end_time=datetime.strptime(break_data['end'], '%H:%M').time()
-                )
-        
-        return api_success({
-            'schedule': {
-                'id': schedule.id,
-                'day_of_week': schedule.day_of_week,
-                'day_name': schedule.get_day_of_week_display(),
-                'start_time': schedule.start_time.strftime('%H:%M'),
-                'end_time': schedule.end_time.strftime('%H:%M'),
-                'breaks': [{
-                    'start': b.start_time.strftime('%H:%M'),
-                    'end': b.end_time.strftime('%H:%M')
-                } for b in schedule.breaks.all()]
-            }
-        })
-        
-    except json.JSONDecodeError:
-        return api_error('Неверный формат данных', status=400)
-    except ValueError as e:
-        return api_error(f'Неверный формат времени: {e}', status=400)
-    except Exception as e:
-        return api_error('Ошибка при добавлении расписания', status=500)
-
-@login_required
-@require_http_methods(["POST"])
-def api_edit_schedule(request, schedule_id):
-    try:
-        try:
-            schedule = Schedule.objects.get(id=schedule_id, master=request.user.master)
-        except Schedule.DoesNotExist:
-            return api_error('Расписание не найдено', status=404)
-        
-        data = json.loads(request.body)
-        
-        start_time = data.get('start_time')
-        end_time = data.get('end_time')
-        breaks = data.get('breaks', [])
-        
-        # Валидация времени
-        if start_time and end_time:
-            if start_time >= end_time:
-                return api_error('Время начала не может быть позже времени окончания', status=400)
-            schedule.start_time = datetime.strptime(start_time, '%H:%M').time()
-            schedule.end_time = datetime.strptime(end_time, '%H:%M').time()
-            schedule.save()
-        elif start_time or end_time:
-            return api_error('Укажите и начало, и конец работы', status=400)
-        
-        work_start = schedule.start_time.strftime('%H:%M')
-        work_end = schedule.end_time.strftime('%H:%M')
-        
-        # ============================================================
-        # ✅ ПРОВЕРКА ПЕРЕСЕЧЕНИЯ ПЕРЕРЫВОВ (ДОБАВИТЬ ЭТОТ БЛОК!)
-        # ============================================================
-        for i in range(len(breaks)):
-            for j in range(i + 1, len(breaks)):
-                b1 = breaks[i]
-                b2 = breaks[j]
-                if b1.get('start') and b1.get('end') and b2.get('start') and b2.get('end'):
-                    # Преобразуем в объекты времени для корректного сравнения
-                    b1_start = datetime.strptime(b1['start'], '%H:%M').time()
-                    b1_end = datetime.strptime(b1['end'], '%H:%M').time()
-                    b2_start = datetime.strptime(b2['start'], '%H:%M').time()
-                    b2_end = datetime.strptime(b2['end'], '%H:%M').time()
-                    
-                    if b1_start < b2_end and b2_start < b1_end:
-                        return api_error(
-                            f'Перерывы {b1["start"]}-{b1["end"]} и {b2["start"]}-{b2["end"]} пересекаются между собой',
-                            status=400
-                        )
-        # ============================================================
-        
-        # Проверка каждого перерыва на вхождение в рабочий день
-        for break_data in breaks:
-            if break_data.get('start') and break_data.get('end'):
-                if break_data['start'] >= break_data['end']:
-                    return api_error(
-                        f'Перерыв {break_data["start"]}-{break_data["end"]}: время начала не может быть позже окончания',
-                        status=400
-                    )
-                if break_data['start'] < work_start or break_data['end'] > work_end:
-                    return api_error(
-                        f'Перерыв {break_data["start"]}-{break_data["end"]} выходит за пределы рабочего дня ({work_start}-{work_end})',
-                        status=400
-                    )
-        
-        # Обновляем перерывы
-        schedule.breaks.all().delete()
-        for break_data in breaks:
-            if break_data.get('start') and break_data.get('end'):
-                Break.objects.create(
-                    schedule=schedule,
-                    start_time=datetime.strptime(break_data['start'], '%H:%M').time(),
-                    end_time=datetime.strptime(break_data['end'], '%H:%M').time()
-                )
-        
-        return api_success({
-            'schedule': {
-                'id': schedule.id,
-                'day_of_week': schedule.day_of_week,
-                'day_name': schedule.get_day_of_week_display(),
-                'start_time': schedule.start_time.strftime('%H:%M'),
-                'end_time': schedule.end_time.strftime('%H:%M'),
-                'breaks': [{
-                    'start': b.start_time.strftime('%H:%M'),
-                    'end': b.end_time.strftime('%H:%M')
-                } for b in schedule.breaks.all()]
-            }
-        })
-        
-    except json.JSONDecodeError:
-        return api_error('Неверный формат данных', status=400)
-    except ValueError as e:
-        return api_error(f'Неверный формат времени: {e}', status=400)
-    except Exception as e:
-        return api_error('Ошибка при обновлении расписания', status=500)
-
-@login_required
-@require_http_methods(["POST"])
-def api_delete_schedule(request, schedule_id):
-    try:
-        schedule = Schedule.objects.get(id=schedule_id, master=request.user.master)
-        schedule.delete()
-        return api_success({'message': 'Расписание удалено'})
-    except Schedule.DoesNotExist:
-        return api_error('Расписание не найдено', status=404)
-    except Exception as e:
-        return api_error('Ошибка при удалении расписания', status=500)
-
-
-
-@login_required
-@require_http_methods(["POST"])
-def api_add_extra_day(request):
-    try:
-        master = request.user.master
-        data = json.loads(request.body)
-        
-        date_str = data.get('date')
-        start_time = data.get('start_time')
-        end_time = data.get('end_time')
-        breaks = data.get('breaks', [])
-        
-        # ===== ВСЕ ПРОВЕРКИ ДО СОЗДАНИЯ =====
-        
-        if not date_str or not start_time or not end_time:
-            return api_error('Заполните все обязательные поля', status=400)
-        
-        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        
-        # 1. Проверка: дата не в прошлом
-        if target_date < date.today():
-            return api_error('Нельзя добавить рабочий день в прошлом', status=400)
-        
-        # 2. Проверка: время начала < время окончания
-        if start_time >= end_time:
-            return api_error('Время начала не может быть позже времени окончания', status=400)
-        
-        # 3. Проверка всех перерывов
-        for break_data in breaks:
-            if break_data.get('start') and break_data.get('end'):
-                if break_data['start'] >= break_data['end']:
-                    return api_error(
-                        f'Перерыв {break_data["start"]}-{break_data["end"]}: время начала не может быть позже окончания',
-                        status=400
-                    )
-                if break_data['start'] < start_time or break_data['end'] > end_time:
-                    return api_error(
-                        f'Перерыв {break_data["start"]}-{break_data["end"]} выходит за пределы рабочего дня ({start_time}-{end_time})',
-                        status=400
-                    )
-        
-        # 4. Проверка пересечения перерывов
-        for i in range(len(breaks)):
-            for j in range(i + 1, len(breaks)):
-                b1 = breaks[i]
-                b2 = breaks[j]
-                if b1.get('start') and b1.get('end') and b2.get('start') and b2.get('end'):
-                    if b1['start'] < b2['end'] and b2['start'] < b1['end']:
-                        return api_error(
-                            f'Перерывы {b1["start"]}-{b1["end"]} и {b2["start"]}-{b2["end"]} пересекаются между собой',
-                            status=400
-                        )
-        
-        # ===== ВСЕ ПРОВЕРКИ ПРОЙДЕНЫ → СОЗДАЕМ =====
-        
-        # Удаляем существующие записи для этой даты
-        ExtraWorkingDay.objects.filter(master=master, date=target_date).delete()
-        DayOff.objects.filter(master=master, date=target_date).delete()
-        
-        extra_day = ExtraWorkingDay.objects.create(
-            master=master,
-            date=target_date,
-            start_time=datetime.strptime(start_time, '%H:%M').time(),
-            end_time=datetime.strptime(end_time, '%H:%M').time()
-        )
-        
-        for break_data in breaks:
-            if break_data.get('start') and break_data.get('end'):
-                ExtraWorkingDayBreak.objects.create(
-                    extra_day=extra_day,
-                    start_time=datetime.strptime(break_data['start'], '%H:%M').time(),
-                    end_time=datetime.strptime(break_data['end'], '%H:%M').time()
-                )
-        
-        return api_success({'message': 'Дополнительный рабочий день добавлен'})
-        
-    except json.JSONDecodeError:
-        return api_error('Неверный формат данных', status=400)
-    except ValueError as e:
-        return api_error(f'Неверный формат даты или времени: {e}', status=400)
-    except Exception as e:
-        return api_error('Ошибка при добавлении дополнительного рабочего дня', status=500)
-
-@login_required
-@require_http_methods(["POST"])
-def api_delete_extra_day(request, extra_day_id):
-    try:
-        extra_day = ExtraWorkingDay.objects.get(id=extra_day_id, master=request.user.master)
-        extra_day.delete()
-        return api_success({'message': 'Дополнительный рабочий день удален'})
-    except ExtraWorkingDay.DoesNotExist:
-        return api_error('Дополнительный рабочий день не найден', status=404)
-    except Exception as e:
-        return api_error('Ошибка при удалении', status=500)
-
-
-
-@login_required
-def get_days_off_list(request):
-    """API для получения списка выходных дней (только будущие)"""
-    master = request.user.master
-    today = date.today()
-    days_off = DayOff.objects.filter(
-        master=master,
-        date__gte=today
-    ).order_by('date')
-    
-    def get_month_name(month_num):
-        months = [
-            'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-            'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
-        ]
-        return months[month_num - 1]
-    
-    def get_weekday_name(date_obj):
-        weekdays = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']
-        return weekdays[date_obj.weekday()]
-    
-    data = [{
-        'id': d.id,
-        'date': d.date.strftime('%Y-%m-%d'),
-        'date_display': f"{d.date.day} {get_month_name(d.date.month)} ({get_weekday_name(d.date)})",
-        'reason': d.reason
-    } for d in days_off]
-    
-    return JsonResponse({'days_off': data})
-
-
-@login_required
-def get_extra_days_upcoming(request):
-    """API для получения будущих дополнительных рабочих дней (все сразу)"""
-    master = request.user.master
-    today = date.today()
-    
-    extra_days = ExtraWorkingDay.objects.filter(
-        master=master,
-        date__gte=today
-    ).order_by('date')
-    
-    def get_month_name(month_num):
-        months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-                  'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
-        return months[month_num - 1]
-    
-    def get_weekday_name(date_obj):
-        weekdays = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']
-        return weekdays[date_obj.weekday()]
-    
-    data = []
-    for day in extra_days:
-        date_obj = day.date
-        data.append({
-            'id': day.id,
-            'date': day.date.strftime('%Y-%m-%d'),
-            'date_display': f"{date_obj.day} {get_month_name(date_obj.month)} ({get_weekday_name(date_obj)})",
-            'start_time': day.start_time.strftime('%H:%M'),
-            'end_time': day.end_time.strftime('%H:%M'),
-            'breaks': [{
-                'start': b.start_time.strftime('%H:%M'),
-                'end': b.end_time.strftime('%H:%M')
-            } for b in day.breaks.all()]
-        })
-    
-    return JsonResponse({'future_days': data})
-
-
-@login_required
-def get_extra_days_past(request):
-    """API для получения прошедших дополнительных рабочих дней с пагинацией"""
-    master = request.user.master
-    page = int(request.GET.get('page', 1))
-    limit = int(request.GET.get('limit', 30))
-    offset = (page - 1) * limit
-    today = date.today()
-    
-    extra_days_all = ExtraWorkingDay.objects.filter(
-        master=master,
-        date__lt=today
-    ).order_by('-date')
-    
-    total = extra_days_all.count()
-    has_more = offset + limit < total
-    
-    extra_days_page = extra_days_all[offset:offset + limit]
-    
-    def get_month_name(month_num):
-        months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-                  'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря']
-        return months[month_num - 1]
-    
-    def get_weekday_name(date_obj):
-        weekdays = ['понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота', 'воскресенье']
-        return weekdays[date_obj.weekday()]
-    
-    data = []
-    for day in extra_days_page:
-        date_obj = day.date
-        data.append({
-            'id': day.id,
-            'date': day.date.strftime('%Y-%m-%d'),
-            'date_display': f"{date_obj.day} {get_month_name(date_obj.month)} ({get_weekday_name(date_obj)})",
-            'start_time': day.start_time.strftime('%H:%M'),
-            'end_time': day.end_time.strftime('%H:%M'),
-            'breaks': [{
-                'start': b.start_time.strftime('%H:%M'),
-                'end': b.end_time.strftime('%H:%M')
-            } for b in day.breaks.all()]
-        })
-    
-    return JsonResponse({
-        'past_days': data,
-        'total': total,
-        'page': page,
-        'has_more': has_more
-    })
-
-
-@login_required
-def get_bookings_counts(request):
-    """API для получения количества записей по датам"""
-    master = request.user.master
-    bookings = Booking.objects.filter(master=master, status='confirmed')
-    
-    counts = {}
-    for booking in bookings:
-        date_str = booking.date.strftime('%Y-%m-%d')
-        counts[date_str] = counts.get(date_str, 0) + 1
-    
-    return JsonResponse({'counts': counts})
-
-
-@login_required
-def get_bookings_by_date(request):
-    """API для получения записей на конкретную дату"""
-    master = request.user.master
-    date_str = request.GET.get('date')
-    
-    if not date_str:
-        return JsonResponse({'error': 'Дата не указана'}, status=400)
-    
-    target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-    
-    bookings = Booking.objects.filter(
-        master=master,
-        date=target_date,
-        status='confirmed'
-    ).order_by('time').select_related('service')
-    
-    from cryptography.fernet import Fernet, InvalidToken
-    import re
-    key = master.get_encryption_key()
-    
-    data = []
-    for booking in bookings:
-        # Расшифровываем телефон
-        phone = ''
-        if key:
-            try:
-                f = Fernet(key)
-                decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
-                phone = decrypted
-            except (InvalidToken, Exception):
-                try:
-                    phone = booking.encrypted_phone.decode('utf-8')
-                except:
-                    phone = str(booking.encrypted_phone)
-        else:
-            try:
-                phone = booking.encrypted_phone.decode('utf-8')
-            except:
-                phone = str(booking.encrypted_phone)
-        
-        # Форматируем телефон
-        phone_cleaned = re.sub(r'\D', '', phone)
-        if len(phone_cleaned) == 11:
-            formatted_phone = f"{phone_cleaned[0]} {phone_cleaned[1:4]} {phone_cleaned[4:7]}-{phone_cleaned[7:9]}-{phone_cleaned[9:11]}"
-        else:
-            formatted_phone = phone
-        
-        data.append({
-            'id': booking.id,
-            'time': booking.time.strftime('%H:%M'),
-            'client_name': booking.client_name,
-            'service_name': booking.service.name,
-            'category_name': booking.service.category.name if booking.service.category else None,
-            'service_duration': booking.service.duration,  # ← ДОБАВЬТЕ ЭТУ СТРОКУ
-            'phone': formatted_phone
-        })
-    
-    return JsonResponse({'bookings': data})
-
-@login_required
-@require_http_methods(["POST"])
-def api_delete_day_off_by_date(request):
-    try:
-        master = request.user.master
-        data = json.loads(request.body)
-        date_str = data.get('date')
-        
-        if not date_str:
-            return api_error('Дата не указана', status=400)
-        
-        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        DayOff.objects.filter(master=master, date=target_date).delete()
-        
-        return api_success({'message': 'Выходной день удален'})
-        
-    except json.JSONDecodeError:
-        return api_error('Неверный формат данных', status=400)
-    except ValueError as e:
-        return api_error(f'Неверный формат даты: {e}', status=400)
-    except Exception as e:
-        return api_error('Ошибка при удалении выходного дня', status=500)
-
-@login_required
-def add_manual_booking(request):
-    """Ручное добавление записи мастером"""
-    master = request.user.master
-
-    prefill_date = request.GET.get('date', '')
-    
-    if request.method == 'POST':
-        client_name = request.POST.get('client_name')
-        client_phone = request.POST.get('client_phone')
-        service_id = request.POST.get('service')
-        date_str = request.POST.get('date')
-        time_str = request.POST.get('time')
-        comment = request.POST.get('comment', '')
-        force = False
-        
-        if not all([client_name, client_phone, service_id, date_str, time_str]):
-            messages.error(request, 'Заполните все обязательные поля')
-            return redirect('add_manual_booking')
-        
-        # ОЧИЩАЕМ И ВАЛИДИРУЕМ ТЕЛЕФОН
-        import re
-        client_phone_cleaned = re.sub(r'\D', '', client_phone)
-        
-        # Проверяем формат российского номера
-        if BlacklistedClient.objects.filter(master=master, phone=client_phone_cleaned).exists():
-            return JsonResponse({'error': 'Этот клиент находится в чёрном списке'}, status=403)
-    
-        if len(client_phone_cleaned) != 11:
-            messages.error(request, 'Номер телефона должен содержать 11 цифр')
-            return redirect('add_manual_booking')
-        
-        if not client_phone_cleaned.startswith('7'):
-            messages.error(request, 'Номер должен начинаться с 7')
-            return redirect('add_manual_booking')
-        
-        service = get_object_or_404(Service, id=service_id, master=master)
-        booking_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        booking_time = datetime.strptime(time_str, '%H:%M').time()
-        
-        # Проверяем, не занято ли время
-        calculator = ScheduleCalculator(master)
-        slots = calculator.generate_time_slots(booking_date, service.duration)
-        
-        is_available = any(slot['start'] == time_str for slot in slots)
-        if not is_available:
-            messages.error(request, '❌ Это время уже занято. Выберите другое время.')
-            return redirect('add_manual_booking')
-        
-        # Шифруем ОЧИЩЕННЫЙ телефон
-        from cryptography.fernet import Fernet
-        key = master.get_encryption_key()
-        if key:
-            f = Fernet(key)
-            encrypted_phone = f.encrypt(client_phone_cleaned.encode())
-        else:
-            encrypted_phone = client_phone_cleaned.encode()
-        
-        booking = Booking.objects.create(
-            master=master,
-            service=service,
-            client_name=client_name,
-            encrypted_phone=encrypted_phone,
-            client_comment=comment,
-            date=booking_date,
-            time=booking_time,
-            status='confirmed',
-            created_by='master'
-        )
-
-        print(f"🔍 Создана запись #{booking.id}, created_by={booking.created_by}")
-        
-        messages.success(request, f'Запись для {client_name} добавлена!')
-        return redirect('dashboard')
-    
-    # GET запрос - показываем форму
-    services = Service.objects.filter(master=master, is_active=True)
-    today = date.today()
-    
-    return render(request, 'masters/add_manual_booking.html', {
-        'services': services,
-        'today': today,
-        'master': master,
-        'prefill_date': prefill_date
-    })
-
-@login_required
-def get_booking_slots_for_master(request):
-    """API для получения слотов при ручном добавлении"""
-    master = request.user.master
-    service_id = request.GET.get('service_id')
-    date_str = request.GET.get('date')
-    
-    if not service_id or not date_str:
-        return JsonResponse({'error': 'Не указаны параметры'}, status=400)
-    
-    try:
-        service = Service.objects.get(id=service_id, master=master)
-        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-    except (Service.DoesNotExist, ValueError):
-        return JsonResponse({'error': 'Неверные параметры'}, status=404)
-    
-    calculator = ScheduleCalculator(master)
-    
-    # Определяем, нужно ли передавать текущее время
-    current_time = None
-    if target_date == date.today():
-        from datetime import datetime
-        current_time = datetime.now().time()
-    
-    slots = calculator.generate_time_slots(
-        target_date, 
-        service.duration,
-        current_time=current_time
-    )
-    
-    return JsonResponse({'slots': slots})
-
-
-
-@login_required
-def get_booking_for_edit(request, booking_id):
-    """API для получения данных записи для редактирования"""
-    booking = get_object_or_404(Booking, id=booking_id, master=request.user.master)
-    
-    # Расшифровываем телефон
-    from cryptography.fernet import Fernet, InvalidToken
-    import re
-    key = request.user.master.get_encryption_key()
-    
-    phone = ''
-    if key:
-        try:
-            f = Fernet(key)
-            decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
-            phone = decrypted
-        except (InvalidToken, Exception):
-            try:
-                phone = booking.encrypted_phone.decode('utf-8')
-            except:
-                phone = str(booking.encrypted_phone)
-    else:
-        try:
-            phone = booking.encrypted_phone.decode('utf-8')
-        except:
-            phone = str(booking.encrypted_phone)
-    
-    return JsonResponse({
-        'id': booking.id,
-        'client_name': booking.client_name,
-        'client_phone': phone,
-        'service_id': booking.service.id,
-        'service_name': booking.service.name,
-        'service_duration': booking.service.duration,
-        'date': booking.date.strftime('%Y-%m-%d'),
-        'time': booking.time.strftime('%H:%M'),
-        'comment': booking.client_comment,
-        'status': booking.status
-    })
-
-
-@login_required
-@require_http_methods(["POST"])
-def api_update_booking(request, booking_id):
-    try:
-        import re
-        from cryptography.fernet import Fernet
-        
-        try:
-            booking = Booking.objects.get(id=booking_id, master=request.user.master)
-        except Booking.DoesNotExist:
-            return api_error('Запись не найдена', status=404)
-        
-        data = json.loads(request.body)
-        
-        service_id = data.get('service_id')
-        client_name = data.get('client_name')
-        client_phone = data.get('client_phone')
-        date_str = data.get('date')
-        time_str = data.get('time')
-        comment = data.get('comment', '')
-        status = data.get('status', 'confirmed')
-        
-        # Валидация обязательных полей
-        if not all([service_id, client_name, client_phone, date_str, time_str]):
-            return api_error('Заполните все поля', status=400)
-        
-        # Валидация телефона
-        client_phone_cleaned = re.sub(r'\D', '', client_phone)
-        if len(client_phone_cleaned) != 11 or not client_phone_cleaned.startswith('7'):
-            return api_error('Неверный формат телефона', status=400)
-        
-        # Проверка услуги
-        try:
-            service = Service.objects.get(id=service_id, master=request.user.master)
-        except Service.DoesNotExist:
-            return api_error('Услуга не найдена', status=404)
-        
-        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        target_time = datetime.strptime(time_str, '%H:%M').time()
-        
-        # Проверка свободного времени
-        calculator = ScheduleCalculator(request.user.master)
-        slots = calculator.generate_time_slots(
-            target_date, 
-            service.duration,
-            exclude_booking_id=booking.id,
-            original_booking_id=booking.id
-        )
-        
-        is_available = any(slot['start'] == time_str for slot in slots)
-        
-        if not is_available and (booking.date != target_date or booking.time != target_time):
-            return api_error('Это время уже занято', status=409)
-        
-        # Шифрование телефона
-        key = request.user.master.get_encryption_key()
-        if key:
-            f = Fernet(key)
-            encrypted_phone = f.encrypt(client_phone_cleaned.encode())
-        else:
-            encrypted_phone = client_phone_cleaned.encode()
-        
-        # Обновление записи
-        booking.service = service
-        booking.client_name = client_name
-        booking.encrypted_phone = encrypted_phone
-        booking.client_comment = comment
-        booking.date = target_date
-        booking.time = target_time
-        booking.status = status
-        booking.save()
-        
-        return api_success({'message': 'Запись обновлена'})
-        
-    except json.JSONDecodeError:
-        return api_error('Неверный формат данных', status=400)
-    except ValueError as e:
-        return api_error(f'Неверный формат даты или времени: {e}', status=400)
-    except Exception as e:
-        return api_error('Ошибка при обновлении записи', status=500)
-
-
-@login_required
-@require_http_methods(["POST"])
-def api_delete_booking(request, booking_id):
-    try:
-        booking = Booking.objects.get(id=booking_id, master=request.user.master)
-        booking.delete()
-        return api_success({'message': 'Запись удалена'})
-    except Booking.DoesNotExist:
-        return api_error('Запись не найдена', status=404)
-    except Exception as e:
-        return api_error('Ошибка при удалении записи', status=500)
-    
-
-
-@login_required
-@require_http_methods(["POST"])
-def api_add_day_off(request):
-    try:
-        master = request.user.master
-        data = json.loads(request.body)
-        
-        date_str = data.get('date')
-        reason = data.get('reason', '')
-        
-        if not date_str:
-            return api_error('Выберите дату', status=400)
-        
-        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        day_of_week = target_date.weekday()
-        
-        # Проверяем, является ли день рабочим
-        has_schedule = Schedule.objects.filter(master=master, day_of_week=day_of_week).exists()
-        has_extra_day = ExtraWorkingDay.objects.filter(master=master, date=target_date).exists()
-        
-        # Если день нерабочий — показываем уведомление и НЕ создаем DayOff
-        if not has_schedule and not has_extra_day:
-            return api_error(
-                '🎉 В этот день ты и так не работаешь! Хорошего отдыха!',
-                status=400
-            )
-        
-        # Проверяем, не является ли дата уже выходным
-        if DayOff.objects.filter(master=master, date=target_date).exists():
-            return api_error('Этот день уже отмечен как выходной', status=409)
-        
-        # Создаём выходной
-        DayOff.objects.create(
-            master=master,
-            date=target_date,
-            reason=reason
-        )
-        
-        return api_success({'message': 'Выходной день добавлен'})
-        
-    except json.JSONDecodeError:
-        return api_error('Неверный формат данных', status=400)
-    except ValueError as e:
-        return api_error(f'Неверный формат даты: {e}', status=400)
-    except Exception as e:
-        return api_error('Ошибка при добавлении выходного дня', status=500)
-
-        
-@login_required
-@require_http_methods(["POST"])
-def api_delete_day_off(request, dayoff_id):
-    try:
-        day_off = DayOff.objects.get(id=dayoff_id, master=request.user.master)
-        day_off.delete()
-        return api_success({'message': 'Выходной день удален'})
-    except DayOff.DoesNotExist:
-        return api_error('Выходной день не найден', status=404)
-    except Exception as e:
-        return api_error('Ошибка при удалении выходного дня', status=500)
+# ============================================================
+# ======================= СТАТИСТИКА =========================
+# ============================================================ 
 
 @login_required
 def clients_statistics(request):
@@ -1683,108 +1780,6 @@ def clients_statistics(request):
     }
     
     return render(request, 'masters/clients_statistics.html', context)
-
-
-# @login_required
-# def get_clients_statistics_api(request):
-#     """API для получения статистики клиентов с пагинацией"""
-#     master = request.user.master
-    
-#     bookings = Booking.objects.filter(
-#         master=master,
-#         status='confirmed'
-#     ).select_related('service')
-    
-#     from collections import defaultdict
-#     import re
-#     from cryptography.fernet import Fernet, InvalidToken
-    
-#     key = master.get_encryption_key()
-    
-#     clients_data = defaultdict(lambda: {
-#         'names': set(),
-#         'phone': '',
-#         'total_visits': 0,
-#         'services': defaultdict(int),
-#         'last_visit': None,
-#         'first_visit': None
-#     })
-    
-#     for booking in bookings:
-#         # Расшифровка телефона
-#         phone = ''
-#         if key:
-#             try:
-#                 f = Fernet(key)
-#                 decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
-#                 phone = decrypted
-#             except (InvalidToken, Exception):
-#                 try:
-#                     phone = booking.encrypted_phone.decode('utf-8')
-#                 except:
-#                     phone = str(booking.encrypted_phone)
-#         else:
-#             try:
-#                 phone = booking.encrypted_phone.decode('utf-8')
-#             except:
-#                 phone = str(booking.encrypted_phone)
-        
-#         phone_cleaned = re.sub(r'\D', '', phone)
-#         if len(phone_cleaned) == 11:
-#             formatted_phone = f"{phone_cleaned[0]} {phone_cleaned[1:4]} {phone_cleaned[4:7]}-{phone_cleaned[7:9]}-{phone_cleaned[9:11]}"
-#         else:
-#             formatted_phone = phone
-        
-#         client_key = phone_cleaned
-        
-#         clients_data[client_key]['names'].add(booking.client_name)
-#         clients_data[client_key]['phone'] = formatted_phone
-#         clients_data[client_key]['total_visits'] += 1
-#         clients_data[client_key]['services'][booking.service.name] += 1
-        
-#         if clients_data[client_key]['first_visit'] is None or booking.date < clients_data[client_key]['first_visit']:
-#             clients_data[client_key]['first_visit'] = booking.date
-#         if clients_data[client_key]['last_visit'] is None or booking.date > clients_data[client_key]['last_visit']:
-#             clients_data[client_key]['last_visit'] = booking.date
-    
-#     clients_list = []
-#     for client_key, data in clients_data.items():
-#         most_popular_service = max(data['services'].items(), key=lambda x: x[1]) if data['services'] else ('Нет', 0)
-        
-#         names_list = list(data['names'])
-#         if len(names_list) == 1:
-#             client_name = names_list[0]
-#         else:
-#             client_name = f"{names_list[0]} (+{len(names_list)-1})"
-        
-#         clients_list.append({
-#             'name': client_name,
-#             'phone': data['phone'],
-#             'total_visits': data['total_visits'],
-#             'most_popular_service': most_popular_service[0],
-#             'most_popular_service_count': most_popular_service[1],
-#             'first_visit': data['first_visit'].strftime('%d.%m.%Y') if data['first_visit'] else None,
-#             'last_visit': data['last_visit'].strftime('%d.%m.%Y') if data['last_visit'] else None,
-#             'services': dict(data['services'])
-#         })
-    
-#     clients_list.sort(key=lambda x: x['total_visits'], reverse=True)
-    
-#     # Пагинация
-#     page = int(request.GET.get('page', 1))
-#     limit = int(request.GET.get('limit', 20))
-#     offset = (page - 1) * limit
-    
-#     total = len(clients_list)
-#     has_more = offset + limit < total
-#     clients_page = clients_list[offset:offset + limit]
-    
-#     return JsonResponse({
-#         'clients': clients_page,
-#         'total': total,
-#         'page': page,
-#         'has_more': has_more
-#     })
 
 @login_required
 def get_clients_statistics_api(request):
@@ -2043,7 +2038,92 @@ def get_decrypted_phone(request, booking_id):
     except Exception as e:
         return api_error('Ошибка при расшифровке', status=500)
 
+# ============================================================
+# ======================= ЧЕРНЫЙ СПИСОК ======================
+# ============================================================ 
 
+@login_required
+@require_http_methods(["POST"])
+def api_blacklist_add(request):
+    try:
+        master = request.user.master
+        data = json.loads(request.body)
+        
+        phone = data.get('phone')
+        name = data.get('name', '')
+        reason = data.get('reason', '')
+        
+        import re
+        phone_cleaned = re.sub(r'\D', '', phone)
+        
+        if not phone_cleaned or len(phone_cleaned) != 11:
+            return api_error('Неверный формат номера', status=400)
+        
+        # Добавляем или обновляем
+        obj, created = BlacklistedClient.objects.update_or_create(
+            master=master,
+            phone=phone_cleaned,
+            defaults={'name': name, 'reason': reason}
+        )
+        
+        # Отменяем все будущие записи этого клиента
+        from django.utils import timezone
+        today = date.today()
+        
+        from cryptography.fernet import Fernet
+        key = master.get_encryption_key()
+        
+        cancelled_count = 0
+        if key:
+            f = Fernet(key)
+            future_bookings = Booking.objects.filter(
+                master=master,
+                date__gte=today,
+                status='confirmed'
+            )
+            
+            for booking in future_bookings:
+                try:
+                    decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
+                    if re.sub(r'\D', '', decrypted) == phone_cleaned:
+                        booking.status = 'cancelled'
+                        booking.save()
+                        cancelled_count += 1
+                except:
+                    pass
+        
+        return api_success({
+            'created': created,
+            'cancelled_count': cancelled_count,
+            'client': {
+                'id': obj.id,
+                'phone': obj.phone,
+                'name': obj.name,
+                'reason': obj.reason,
+                'created_at': obj.created_at.strftime('%d.%m.%Y %H:%M')
+            }
+        })
+        
+    except json.JSONDecodeError:
+        return api_error('Неверный формат данных', status=400)
+    except Exception as e:
+        return api_error('Ошибка при добавлении в черный список', status=500)
+
+@login_required
+@require_http_methods(["POST"])
+def api_blacklist_delete(request, client_id):
+    try:
+        client = BlacklistedClient.objects.get(id=client_id, master=request.user.master)
+        client.delete()
+        return api_success({'message': 'Клиент удален из черного списка'})
+    except BlacklistedClient.DoesNotExist:
+        return api_error('Клиент не найден', status=404)
+    except Exception as e:
+        return api_error('Ошибка при удалении из черного списка', status=500)
+
+# ============================================================
+# ======================= АУТЕНТИФИКАЦИЯ =====================
+# ============================================================ 
 
 def mobile_login(request):
     try:
@@ -2350,6 +2430,9 @@ def get_available_dates(request, identifier):
         traceback.print_exc()
         return JsonResponse({'error': str(e)}, status=500)
 
+# ============================================================
+# =================== ПУБЛИЧНЫЕ СТРАНИЦЫ =====================
+# ============================================================ 
 
 def get_available_slots(request, identifier):
     try:
@@ -2649,15 +2732,6 @@ def master_by_login(request, login):
         'services': services
     })
 
-
-# В views.py добавим функцию форматирования
-def format_phone(phone):
-    """Форматирует 79991234567 -> 7 999 123-45-67"""
-    if not phone or len(phone) != 11:
-        return phone
-    return f"{phone[0]} {phone[1:4]} {phone[4:7]}-{phone[7:9]}-{phone[9:11]}"
-
-
 @login_required
 def get_day_status(request):
     """API для получения статуса конкретного дня"""
@@ -2710,167 +2784,13 @@ def get_day_status(request):
         'date': date_str
     })
 
-@login_required
-@require_http_methods(["POST"])
-def api_delete_extra_day_by_date(request):
-    try:
-        master = request.user.master
-        data = json.loads(request.body)
-        date_str = data.get('date')
-        
-        if not date_str:
-            return api_error('Дата не указана', status=400)
-        
-        target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
-        ExtraWorkingDay.objects.filter(master=master, date=target_date).delete()
-        
-        return api_success({'message': 'Дополнительный рабочий день удален'})
-        
-    except json.JSONDecodeError:
-        return api_error('Неверный формат данных', status=400)
-    except ValueError as e:
-        return api_error(f'Неверный формат даты: {e}', status=400)
-    except Exception as e:
-        return api_error('Ошибка при удалении дополнительного рабочего дня', status=500)
 
 
 
+# ============================================================
+# ====================== УВЕДОМЛЕНИЯ =========================
+# ============================================================ 
 
-@login_required
-def upload_avatar(request):
-    """Загрузка и сжатие аватара в WebP"""
-    if request.method == 'POST' and request.FILES.get('avatar'):
-        master = request.user.master
-        avatar_file = request.FILES['avatar']
-        
-        # Открываем изображение (любой формат)
-        try:
-            img = Image.open(avatar_file)
-        except Exception:
-            return JsonResponse({'error': 'Неверный формат изображения'}, status=400)
-        
-        # Конвертируем в RGB если нужно (для PNG с прозрачностью)
-        if img.mode in ('RGBA', 'P'):
-            # Сохраняем прозрачность для WebP
-            pass  # WebP поддерживает прозрачность, не конвертируем
-        elif img.mode != 'RGB':
-            img = img.convert('RGB')
-        
-        # Сжимаем до 300x300
-        max_size = (300, 300)
-        img.thumbnail(max_size, Image.Resampling.LANCZOS)
-        
-        # Сохраняем в буфер в формате WebP
-        buffer = BytesIO()
-        img.save(
-            buffer,
-            format='WEBP',
-            quality=80,      # Хорошее качество
-            method=6,        # Максимальное сжатие
-            lossless=False   # С потерями (для фото)
-        )
-        buffer.seek(0)
-        
-        # Формируем имя файла
-        filename = f"avatar_{master.id}_{datetime.now().strftime('%Y%m%d%H%M%S')}.webp"
-        
-        # Удаляем старый аватар, если есть
-        if master.avatar:
-            old_path = master.avatar.path
-            if os.path.isfile(old_path):
-                os.remove(old_path)
-        
-        # Сохраняем новый аватар
-        master.avatar.save(filename, ContentFile(buffer.getvalue()), save=True)
-        
-        return JsonResponse({
-            'success': True,
-            'avatar_url': master.avatar.url
-        })
-    
-    return JsonResponse({'error': 'Неверный запрос'}, status=400)
-
-@login_required
-@require_http_methods(["POST"])
-def api_blacklist_add(request):
-    try:
-        master = request.user.master
-        data = json.loads(request.body)
-        
-        phone = data.get('phone')
-        name = data.get('name', '')
-        reason = data.get('reason', '')
-        
-        import re
-        phone_cleaned = re.sub(r'\D', '', phone)
-        
-        if not phone_cleaned or len(phone_cleaned) != 11:
-            return api_error('Неверный формат номера', status=400)
-        
-        # Добавляем или обновляем
-        obj, created = BlacklistedClient.objects.update_or_create(
-            master=master,
-            phone=phone_cleaned,
-            defaults={'name': name, 'reason': reason}
-        )
-        
-        # Отменяем все будущие записи этого клиента
-        from django.utils import timezone
-        today = date.today()
-        
-        from cryptography.fernet import Fernet
-        key = master.get_encryption_key()
-        
-        cancelled_count = 0
-        if key:
-            f = Fernet(key)
-            future_bookings = Booking.objects.filter(
-                master=master,
-                date__gte=today,
-                status='confirmed'
-            )
-            
-            for booking in future_bookings:
-                try:
-                    decrypted = f.decrypt(bytes(booking.encrypted_phone)).decode()
-                    if re.sub(r'\D', '', decrypted) == phone_cleaned:
-                        booking.status = 'cancelled'
-                        booking.save()
-                        cancelled_count += 1
-                except:
-                    pass
-        
-        return api_success({
-            'created': created,
-            'cancelled_count': cancelled_count,
-            'client': {
-                'id': obj.id,
-                'phone': obj.phone,
-                'name': obj.name,
-                'reason': obj.reason,
-                'created_at': obj.created_at.strftime('%d.%m.%Y %H:%M')
-            }
-        })
-        
-    except json.JSONDecodeError:
-        return api_error('Неверный формат данных', status=400)
-    except Exception as e:
-        return api_error('Ошибка при добавлении в черный список', status=500)
-
-@login_required
-@require_http_methods(["POST"])
-def api_blacklist_delete(request, client_id):
-    try:
-        client = BlacklistedClient.objects.get(id=client_id, master=request.user.master)
-        client.delete()
-        return api_success({'message': 'Клиент удален из черного списка'})
-    except BlacklistedClient.DoesNotExist:
-        return api_error('Клиент не найден', status=404)
-    except Exception as e:
-        return api_error('Ошибка при удалении из черного списка', status=500)
-
-
-# views.py
 @login_required
 def get_notifications(request):
     master = request.user.master
@@ -2917,6 +2837,10 @@ def mark_notification_unread(request, notification_id):
     notification.save()
     return JsonResponse({'success': True})
 
+
+# ============================================================
+# ======================= ПОДДЕРЖКА ==========================
+# ============================================================ 
 
 @login_required
 def get_support_messages(request):
@@ -2985,6 +2909,9 @@ def get_unread_support_count(request):
     return JsonResponse({'unread_count': unread_count})
 
 
+# ============================================================
+# ====================== ПОЛИТИКА ============================
+# ============================================================ 
 
 def privacy_policy(request):
     return render(request, 'masters/public/privacy.html')
