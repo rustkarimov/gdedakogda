@@ -1,3 +1,24 @@
+
+body {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+}
+
+html {
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
+}
+
+
+/* ОТКРЫТИЕ МОДАЛОК БЕЗ СДВИГОВ */
+body.modal-open {
+    overflow: visible !important;
+    padding-right: 0 !important;
+}
+
+
 /* ============================================================ */
 /* ========== ПРОМО-ШАПКА (СТИКИ) ========== */
 /* ============================================================ */
@@ -11,7 +32,15 @@
     transition: all 0.3s ease;
     padding: 0 !important;  
     margin: 0 !important;
-    
+}
+
+#promo-navbar .nav-item {
+    /* margin: 0 !important; */
+    padding: 15px 0 !important;
+}
+
+#promo-navbar .navbar-nav {
+    gap: 0px !important; 
 }
 
 #promo-navbar .container {
@@ -22,17 +51,6 @@
 #promo-navbar.scrolled {
     background: rgba(255, 255, 255, 0.95);
     box-shadow: 0 2px 30px rgba(0, 0, 0, 0.06);
-}
-
-#promo-navbar .navbar-brand {
-    font-family: 'Baloo', system-ui, 'Segoe UI', Arial, sans-serif;
-    font-size: 40px;
-    font-weight: 500;
-    color: var(--gray-800);
-}
-
-#promo-navbar .navbar-brand i {
-    color: var(--primary);
 }
 
 #promo-navbar .nav-link {
@@ -46,8 +64,7 @@
 
 #promo-navbar .nav-link:hover {
     color: var(--primary);
-    background: var(--primary-light);
-}
+    background: var(--primary-light);}
 
 #promo-navbar .nav-link.active {
     color: var(--primary);
@@ -55,46 +72,37 @@
 }
 
 
+
+
 /* ============================================================ */
 /* ========== МОБИЛЬНАЯ ШАПКА (до 768px) ========== */
 /* ============================================================ */
 
 @media (max-width: 768px) {
-    /* ===== ШАПКА — ФИКСАЦИЯ ===== */
+    
     #promo-navbar {
         position: sticky !important;
         top: 0 !important;
-        min-height: 60px !important;
+        /* min-height: 60px !important; */
         background: rgba(255, 255, 255, 0.95) !important;
         -webkit-backdrop-filter: blur(12px) !important;
         backdrop-filter: blur(12px) !important;
-        will-change: transform !important;
+        /* will-change: transform !important; */
+        z-index: 1050;
     }
 
+    
+
     /* Кнопка "Начать" в шапке */
-    .btn-start-mobile {
+        .btn-pink.btn-login-mobile {
         font-size: 0.85rem !important;
         padding: 6px 16px !important;
         border-radius: 100px !important;
         font-weight: 500 !important;
-        background: var(--primary-gradient) !important;
-        border: none !important;
-        color: white !important;
-        box-shadow: 0 2px 10px rgba(139, 92, 246, 0.25) !important;
-        transition: all 0.2s ease !important;
     }
     
-    .btn-start-mobile:hover {
-        transform: translateY(-1px) !important;
-        box-shadow: 0 4px 15px rgba(139, 92, 246, 0.35) !important;
-        color: white !important;
-    }
     
-    .btn-start-mobile:active {
-        transform: scale(0.97) !important;
-    }
-    
-    .btn-start-mobile i {
+    .btn-pink.btn-login-mobile i {
         font-size: 0.75rem !important;
     }
 
@@ -139,9 +147,7 @@
     }
 
     #promo-navbar .navbar-brand {
-
         font-size: 20px;
-      
     }
 
     
@@ -152,8 +158,10 @@
 /* ========== КНОПКИ ДЛЯ ПРОМО ========== */
 /* ============================================================ */
 
-.btn-primary-gradient {
-    background: var(--primary);
+.btn-pink {
+    position: relative !important; 
+    overflow: hidden;
+    background: var(--primary) !important;
     border: none;
     color: white;
     padding: 14px 36px;
@@ -168,14 +176,31 @@
     gap: 8px;
 }
 
-.btn-primary-gradient:hover {
-    background: var(--primary-dark);
-    transform: translateY(-3px);
+/* Блик */
+.btn-pink::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.6s ease;
+}
+
+.btn-pink:hover::before {
+    left: 100%;
+}
+
+.btn-pink:hover {
+    transform: translateY(-2px);
     box-shadow: 0 8px 30px rgba(64, 83, 211, 0.35);
     color: white;
     text-decoration: none;
 }
-.btn-primary-gradient:active {
+
+
+.btn-pink:active {
     transform: scale(0.98);
 }
 
@@ -195,9 +220,11 @@
 }
 
 .btn-outline-pink:hover {
-    background: var(--primary-gradient);
-    border-color: transparent;
+    background: var(--primary);
+    border-color: var(--primary);
     color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(64, 83, 211, 0.2);
     text-decoration: none;
 }
 
@@ -2091,3 +2118,6 @@
         padding: 12px 28px;
     }
 }
+
+
+

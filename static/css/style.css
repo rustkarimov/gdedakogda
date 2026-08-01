@@ -8,7 +8,7 @@
     --primary-light: #e0e5ff !important;
     --primary-lighter: #f0f2ff !important;
     --primary-gradient: linear-gradient(135deg, #6c7bdb 0%, #8b9af0 50%, #a8b4f5 100%) !important;
-    --accent: #f59e0b;
+    --primary-gradient: linear-gradient(135deg, #a8b4f5 0%, #8b9af0 50%, #6c7bdb 100%) !important;    --accent: #f59e0b;
     --accent-light: #fef3c7;
     --success: #10b981;
     --danger: #ef4444;
@@ -37,8 +37,6 @@ body {
     background-color: var(--gray-100);
     color: var(--gray-800);
 }
-
-
 
 /* ============================================================ */
 /* ========== ГЛОБАЛЬНЫЕ КОМПОНЕНТЫ ========== */
@@ -368,27 +366,53 @@ body {
 /* ========== ЛОГОТИП ========== */
 /* ============================================================ */
 
-.logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: white;
-}
-
-.logo i {
-    background-color: #16a34a;
-    font-size: 1.4rem;
-}
-
-.logo a {
-    color: white;
+.logo-daty {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 40px;
+    color: #1a1a2e;
     text-decoration: none;
+    text-transform: lowercase;
+    letter-spacing: -5px;
+    display: inline-block;
+    position: relative;
+    line-height: 0.8;
 }
 
-.logo a:hover {
-    color: white;
+.logo-daty .letter-light {
+    font-weight: 400;
+}
+
+.logo-daty .letter-bold {
+    font-weight: 900;
+}
+
+.logo-daty .letter-medium {
+    font-weight: 700;
+}
+
+.logo-daty .dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    background: var(--primary);
+    border-radius: 50%;
+    margin-left: 1px;
+    margin-bottom: -1px;
+    vertical-align: bottom;
+}
+
+
+/* Мобильная версия */
+@media (max-width: 768px) {
+    .logo-daty {
+        font-size: 28px;
+        letter-spacing: -3.5px;
+    }
+    
+    .logo-daty .dot {
+        width: 8px;
+        height: 8px;
+    }
 }
 
 /* ============================================================ */

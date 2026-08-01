@@ -9,6 +9,9 @@
     
     <!-- Bootstrap 5 CSS (локально) -->
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <!-- Bootstrap JS -->
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
 
     <!-- Font Awesome (локально) -->
     <link rel="stylesheet" href="{% static 'css/all.min.css' %}">
@@ -21,21 +24,25 @@
 
 
 <body>
-    <!-- Липкая навигация для промо -->
-   <!-- Липкая навигация для промо -->
+
 <!-- Липкая навигация для промо -->
 <nav class="navbar navbar-expand-lg sticky-top" id="promo-navbar">
     <div class="container">
-        <!-- Левая часть: логотип -->
-        <a class="navbar-brand" href="{% url 'home' %}">
-            <span class="fw-bold">ДАТЫ</span>
+        
+    
+        <!-- Логотип -->
+        <a class="logo-daty" href="{% url 'home' %}">
+            <span class="letter-light">д</span>
+            <span class="letter-bold">а</span>
+            <span class="letter-light">т</span>
+            <span class="letter-medium">ы</span>
+            <span class="dot"></span>
         </a>
 
         <!-- Правая часть (мобильная): кнопка "Начать" + бургер -->
         <div class="d-flex align-items-center d-lg-none">
-            <a href="#" class="btn btn-primary-gradient btn-sm btn-start-mobile" data-bs-toggle="modal" data-bs-target="#loginModal">
-                Начать
-                <i class="fas fa-arrow-right ms-1"></i>
+            <a href="#" class="btn btn-pink btn-login-mobile" data-bs-toggle="modal" data-bs-target="#loginModal">
+                Вход
             </a>
             <button class="navbar-toggler ms-2" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" id="navbarToggler">
                 <!-- Бургер (три полоски) -->
@@ -79,10 +86,10 @@
                         <i class="fas fa-tachometer-alt me-1"></i>Кабинет
                     </a>
                 {% else %}
-                    <a href="#" class="btn btn-outline-pink me-2" data-bs-toggle="modal" data-bs-target="#loginModal">
+                    <a href="#" class="btn btn-pink me-2" data-bs-toggle="modal" data-bs-target="#loginModal">
                         Вход
                     </a>
-                    <a href="#" class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#registerModal">
+                    <a href="#" class="btn btn-outline-pink" data-bs-toggle="modal" data-bs-target="#registerModal">
                         Регистрация
                     </a>
                 {% endif %}
@@ -94,9 +101,9 @@
                         <i class="fas fa-tachometer-alt me-1"></i>Кабинет
                     </a>
                 {% else %}
-                    <a href="#" class="btn btn-outline-pink w-100 mb-2" data-bs-toggle="modal" data-bs-target="#loginModal">
+                    <!-- <a href="#" class="btn btn-outline-pink w-100 mb-2" data-bs-toggle="modal" data-bs-target="#loginModal">
                         Вход
-                    </a>
+                    </a> -->
                     <a href="#" class="btn btn-pink w-100" data-bs-toggle="modal" data-bs-target="#registerModal">
                         Регистрация
                     </a>
@@ -188,7 +195,6 @@
     </div>
 </div>
 
-<!-- Модальное окно Регистрации (шаг 1) -->
 <!-- Модальное окно Регистрации (шаг 1) -->
 <div class="modal fade" id="registerModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -350,11 +356,8 @@
 </div>
 
 
-    <!-- Bootstrap JS -->
-    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
-
-    <script>
-    // ============================================================
+<!-- <script>
+// ============================================================
 // ПЕРЕКЛЮЧЕНИЕ БУРГЕР ↔ КРЕСТИК + ЗАКРЫТИЕ ПРИ КЛИКЕ ВНЕ МЕНЮ
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
@@ -428,38 +431,150 @@ document.addEventListener('DOMContentLoaded', function() {
         updateIcon(collapse.classList.contains('show'));
     }
 });
-    </script>
+</script> -->
 
-
-    <script>
-    // Плавный скролл к секциям (с учётом высоты шапки)
-    document.addEventListener('DOMContentLoaded', function() {
-        const links = document.querySelectorAll('a[href^="#"]');
-        const navbar = document.getElementById('promo-navbar');
+<script>
+// ============================================================
+// ПЕРЕКЛЮЧЕНИЕ БУРГЕР ↔ КРЕСТИК + ЗАКРЫТИЕ ПРИ КЛИКЕ ВНЕ МЕНЮ
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+    const toggler = document.getElementById('navbarToggler');
+    const burgerIcon = document.getElementById('burgerIcon');
+    const closeIcon = document.getElementById('closeIcon');
+    const collapse = document.getElementById('navbarNav');
+    const navbar = document.querySelector('#promo-navbar');
+    
+    if (toggler && burgerIcon && closeIcon && collapse) {
+        // Функция создания затемнения
+        function addBackdrop() {
+            // Удаляем старый backdrop, если есть
+            removeBackdrop();
+            
+            const backdrop = document.createElement('div');
+            backdrop.id = 'navbarBackdrop';
+            backdrop.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: rgba(0, 0, 0, 0.4);
+                z-index: 1030;
+                animation: fadeIn 0.3s ease;
+                cursor: pointer;
+            `;
+            document.body.prepend(backdrop);
+            
+            // Клик по затемнению → закрыть меню
+            backdrop.addEventListener('click', function() {
+                closeMenu();
+            });
+        }
         
-        links.forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                const targetId = this.getAttribute('href').substring(1);
-                const targetElement = document.getElementById(targetId);
-                
-                if (targetElement) {
-                    // Высота шапки
-                    const navbarHeight = navbar ? navbar.offsetHeight : 0;
-                    // Позиция целевого элемента
-                    const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - navbarHeight;
-                    
-                    window.scrollTo({
-                        top: targetPosition,
-                        behavior: 'smooth'
-                    });
-                    
-                    history.pushState(null, null, `#${targetId}`);
+        // Функция удаления затемнения
+        function removeBackdrop() {
+            const existing = document.getElementById('navbarBackdrop');
+            if (existing) existing.remove();
+        }
+        
+        // Функция обновления иконки
+        function updateIcon(isOpen) {
+            if (isOpen) {
+                burgerIcon.style.display = 'none';
+                closeIcon.style.display = 'block';
+                toggler.setAttribute('aria-expanded', 'true');
+                addBackdrop();                     // ← добавляем затемнение
+                document.body.style.overflow = 'hidden';  // блокируем скролл
+            } else {
+                burgerIcon.style.display = 'block';
+                closeIcon.style.display = 'none';
+                toggler.setAttribute('aria-expanded', 'false');
+                removeBackdrop();                  // ← удаляем затемнение
+                document.body.style.overflow = '';       // возвращаем скролл
+            }
+        }
+        
+        // Функция закрытия меню
+        function closeMenu() {
+            if (collapse.classList.contains('show')) {
+                const bsCollapse = bootstrap.Collapse.getInstance(collapse);
+                if (bsCollapse) {
+                    bsCollapse.hide();
+                } else {
+                    collapse.classList.remove('show');
+                    updateIcon(false);
                 }
+            }
+        }
+        
+        // Используем события Bootstrap
+        collapse.addEventListener('show.bs.collapse', function() {
+            updateIcon(true);
+        });
+        
+        collapse.addEventListener('hide.bs.collapse', function() {
+            updateIcon(false);
+        });
+        
+        // Закрытие при клике вне меню
+        document.addEventListener('click', function(event) {
+            const isClickInside = navbar.contains(event.target);
+            if (!isClickInside) {
+                closeMenu();
+            }
+        });
+        
+        // Закрытие при нажатии Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeMenu();
+            }
+        });
+        
+        // Закрытие при клике на ссылку в меню (опционально)
+        const navLinks = collapse.querySelectorAll('.nav-link');
+        navLinks.forEach(function(link) {
+            link.addEventListener('click', function() {
+                closeMenu();
             });
         });
+        
+        // Инициализация
+        updateIcon(collapse.classList.contains('show'));
+    }
+});
+</script>
+
+
+<script>
+// Плавный скролл к секциям (с учётом высоты шапки)
+document.addEventListener('DOMContentLoaded', function() {
+    const links = document.querySelectorAll('a[href^="#"]');
+    const navbar = document.getElementById('promo-navbar');
+    
+    links.forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            
+            if (targetElement) {
+                // Высота шапки
+                const navbarHeight = navbar ? navbar.offsetHeight : 0;
+                // Позиция целевого элемента
+                const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - navbarHeight;
+                
+                window.scrollTo({
+                    top: targetPosition,
+                    behavior: 'smooth'
+                });
+                
+                history.pushState(null, null, `#${targetId}`);
+            }
+        });
     });
+});
 </script>
 
 
