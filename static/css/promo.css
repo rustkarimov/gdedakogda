@@ -956,304 +956,238 @@ body {
 /* ============================================================ */
 /* ========== СЕКЦИЯ: КАК ЭТО РАБОТАЕТ ========== */
 /* ============================================================ */
+
+
 /* ============================================================ */
-/* ========== СЕКЦИЯ: КАК ЭТО РАБОТАЕТ ========== */
+/* ========== СЕКЦИЯ: КАК ЭТО РАБОТАЕТ (ДОРОЖКА) ========== */
 /* ============================================================ */
 
-.how-it-works-section {
+.how-it-works-road {
     padding: 80px 0;
     background: var(--primary-lighter);
+    overflow: hidden;
 }
 
-.section-header {
-    margin-bottom: 48px;
-}
-
-/* Левая колонка — график + цифры */
-.time-savings {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 30px;
-}
-
-/* ===== ГРАФИК ===== */
-.chart-container {
-    width: 100%;
-    max-width: 400px;
-    /* background: transparent;
-    padding: 30px 30px 20px;
-    border-radius: 24px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-    border: 1px solid rgba(0, 0, 0, 0.04); */
-}
-
-.chart-bars {
-    display: flex;
-    justify-content: center;
-    align-items: flex-end;
-    gap: 50px;
-    /* height: 160px; */
-    padding-bottom: 8px;
-}
-
-.chart-bar-wrapper {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-    max-width: 80px;
-}
-
-.chart-bar {
-    width: 56px;
-    border-radius: 8px 8px 0 0;
-    position: relative;
-    transition: all 0.6s ease;
-    min-height: 20px;
-}
-
-.chart-bar.bar-without {
-    background: linear-gradient(180deg, #e5e7eb 0%, #d1d5db 100%);
-    height: 160px;
-}
-
-.chart-bar.bar-with {
-    background: var(--primary-gradient);
-    height: 40px;
-    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.25);
-}
-
-.chart-label {
-    position: absolute;
-    top: -28px;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #1a1a2e;
-    white-space: nowrap;
-}
-
-.chart-bar.bar-without .chart-label {
-    color: #6b7280;
-}
-
-.chart-bar.bar-with .chart-label {
-    color: var(--primary);
-}
-
-.chart-caption {
-    font-size: 0.75rem;
-    color: #6b7280;
+.how-it-works-road .road-header {
     text-align: center;
-    white-space: nowrap;
+    margin-bottom: 60px;
 }
 
-.chart-arrow {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 12px;
-    padding-top: 12px;
-    /* border-top: 1px solid var(--gray-200); */
+.how-it-works-road .road-title {
+    font-family: 'Nunito', system-ui, sans-serif;
+    font-weight: 800;
+    font-size: 2.5rem;
+    color: #1a1a2e;
+    margin-bottom: 8px;
 }
 
-.chart-arrow i {
-    color: var(--primary);
+.how-it-works-road .road-subtitle {
+    font-family: 'Nunito', system-ui, sans-serif;
+    font-weight: 400;
     font-size: 1.1rem;
-}
-
-.chart-arrow span {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--primary);
-}
-
-/* ===== КАРТОЧКИ С ЦИФРАМИ (под графиком) ===== */
-.time-cards {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-    max-width: 400px;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.time-saving-card {
-    background: white;
-    padding: 16px 28px;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-    text-align: center;
-    border: 1px solid rgba(0, 0, 0, 0.04);
-    flex: 1;
-    min-width: 120px;
-    transition: all 0.3s ease;
-}
-
-.time-saving-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-}
-
-.time-saving-card.muted {
-    opacity: 0.6;
-}
-
-.time-saving-card.muted .time-number {
-    color: #9ca3af;
-}
-
-.time-number {
-    font-size: 2.4rem;
-    font-weight: 900;
-    color: var(--primary);
-    line-height: 1;
-}
-
-.time-number span {
-    font-size: 1rem;
-    font-weight: 500;
     color: #6b7280;
-}
-
-.time-label {
-    font-size: 0.75rem;
-    color: #6b7280;
-    margin-top: 2px;
-}
-
-.time-saving-divider {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--primary);
-    padding: 0 4px;
-}
-
-/* Правая колонка — текст */
-.how-it-works-content h3 {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #1a1a2e;
-    margin-bottom: 16px;
-}
-
-.how-it-works-content p {
-    font-size: 1.05rem;
-    color: #4a4a6a;
-    line-height: 1.7;
-    margin-bottom: 24px;
-}
-
-.how-it-works-list {
-    list-style: none;
-    padding: 0;
     margin: 0;
 }
 
-.how-it-works-list li {
+.how-it-works-road .road-track {
     display: flex;
+    justify-content: space-between;
     align-items: flex-start;
-    gap: 12px;
-    padding: 8px 0;
-    font-size: 0.95rem;
-    color: #374151;
+    max-width: 1000px;
+    margin: 0 auto;
+    position: relative;
+    padding: 20px 0;
 }
 
-.how-it-works-list li i {
-    color: var(--primary);
-    font-size: 1.1rem;
-    margin-top: 2px;
+.how-it-works-road .road-line {
+    position: absolute;
+    top: 80px;
+    left: 8%;
+    right: 8%;
+    height: 2px;
+    background: repeating-linear-gradient(90deg, var(--primary), var(--primary) 8px, transparent 8px, transparent 16px);
+    opacity: 0.2;
+}
+
+.how-it-works-road .road-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 22%;
+    position: relative;
+    z-index: 2;
+}
+
+.how-it-works-road .road-step:nth-child(odd) {
+    margin-top: 30px;
+}
+
+.how-it-works-road .road-step:nth-child(even) {
+    margin-top: -10px;
+}
+
+.how-it-works-road .road-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: var(--primary-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 30px rgba(64, 83, 211, 0.25);
+    margin-bottom: 16px;
+    position: relative;
     flex-shrink: 0;
 }
 
-@media (max-width: 768px) {
-    /* ... существующие стили ... */
-
-    /* ===== КАК ЭТО РАБОТАЕТ ===== */
-    .how-it-works-section {
-        padding: 50px 0;
-    }
-
-    .chart-container {
-        padding: 20px 16px 16px;
-        max-width: 320px;
-        margin-top: 30px;
-    }
-
-    .chart-bars {
-        gap: 30px;
-        height: 120px;
-    }
-
-    .chart-bar {
-        width: 40px;
-    }
-
-    .chart-label {
-        font-size: 0.65rem;
-        top: -24px;
-    }
-
-    .chart-caption {
-        font-size: 0.6rem;
-    }
-
-    .chart-arrow span {
-        font-size: 0.7rem;
-    }
-
-    .time-cards {
-        gap: 8px;
-        max-width: 320px;
-    }
-
-    .time-saving-card {
-        padding: 12px 16px;
-        min-width: 80px;
-    }
-
-    .time-number {
-        font-size: 1.8rem;
-    }
-
-    .time-number span {
-        font-size: 0.8rem;
-    }
-
-    .time-label {
-        font-size: 0.65rem;
-    }
-
-    .time-saving-divider {
-        font-size: 0.65rem;
-    }
-
-    .how-it-works-content h3 {
-        font-size: 1.4rem;
-        text-align: center;
-    }
-
-    .how-it-works-content p {
-        font-size: 0.95rem;
-        text-align: center;
-    }
-
-    .how-it-works-list {
-        max-width: 300px;
-        margin: 0 auto;
-    }
-
-    .how-it-works-list li {
-        font-size: 0.85rem;
-        padding: 6px 0;
-    }
+.how-it-works-road .road-circle i {
+    color: white;
+    font-size: 1.3rem;
 }
 
+.how-it-works-road .road-number {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--primary);
+}
+
+.how-it-works-road .road-step-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 4px 0;
+    text-align: center;
+}
+
+.how-it-works-road .road-step:nth-child(even) .road-step-content {
+    margin-bottom: 20px;      /* ← отступ сверху для нечётных */
+
+}
+
+.how-it-works-road .road-step-desc {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin: 0;
+    text-align: center;
+    line-height: 1.4;
+}
+
+/* ===== МОБИЛЬНАЯ ВЕРСИЯ ===== */
+@media (max-width: 768px) {
+    .how-it-works-road {
+        padding: 50px 0;
+    }
+    
+    .how-it-works-road .road-title {
+        font-size: 1.8rem;
+    }
+    
+    .how-it-works-road .road-subtitle {
+        font-size: 0.95rem;
+    }
+    
+    .how-it-works-road .road-header {
+        margin-bottom: 32px;
+    }
+    
+    /* Убираем линию */
+    .how-it-works-road .road-line {
+        display: none !important;
+    }
+    
+    /* Дорожка — просто колонка */
+    .how-it-works-road .road-track {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0;
+        max-width: 100%;
+        margin: 0 auto;
+        position: relative;
+        gap: 12px;
+    }
+    
+    /* Шаг — иконка слева, текст справа */
+    .how-it-works-road .road-step {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 20px;
+        margin-top: 0 !important;
+        background: white;
+        border-radius: 16px;
+        border: 1px solid var(--gray-200);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        position: relative;
+        z-index: 2;
+        width: 100%;
+    }
+    
+    .how-it-works-road .road-step:nth-child(odd) {
+        border-color: var(--primary-light);
+    }
+    
+    /* Круг — слева, не сдвигается */
+    .how-it-works-road .road-circle {
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+        margin-bottom: 0;
+        order: 0;              /* ← всегда первый */
+    }
+    
+    .how-it-works-road .road-circle i {
+        font-size: 0.9rem;
+    }
+    
+    .how-it-works-road .road-number {
+        width: 20px;
+        height: 20px;
+        font-size: 0.5rem;
+        top: -6px;
+        right: -6px;
+        border-width: 1.5px;
+    }
+    
+    /* Текст — справа */
+    .how-it-works-road .road-step-content {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        order: 1;              /* ← всегда второй */
+        text-align: left !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    .how-it-works-road .road-step-title {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        text-align: left;
+        margin: 0 0 2px 0;
+    }
+    
+    .how-it-works-road .road-step-desc {
+        font-size: 0.7rem;
+        color: #6b7280;
+        text-align: left;
+        line-height: 1.3;
+        margin: 0;
+    }
+}
 
 /* ============================================================ */
 /* ========== СЕКЦИЯ: КАК ЭТО ВЫГЛЯДИТ ========== */
