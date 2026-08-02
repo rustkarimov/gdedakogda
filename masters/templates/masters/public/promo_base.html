@@ -26,6 +26,7 @@
 <body>
 
 <!-- Липкая навигация для промо -->
+<div id="app-wrapper">
 <nav class="navbar navbar-expand-lg sticky-top" id="promo-navbar">
     <div class="container">
         
@@ -112,6 +113,7 @@
         </div>
     </div>
 </nav>
+</div> 
 
 
     <main>
@@ -356,86 +358,9 @@
 </div>
 
 
-<!-- <script>
-// ============================================================
-// ПЕРЕКЛЮЧЕНИЕ БУРГЕР ↔ КРЕСТИК + ЗАКРЫТИЕ ПРИ КЛИКЕ ВНЕ МЕНЮ
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    const toggler = document.getElementById('navbarToggler');
-    const burgerIcon = document.getElementById('burgerIcon');
-    const closeIcon = document.getElementById('closeIcon');
-    const collapse = document.getElementById('navbarNav');
-    const navbar = document.querySelector('#promo-navbar');
-    
-    if (toggler && burgerIcon && closeIcon && collapse) {
-        // Функция обновления иконки
-        function updateIcon(isOpen) {
-            if (isOpen) {
-                burgerIcon.style.display = 'none';
-                closeIcon.style.display = 'block';
-                toggler.setAttribute('aria-expanded', 'true');
-            } else {
-                burgerIcon.style.display = 'block';
-                closeIcon.style.display = 'none';
-                toggler.setAttribute('aria-expanded', 'false');
-            }
-        }
-        
-        // Функция закрытия меню
-        function closeMenu() {
-            if (collapse.classList.contains('show')) {
-                const bsCollapse = bootstrap.Collapse.getInstance(collapse);
-                if (bsCollapse) {
-                    bsCollapse.hide();
-                } else {
-                    // fallback
-                    collapse.classList.remove('show');
-                    updateIcon(false);
-                }
-            }
-        }
-        
-        // Используем события Bootstrap
-        collapse.addEventListener('show.bs.collapse', function() {
-            updateIcon(true);
-        });
-        
-        collapse.addEventListener('hide.bs.collapse', function() {
-            updateIcon(false);
-        });
-        
-        // Закрытие при клике вне меню
-        document.addEventListener('click', function(event) {
-            const isClickInside = navbar.contains(event.target);
-            if (!isClickInside) {
-                closeMenu();
-            }
-        });
-        
-        // Закрытие при нажатии Escape
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeMenu();
-            }
-        });
-        
-        // Закрытие при клике на ссылку в меню (опционально)
-        const navLinks = collapse.querySelectorAll('.nav-link');
-        navLinks.forEach(function(link) {
-            link.addEventListener('click', function() {
-                closeMenu();
-            });
-        });
-        
-        // Инициализация
-        updateIcon(collapse.classList.contains('show'));
-    }
-});
-</script> -->
-
 <script>
 // ============================================================
-// ПЕРЕКЛЮЧЕНИЕ БУРГЕР ↔ КРЕСТИК + ЗАКРЫТИЕ ПРИ КЛИКЕ ВНЕ МЕНЮ
+//            БУРГЕР МЕНЮ
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
     const toggler = document.getElementById('navbarToggler');

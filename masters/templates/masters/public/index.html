@@ -7,31 +7,28 @@
 
 {% block content %}
 
-<style>
-        body {
-            font-family: 'Nunito', system-ui, sans-serif;
-    font-weight: 400;
-        }
-</style>
 
-
-<!-- Hero секция -->
-<!-- Hero секция -->
 <!-- Hero секция -->
 <div id="hero" class="hero-section">
     <div class="container">
         <div class="row align-items-center">
             <!-- Левая колонка: текст -->
             <div class="col-lg-6 hero-content">
+                <!-- <h1 class="hero-title">
+                    Твои клиенты запишутся<br>
+                    <span class="hero-title-highlight">в 2 клика</span>
+                </h1> -->
+
                 <h1 class="hero-title">
                     Твои клиенты запишутся<br>
                     <span class="hero-title-highlight">в 2 клика</span>
                 </h1>
+
                 <p class="hero-description">
                     Сервис для самозанятых, фрилансеров, мастеров
                 </p>
                 <div class="hero-buttons">
-                    <a href="#" class="btn btn-primary-gradient btn-lg" data-bs-toggle="modal" data-bs-target="#registerModal">
+                    <a href="#" class="btn btn-pink btn-lg" data-bs-toggle="modal" data-bs-target="#registerModal">
                         Начать бесплатно
                         <i class="fas fa-arrow-right ms-2"></i>
                     </a>
@@ -48,9 +45,10 @@
                         </div>
                         <!-- Экран -->
                         <div class="hero-screen" id="heroScreen">
-                            <img src="{% static 'images/screens/dashboard.png' %}" alt="Дашборд" class="hero-screenshot active" data-index="0">
-                            <img src="{% static 'images/screens/calendar.png' %}" alt="Календарь" class="hero-screenshot" data-index="1">
-                            <img src="{% static 'images/screens/booking.png' %}" alt="Запись" class="hero-screenshot" data-index="2">
+                            <img src="{% static 'images/calendar.png' %}" alt="Календарь" class="hero-screenshot active" data-index="0">
+                            <img src="{% static 'images/booking.png' %}" alt="Записи" class="hero-screenshot" data-index="1">
+                            <img src="{% static 'images/services.png' %}" alt="Услуги" class="hero-screenshot" data-index="2">
+                            <img src="{% static 'images/stat.png' %}" alt="Статистика" class="hero-screenshot" data-index="2">
                         </div>
                         <!-- Домашняя кнопка -->
                         <div class="hero-home-button"></div>
