@@ -260,64 +260,6 @@
 </section>
 
 
-<section id="how-it-works" class="how-it-works-road">
-    <div class="container">
-        
-        <!-- Заголовок -->
-        <div class="road-header">
-            <h2 class="road-title">Экономь до 15 часов в месяц</h2>
-            <p class="road-subtitle">Ты не отвлекаешься — система делает всё сама</p>
-        </div>
-
-        <!-- Дорожка -->
-        <div class="road-track">
-            
-            <!-- Пунктирная линия -->
-            <div class="road-line"></div>
-
-            <!-- Шаг 1 -->
-            <div class="road-step">
-                <div class="road-circle">
-                    <i class="fas fa-hand-pointer"></i>
-                    <span class="road-number">1</span>
-                </div>
-                <h4 class="road-step-title">Клиент выбирает услугу</h4>
-                <p class="road-step-desc">Можно выбрать даже 2-3 услуги сразу</p>
-            </div>
-
-            <!-- Шаг 2 -->
-            <div class="road-step">
-                <div class="road-circle">
-                    <i class="fas fa-calendar-check"></i>
-                    <span class="road-number">2</span>
-                </div>
-                <h4 class="road-step-title">Клиент выбирает время</h4>
-                <p class="road-step-desc">Система показывает только свободные окна в зависимости от выбранных услуг</p>
-            </div>
-
-            <!-- Шаг 3 -->
-            <div class="road-step">
-                <div class="road-circle">
-                    <i class="fas fa-bell"></i>
-                    <span class="road-number">3</span>
-                </div>
-                <h4 class="road-step-title">Ты получаешь уведомление</h4>
-                <p class="road-step-desc">Прочитать можно когда угодно</p>
-            </div>
-
-            <!-- Шаг 4 -->
-            <div class="road-step">
-                <div class="road-circle">
-                    <i class="fas fa-check-double"></i>
-                    <span class="road-number">4</span>
-                </div>
-                <h4 class="road-step-title">Ты подтверждаешь запись</h4>
-                <p class="road-step-desc">Одним кликом - если</p>
-            </div>
-
-        </div>
-    </div>
-</section>
 
 
 <!-- ============================================================ -->
@@ -376,48 +318,61 @@
 <section id="for-whom" class="for-whom-section">
     <div class="container">
         <div class="section-header text-center">
-            <h2 class="section-title">Для кого это</h2>
+            <h2 class="section-title">Для кого даты</h2>
             <p class="section-subtitle">Сервис для мастеров, которые ценят своё время</p>
         </div>
         <div class="row g-3 categories-grid justify-content-center">
             <div class="mosaic-grid">
-                    <div class="mosaic-item mosaic-item-1">
-                        <img src="{% static 'images/nail.webp' %}" alt="Мастер">
-                        <div class="mosaic-overlay">
-                            <span class="mosaic-name">Маникюр</span>
-                        </div>
-                    </div>
-                    <div class="mosaic-item mosaic-item-2">
-                        <img src="{% static 'images/dentist.webp' %}" alt="Мастер">
-                        <div class="mosaic-overlay">
-                            <span class="mosaic-name">Стоматолог</span>
-                        </div>
-                    </div>
-                    <div class="mosaic-item mosaic-item-3">
-                        <img src="{% static 'images/mechanic.webp' %}" alt="Мастер">
-                        <div class="mosaic-overlay">
-                            <span class="mosaic-name">Автомеханик</span>
-                        </div>
-                    </div>
-                    <div class="mosaic-item mosaic-item-4">
-                        <img src="{% static 'images/fit.webp' %}" alt="Мастер">
-                        <div class="mosaic-overlay">
-                            <span class="mosaic-name">Тренер</span>
-                        </div>
-                    </div>
-                    <div class="mosaic-item mosaic-item-5">
-                        <img src="{% static 'images/makeup.webp' %}" alt="Мастер">
-                        <div class="mosaic-overlay">
-                            <span class="mosaic-name">Визажист</span>
-                        </div>
-                    </div>
-                    <div class="mosaic-item mosaic-item-6">
-                        <img src="{% static 'images/barber.webp' %}" alt="Мастер">
-                        <div class="mosaic-overlay">
-                            <span class="mosaic-name">Барбер</span>
-                        </div>
+
+                <!-- 1. Маникюр -->
+                <div class="mosaic-item mosaic-item-1">
+                    <img src="{% static 'images/nail.webp' %}" alt="Мастер">
+                    <div class="mosaic-overlay">
+                        <div class="mosaic-bubble">Маникюр</div>
                     </div>
                 </div>
+
+                <!-- 2. Стоматолог (длинное слово) -->
+                <div class="mosaic-item mosaic-item-2">
+                    <img src="{% static 'images/dentist.webp' %}" alt="Мастер">
+                    <div class="mosaic-overlay">
+                        <div class="mosaic-bubble long">Стоматолог</div>
+                    </div>
+                </div>
+
+                <!-- 3. Автомеханик (длинное слово) -->
+                <div class="mosaic-item mosaic-item-3">
+                    <img src="{% static 'images/mechanic.webp' %}" alt="Мастер">
+                    <div class="mosaic-overlay">
+                        <div class="mosaic-bubble long">Автомеханик</div>
+                    </div>
+                </div>
+
+                <!-- 4. Тренер -->
+                <div class="mosaic-item mosaic-item-4">
+                    <img src="{% static 'images/fit.webp' %}" alt="Мастер">
+                    <div class="mosaic-overlay">
+                        <div class="mosaic-bubble">Тренер</div>
+                    </div>
+                </div>
+
+                <!-- 5. Визажист -->
+                <div class="mosaic-item mosaic-item-5">
+                    <img src="{% static 'images/makeup.webp' %}" alt="Мастер">
+                    <div class="mosaic-overlay">
+                        <div class="mosaic-bubble">Визажист</div>
+                    </div>
+                </div>
+
+                <!-- 6. Барбер -->
+                <div class="mosaic-item mosaic-item-6">
+                    <img src="{% static 'images/barber.webp' %}" alt="Мастер">
+                    <div class="mosaic-overlay">
+                        <div class="mosaic-bubble">Барбер</div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
 </section>
@@ -425,14 +380,14 @@
 <!-- ============================================================ -->
 <!-- СЕКЦИЯ: ОТЗЫВЫ -->
 <!-- ============================================================ -->
-<section id="testimonials" class="testimonials-section">
+<!-- <section id="testimonials" class="testimonials-section">
     <div class="container">
         <div class="section-header text-center">
             <h2 class="section-title">Мастера уже с нами</h2>
             <p class="section-subtitle">Что говорят те, кто перешёл на ДАТЫ</p>
         </div>
         <div class="row g-4">
-            <!-- Отзыв 1 -->
+
             <div class="col-md-4">
                 <div class="testimonial-card">
                     <div class="testimonial-avatar">
@@ -450,7 +405,7 @@
                     <span class="testimonial-prof">Мастер маникюра, 5 лет стажа</span>
                 </div>
             </div>
-            <!-- Отзыв 2 -->
+
             <div class="col-md-4">
                 <div class="testimonial-card">
                     <div class="testimonial-avatar">
@@ -468,7 +423,7 @@
                     <span class="testimonial-prof">Парикмахер-барбер</span>
                 </div>
             </div>
-            <!-- Отзыв 3 -->
+
             <div class="col-md-4">
                 <div class="testimonial-card">
                     <div class="testimonial-avatar">
@@ -488,7 +443,7 @@
             </div>
         </div>
     </div>
-</section>
+</section> -->
 
 
 <!-- ============================================================ -->
@@ -729,6 +684,108 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+</script>
+
+<script>
+// ============================================================
+// МОБИЛЬНАЯ АВТО-КАРУСЕЛЬ (ЭФФЕКТ КАК ПРИ НАВЕДЕНИИ)
+// ============================================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // Только на мобильных
+    if (window.innerWidth > 768) return;
+    
+    const items = document.querySelectorAll('.mosaic-item');
+    let currentIndex = 0;
+    let interval;
+    let isPaused = false;
+    
+    function showItem(index) {
+        // Скрываем все
+        items.forEach(function(item, i) {
+            item.classList.remove('active');
+            item.classList.remove('inactive');
+            
+            if (i === index) {
+                // Активная — как при наведении
+                item.classList.add('active');
+            } else {
+                // Остальные — затемнены
+                item.classList.add('inactive');
+            }
+        });
+    }
+    
+    function nextItem() {
+        currentIndex = (currentIndex + 1) % items.length;
+        showItem(currentIndex);
+    }
+    
+    function startCarousel() {
+        // Сначала все затемнены, без активных
+        items.forEach(function(item) {
+            item.classList.remove('active');
+            item.classList.add('inactive');
+        });
+        
+        // Показываем первый
+        setTimeout(function() {
+            showItem(0);
+        }, 300);
+        
+        // Запускаем интервал
+        if (interval) clearInterval(interval);
+        interval = setInterval(nextItem, 2000);
+    }
+    
+    // Клик по карточке — пауза/продолжение
+    items.forEach(function(item) {
+        item.addEventListener('click', function() {
+            if (isPaused) {
+                isPaused = false;
+                interval = setInterval(nextItem, 2000);
+            } else {
+                isPaused = true;
+                clearInterval(interval);
+            }
+        });
+    });
+    
+    startCarousel();
+    
+    // Остановка при скрытии страницы
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            clearInterval(interval);
+        } else {
+            if (!isPaused) {
+                interval = setInterval(nextItem, 2000);
+            }
+        }
+    });
+});
+
+
+function showItem(index) {
+    items.forEach(function(item, i) {
+        item.classList.remove('active');
+        item.classList.remove('inactive');
+        
+        if (i === index) {
+            item.classList.add('active');
+            
+            // Автоматически добавляем класс long для длинных слов
+            const bubble = item.querySelector('.mosaic-bubble');
+            if (bubble && bubble.textContent.length > 9) {
+                bubble.classList.add('long');
+            }
+        } else {
+            item.classList.add('inactive');
+        }
+    });
+}
+
 </script>
 
 

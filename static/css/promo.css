@@ -1018,12 +1018,16 @@ body {
     z-index: 2;
 }
 
-.how-it-works-road .road-step:nth-child(odd) {
-    margin-top: 30px;
+/* .how-it-works-road .road-step:nth-child(odd) {
+    margin-top: 80px;
 }
 
 .how-it-works-road .road-step:nth-child(even) {
-    margin-top: -10px;
+    margin-top: -30px;
+} */
+
+.how-it-works-road .road-step:nth-child(even) .road-step-content {
+    margin-bottom: 20px;     
 }
 
 .how-it-works-road .road-circle {
@@ -1070,10 +1074,9 @@ body {
     text-align: center;
 }
 
-.how-it-works-road .road-step:nth-child(even) .road-step-content {
-    margin-bottom: 20px;      /* ← отступ сверху для нечётных */
 
-}
+
+
 
 .how-it-works-road .road-step-desc {
     font-size: 0.8rem;
@@ -1457,13 +1460,8 @@ body {
         font-size: 0.7rem;
     }
 
-    /* Рука скрыта на мобильных (уже есть в CSS) */
 }
 
-
-/* ============================================================ */
-/* ========== СЕКЦИЯ: ДЛЯ КОГО ЭТО ========== */
-/* ============================================================ */
 
 /* ============================================================ */
 /* ========== СЕКЦИЯ: ДЛЯ КОГО ЭТО ========== */
@@ -1474,59 +1472,27 @@ body {
     background: white;
 }
 
-/* ============================================================ */
-/* ========== ФОТО МАСТЕРОВ (HERO) ========== */
-/* ============================================================ */
-
-.hero-image {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 500px;
+.for-whom-section .section-header {
+    margin-bottom: 60px;   /* ← добавить отступ */
 }
 
-.hero-photos {
-    display: flex;
-    gap: 20px;
-    width: 100%;
-    max-width: 500px;
-    justify-content: center;
-    align-items: center;
-    height: 520px;
-    position: relative;
+.for-whom-section .section-title {
+    font-family: 'Nunito', system-ui, sans-serif;
+    font-weight: 800;
+    font-size: 2.5rem;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
 }
 
-.photo-card {
-    flex: 1;
-    max-width: 220px;
-    height: 420px;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
-    position: relative;
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+.for-whom-section .section-subtitle {
+    font-family: 'Nunito', system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 1.1rem;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.1;
 }
-
-.photo-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-}
-
-
-
-/* ============================================================ */
-/* ========== МОЗАИЧНАЯ СЕТКА ========== */
-/* ============================================================ */
-
-/* ============================================================ */
-/* ========== МОЗАИЧНАЯ СЕТКА (без дёрганья) ========== */
-/* ============================================================ */
-
-/* ============================================================ */
-/* ========== МОЗАИЧНАЯ СЕТКА (БЕЗ ТРАНСФОРМАЦИЙ) ========== */
-/* ============================================================ */
 
 .mosaic-grid {
     display: grid;
@@ -1598,32 +1564,86 @@ body {
 }
 
 /* Оверлей */
+
+/* ===== ОВЕРЛЕЙ ДЛЯ МОЗАИКИ ===== */
+
+/* ===== ОВЕРЛЕЙ ДЛЯ МОЗАИКИ ===== */
+
 .mosaic-overlay {
     position: absolute;
-    bottom: 0;
+    bottom: 20px;
     left: 0;
     right: 0;
-    padding: 20px 16px 16px;
-    background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
     pointer-events: none;
+    z-index: 5;
+    width: 100%;
 }
 
 .mosaic-item:hover .mosaic-overlay {
     opacity: 1;
+    transform: translateY(0) scale(1);
 }
 
-.mosaic-name {
-    color: white;
-    font-size: 0.85rem;
-    font-weight: 600;
+.mosaic-bubble {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 90%;                    /* ← 80% от ширины карточки */
+    /* max-width: 180px; */
+    padding: 14px 20px;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border-radius: 20px 20px 20px 4px;
+    box-shadow: 0 8px 30px rgba(64, 83, 211, 0.15);
+    transform: rotate(-2deg);
+    transition: all 0.4s ease;
+    font-family: 'Nunito', system-ui, sans-serif;
+    font-weight: 900;
+    font-size: 20px;
+    color: var(--primary);
+    letter-spacing: -0.3px;
+    text-align: center;
+    white-space: normal;
+    line-height: 1.2;
+    margin: 0 auto;                   
+}
+
+/* Текст — 90% от ширины облачка */
+.mosaic-bubble .bubble-text {
     display: block;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    width: 90%;                    /* ← 90% от ширины облачка */
+    max-width: 100%;
+    text-align: center;
 }
 
-/* Адаптив */
+.mosaic-item:hover .mosaic-bubble {
+    transform: rotate(1deg);
+}
+
+
+
+/* ============================================================ */
+/* ========== МОБИЛЬНАЯ ВЕРСИЯ ========== */
+/* ============================================================ */
+
 @media (max-width: 768px) {
+
+    .for-whom-section .section-header {
+        margin-bottom: 40px;
+    }
+    
+    .for-whom-section .section-title {
+        font-size: 1.8rem;
+    }
+    
+    .for-whom-section .section-subtitle {
+        font-size: 0.95rem;
+    }
+    
     .mosaic-grid {
         grid-template-columns: 1fr 1fr;
         grid-template-rows: auto auto auto;
@@ -1633,6 +1653,7 @@ body {
     
     .mosaic-item {
         aspect-ratio: 3 / 4;
+        transition: all 0.5s ease;
     }
     
     .mosaic-item-1 {
@@ -1665,22 +1686,52 @@ body {
         display: none;
     }
     
-    .mosaic-overlay {
-        padding: 12px 10px 10px;
-    }
-    
-    .mosaic-name {
-        font-size: 0.7rem;
-    }
-}
-
-@media (max-width: 768px) {
-    /* ===== ДЛЯ КОГО ЭТО ===== */
     .for-whom-section {
         padding: 50px 0;
     }
+    
+    /* ---- По умолчанию все скрыты ---- */
+    .mosaic-overlay {
+        opacity: 0 !important;
+        transform: translateY(20px) scale(0.95) !important;
+        transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        pointer-events: none;
+        z-index: 5;
+        display: flex;               
+        justify-content: center;
+    }
+    
+    /* ---- Активная карточка (через JS добавляется класс .active) ---- */
+    .mosaic-item.active .mosaic-overlay {
+        opacity: 1 !important;
+        transform: translateY(0) scale(1) !important;
+    }
+    
+    /* Подсветка как при ховере */
+    .mosaic-item.active {
+        /* outline: 3px solid var(--primary) !important; */
+        /* outline-offset: -3px !important; */
+        z-index: 10 !important;
+        box-shadow: 0 12px 40px rgba(64, 83, 211, 0.15) !important;
+    }
+    
+    /* Затемнение остальных */
+    .mosaic-item.inactive {
+        opacity: 0.4 !important;
+    }
+    
+    .mosaic-bubble {
+        width: 85%;
+        padding: 10px 14px;
+        border-radius: 16px 16px 16px 4px;
+        font-size: 14px;
+    }
+    
+    .bubble-text {
+        width: 90%;
+    }
 
-
+    
 }
 
 /* ============================================================ */
