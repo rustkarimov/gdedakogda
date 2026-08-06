@@ -14,14 +14,10 @@
         <div class="row align-items-center">
             <!-- Левая колонка: текст -->
             <div class="col-lg-6 hero-content">
-                <!-- <h1 class="hero-title">
-                    Твои клиенты запишутся<br>
-                    <span class="hero-title-highlight">в 2 клика</span>
-                </h1> -->
-
+       
                 <h1 class="hero-title">
                     Твои клиенты запишутся<br>
-                    <span class="hero-title-highlight">в 2 клика</span>
+                    <span class="hero-title-highlight">за пару кликов</span>
                 </h1>
 
                 <p class="hero-description">
@@ -69,161 +65,6 @@
 </div>
 
 
-<!-- ============================================================ -->
-<!-- СЕКЦИЯ: ТВОЯ ЛИЧНАЯ СТРАНИЦА -->
-<!-- ============================================================ -->
-<section id="personal-page" class="personal-page-section">
-    <div class="container">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-6">
-                <div class="personal-page-content">
-                    <span class="badge" style="background: var(--primary-light); color: var(--primary); padding: 4px 16px; border-radius: 100px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;">Фишка</span>
-                    <h2 style="font-family: 'Nunito', system-ui, sans-serif; font-weight: 800; font-size: 2.2rem; color: #1a1a2e; margin: 12px 0 16px 0; letter-spacing: -0.5px;">
-                        Твоя личная страница<br>
-                        с <span style="color: var(--primary);">уникальной ссылкой</span>
-                    </h2>
-                    <p style="font-size: 1.05rem; color: #4a4a6a; line-height: 1.7; margin-bottom: 24px; max-width: 480px;">
-                        Отправь клиентам ссылку — и они увидят твои услуги, свободные окна и смогут записаться в 2 клика. Без звонков и согласований.
-                    </p>
-                    <div style="display: flex; align-items: center; gap: 12px; background: var(--gray-50); padding: 12px 20px; border-radius: 12px; border: 1px solid var(--gray-200); max-width: 400px;">
-                        <i class="fas fa-link" style="color: var(--primary);"></i>
-                        <code style="font-size: 0.9rem; color: var(--gray-600); background: transparent; border: none; flex: 1;">daty.pro/anna</code>
-                        <button style="background: transparent; border: none; color: var(--primary); cursor: pointer; font-weight: 600;" onclick="navigator.clipboard.writeText('daty.pro/anna')">Копировать</button>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div style="background: var(--primary-lighter); border-radius: 24px; padding: 20px; text-align: center;">
-                    <img src="{% static 'images/personal-page-preview.png' %}" alt="Личная страница" style="max-width: 100%; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.08);">
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ============================================================ -->
-<!-- СЕКЦИЯ: ВСЁ В ОДНОМ МЕСТЕ -->
-<!-- ============================================================ -->
-<section id="all-in-one" style="padding: 60px 0; background: white;">
-    <div class="container">
-        <div style="text-align: center; max-width: 700px; margin: 0 auto 48px;">
-            <span style="background: var(--primary-light); color: var(--primary); padding: 4px 16px; border-radius: 100px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;">Удобство</span>
-            <h2 style="font-family: 'Nunito', system-ui, sans-serif; font-weight: 800; font-size: 2.5rem; color: #1a1a2e; margin: 12px 0 8px 0; letter-spacing: -0.5px;">Всё в одном месте</h2>
-            <p style="font-size: 1.1rem; color: #6b7280; margin: 0;">Записи, клиенты, статистика — без переключений</p>
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; max-width: 900px; margin: 0 auto;">
-            <div style="text-align: center; padding: 24px;">
-                <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--primary-lighter); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
-                    <i class="fas fa-calendar-alt" style="color: var(--primary); font-size: 1.2rem;"></i>
-                </div>
-                <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 4px;">Календарь</h4>
-                <p style="font-size: 0.85rem; color: #6b7280; margin: 0;">Все записи в одном окне</p>
-            </div>
-            <div style="text-align: center; padding: 24px;">
-                <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--primary-lighter); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
-                    <i class="fas fa-users" style="color: var(--primary); font-size: 1.2rem;"></i>
-                </div>
-                <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 4px;">Клиенты</h4>
-                <p style="font-size: 0.85rem; color: #6b7280; margin: 0;">История и контакты под рукой</p>
-            </div>
-            <div style="text-align: center; padding: 24px;">
-                <div style="width: 48px; height: 48px; border-radius: 12px; background: var(--primary-lighter); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
-                    <i class="fas fa-chart-line" style="color: var(--primary); font-size: 1.2rem;"></i>
-                </div>
-                <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 4px;">Статистика</h4>
-                <p style="font-size: 0.85rem; color: #6b7280; margin: 0;">Аналитика в реальном времени</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ============================================================ -->
-<!-- СЕКЦИЯ: БЫЛО / СТАЛО -->
-<!-- ============================================================ -->
-<section id="compare" style="padding: 60px 0; background: white;">
-    <div class="container">
-        <div style="text-align: center; max-width: 700px; margin: 0 auto 48px;">
-            <h2 style="font-family: 'Nunito', system-ui, sans-serif; font-weight: 800; font-size: 2.5rem; color: #1a1a2e; margin: 0 0 8px 0; letter-spacing: -0.5px;">Было vs Стало</h2>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; max-width: 700px; margin: 0 auto;">
-            <div style="background: #fef2f2; border-radius: 20px; padding: 32px 24px; border: 1px solid #fecaca;">
-                <div style="font-size: 2rem; margin-bottom: 8px;">😩</div>
-                <h4 style="font-size: 1.1rem; font-weight: 700; color: #dc2626; margin-bottom: 16px;">Было</h4>
-                <ul style="list-style: none; padding: 0; margin: 0; text-align: left;">
-                    <li style="padding: 8px 0; border-bottom: 1px solid #fecaca; color: #4a4a6a;">📞 Звонки и согласования</li>
-                    <li style="padding: 8px 0; border-bottom: 1px solid #fecaca; color: #4a4a6a;">📝 Записи в блокноте</li>
-                    <li style="padding: 8px 0; border-bottom: 1px solid #fecaca; color: #4a4a6a;">❌ Клиенты не приходят</li>
-                    <li style="padding: 8px 0; color: #4a4a6a;">😫 Трата времени</li>
-                </ul>
-            </div>
-            <div style="background: #dcfce7; border-radius: 20px; padding: 32px 24px; border: 1px solid #86efac;">
-                <div style="font-size: 2rem; margin-bottom: 8px;">😎</div>
-                <h4 style="font-size: 1.1rem; font-weight: 700; color: #16a34a; margin-bottom: 16px;">Стало</h4>
-                <ul style="list-style: none; padding: 0; margin: 0; text-align: left;">
-                    <li style="padding: 8px 0; border-bottom: 1px solid #86efac; color: #4a4a6a;">🔗 Клиенты сами записываются</li>
-                    <li style="padding: 8px 0; border-bottom: 1px solid #86efac; color: #4a4a6a;">📱 Всё в телефоне</li>
-                    <li style="padding: 8px 0; border-bottom: 1px solid #86efac; color: #4a4a6a;">✅ Напоминания о записи</li>
-                    <li style="padding: 8px 0; color: #4a4a6a;">⏰ Экономия до 15 часов</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ============================================================ -->
-<!-- СЕКЦИЯ: ЧТО ТЫ ПОЛУЧАЕШЬ СРАЗУ -->
-<!-- ============================================================ -->
-<section id="bonus" style="padding: 60px 0; background: var(--primary-lighter);">
-    <div class="container">
-        <div style="text-align: center; max-width: 700px; margin: 0 auto 48px;">
-            <span style="background: var(--primary-light); color: var(--primary); padding: 4px 16px; border-radius: 100px; font-size: 0.7rem; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase;">🎁 Бонус</span>
-            <h2 style="font-family: 'Nunito', system-ui, sans-serif; font-weight: 800; font-size: 2.5rem; color: #1a1a2e; margin: 12px 0 8px 0; letter-spacing: -0.5px;">Сразу после регистрации</h2>
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; max-width: 800px; margin: 0 auto;">
-            <div style="background: white; border-radius: 16px; padding: 24px; text-align: center; border: 1px solid var(--gray-200);">
-                <div style="font-size: 2rem; margin-bottom: 8px;">✅</div>
-                <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 4px;">Готовая страница</h4>
-                <p style="font-size: 0.85rem; color: #6b7280; margin: 0;">С уникальной ссылкой</p>
-            </div>
-            <div style="background: white; border-radius: 16px; padding: 24px; text-align: center; border: 1px solid var(--gray-200);">
-                <div style="font-size: 2rem; margin-bottom: 8px;">✅</div>
-                <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 4px;">Первые 50 записей</h4>
-                <p style="font-size: 0.85rem; color: #6b7280; margin: 0;">Бесплатно</p>
-            </div>
-            <div style="background: white; border-radius: 16px; padding: 24px; text-align: center; border: 1px solid var(--gray-200);">
-                <div style="font-size: 2rem; margin-bottom: 8px;">✅</div>
-                <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 4px;">Напоминания</h4>
-                <p style="font-size: 0.85rem; color: #6b7280; margin: 0;">Клиенты не забывают</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ============================================================ -->
-<!-- СЕКЦИЯ: ЦИФРЫ И ФАКТЫ -->
-<!-- ============================================================ -->
-<section id="facts" style="padding: 60px 0; background: white;">
-    <div class="container">
-        <div class="row g-4 text-center">
-            <div class="col-md-3 col-6">
-                <div style="font-size: 3rem; font-weight: 900; color: var(--primary);">500+</div>
-                <div style="font-size: 0.9rem; color: #6b7280;">мастеров уже с нами</div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div style="font-size: 3rem; font-weight: 900; color: var(--primary);">15</div>
-                <div style="font-size: 0.9rem; color: #6b7280;">часов экономии в месяц</div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div style="font-size: 3rem; font-weight: 900; color: var(--primary);">70%</div>
-                <div style="font-size: 0.9rem; color: #6b7280;">меньше неявок</div>
-            </div>
-            <div class="col-md-3 col-6">
-                <div style="font-size: 3rem; font-weight: 900; color: var(--primary);">2</div>
-                <div style="font-size: 0.9rem; color: #6b7280;">клика до записи</div>
-            </div>
-        </div>
-    </div>
-</section>
 <!-- ============================================================ -->
 <!-- СЕКЦИЯ: ВОЗМОЖНОСТИ -->
 <!-- ============================================================ -->
@@ -340,8 +181,90 @@
 
 
 <!-- ============================================================ -->
-<!-- СЕКЦИЯ: КАК ЭТО РАБОТАЕТ (ДОРОЖКА) -->
+<!-- СЕКЦИЯ: ТВОЯ ЛИЧНАЯ СТРАНИЦА -->
 <!-- ============================================================ -->
+<section id="personal-page" class="personal-page-section">
+    <div class="container">
+        <div class="row align-items-center g-0">
+            
+            <!-- Левая колонка: текст -->
+            <div class="col-lg-5 personal-page-content">
+                <h2 class="personal-page-title">
+                    Твоя личная страница<br>
+                    с <span class="personal-page-highlight">уникальной ссылкой</span>
+                </h2>
+                <p class="personal-page-desc">
+                    Просто отправь ссылку клиентам — и они увидят твои услуги, свободные окна и смогут записаться в 2 клика.
+                </p>
+                <div class="personal-page-link">
+                    <code>
+                        <i class="fas fa-link"></i>
+                        daty.pro/ваше-имя
+                    </code>
+                </div>
+            </div>
+
+            <!-- Правая колонка: три скрина в ряд (десктоп) -->
+            <div class="col-lg-7 personal-page-screens-wrapper">
+
+                <!-- Общий фон — ярче, захватывает текст -->
+                <div class="personal-page-bg"></div>
+
+                <!-- Дополнительный слой для глубины -->
+                <div class="personal-page-bg-depth"></div>
+
+                <!-- Три скрина (десктопная версия) -->
+                <div class="desktop-screens">
+                    <div class="screen-item screen-item-1">
+                        <div class="screen-inner">
+                            <img src="{% static 'images/screens/page-master.png' %}" alt="Страница мастера">
+                        </div>
+                    </div>
+                    <div class="screen-item screen-item-2">
+                        <div class="screen-inner">
+                            <img src="{% static 'images/screens/page-services.png' %}" alt="Выбор услуги">
+                        </div>
+                    </div>
+                    <div class="screen-item screen-item-3">
+                        <div class="screen-inner">
+                            <img src="{% static 'images/screens/page-confirm.png' %}" alt="Запись подтверждена">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== МОБИЛЬНЫЙ СЛАЙДЕР ===== -->
+                <div class="mobile-slider-wrapper">
+                    <div class="mobile-slider-track" id="sliderTrack">
+                        <div class="mobile-slide" data-index="0">
+                            <div class="slide-inner">
+                                <img src="{% static 'images/screens/page-master.png' %}" alt="Страница мастера">
+                            </div>
+                        </div>
+                        <div class="mobile-slide" data-index="1">
+                            <div class="slide-inner">
+                                <img src="{% static 'images/screens/page-services.png' %}" alt="Выбор услуги">
+                                
+                            </div>
+                        </div>
+                        <div class="mobile-slide" data-index="2">
+                            <div class="slide-inner">
+                                <img src="{% static 'images/screens/page-confirm.png' %}" alt="Подтверждение">
+                                
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mobile-slider-dots">
+                        <span class="dot active" data-index="0"></span>
+                        <span class="dot" data-index="1"></span>
+                        <span class="dot" data-index="2"></span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+
 
 <!-- ============================================================ -->
 <!-- СЕКЦИЯ: КАК ЭТО РАБОТАЕТ (ДОРОЖКА) -->
@@ -940,6 +863,127 @@ function showItem(index) {
     });
 }
 
+</script>
+
+<script>
+    // ============================================================
+// МОБИЛЬНЫЙ СЛАЙДЕР (Твоя личная страница)
+// ============================================================
+document.addEventListener('DOMContentLoaded', function() {
+
+    const track = document.getElementById('sliderTrack');
+    if (!track) return;
+
+    const slides = track.querySelectorAll('.mobile-slide');
+    const dots = document.querySelectorAll('.mobile-slider-dots .dot');
+    const totalSlides = slides.length;
+    let currentIndex = 0;
+    let startX = 0;
+    let isDragging = false;
+    let currentTranslate = 0;
+
+    // Функция обновления слайдера
+    function updateSlider(index) {
+        // Сдвиг: каждый слайд занимает 78% + gap 12px
+        const slideWidth = 78; // %
+        const gap = 12; // px
+        const offset = -index * (slideWidth + (gap / window.innerWidth * 100));
+        
+        track.style.transform = `translateX(${offset}%)`;
+        
+        // Обновляем активные классы у слайдов
+        slides.forEach((slide, i) => {
+            slide.classList.toggle('active', i === index);
+        });
+        
+        // Обновляем точки
+        dots.forEach((dot, i) => {
+            dot.classList.toggle('active', i === index);
+        });
+        
+        currentIndex = index;
+    }
+
+    // Клик по точкам
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', function() {
+            updateSlider(index);
+        });
+    });
+
+    // ===== СВАЙП =====
+    track.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX;
+        isDragging = true;
+        track.style.transition = 'none';
+    }, { passive: true });
+
+    track.addEventListener('touchmove', function(e) {
+        if (!isDragging) return;
+        const diff = (e.touches[0].clientX - startX) / window.innerWidth * 100;
+        const slideWidth = 78;
+        const gap = 12 / window.innerWidth * 100;
+        const offset = -currentIndex * (slideWidth + gap) + diff;
+        track.style.transform = `translateX(${offset}%)`;
+    }, { passive: true });
+
+    track.addEventListener('touchend', function(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        track.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        
+        const diff = (e.changedTouches[0].clientX - startX);
+        const threshold = 50; // пикселей
+        
+        if (diff < -threshold && currentIndex < totalSlides - 1) {
+            updateSlider(currentIndex + 1);
+        } else if (diff > threshold && currentIndex > 0) {
+            updateSlider(currentIndex - 1);
+        } else {
+            updateSlider(currentIndex);
+        }
+    }, { passive: true });
+
+    // ===== МЫШЬ (для десктопа) =====
+    let mouseStartX = 0;
+    let isMouseDragging = false;
+
+    track.addEventListener('mousedown', function(e) {
+        mouseStartX = e.clientX;
+        isMouseDragging = true;
+        track.style.transition = 'none';
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        if (!isMouseDragging) return;
+        const diff = (e.clientX - mouseStartX) / window.innerWidth * 100;
+        const slideWidth = 78;
+        const gap = 12 / window.innerWidth * 100;
+        const offset = -currentIndex * (slideWidth + gap) + diff;
+        track.style.transform = `translateX(${offset}%)`;
+    });
+
+    document.addEventListener('mouseup', function(e) {
+        if (!isMouseDragging) return;
+        isMouseDragging = false;
+        track.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        
+        const diff = (e.clientX - mouseStartX);
+        const threshold = 50;
+        
+        if (diff < -threshold && currentIndex < totalSlides - 1) {
+            updateSlider(currentIndex + 1);
+        } else if (diff > threshold && currentIndex > 0) {
+            updateSlider(currentIndex - 1);
+        } else {
+            updateSlider(currentIndex);
+        }
+    });
+
+    // Инициализация
+    updateSlider(0);
+});
 </script>
 
 

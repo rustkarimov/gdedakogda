@@ -799,13 +799,6 @@ body {
     padding: 0 !important;
 }
 
-/* ============================================================ */
-/* ========== АДАПТИВ (МОБИЛЬНАЯ ВЕРСИЯ) ========== */
-/* ============================================================ */
-/* ============================================================ */
-/* ========== МОБИЛЬНАЯ ВЕРСИЯ (до 768px) ========== */
-/* ============================================================ */
-
 @media (max-width: 768px) {
     
     /* 1. Заголовок — меньше */
@@ -954,8 +947,257 @@ body {
 
 
 /* ============================================================ */
-/* ========== СЕКЦИЯ: КАК ЭТО РАБОТАЕТ ========== */
+/* ========== СЕКЦИЯ: ТВОЯ ЛИЧНАЯ СТРАНИЦА ========== */
 /* ============================================================ */
+
+.personal-page-section {
+    padding: 80px 0;
+    background: white;
+    overflow: hidden;
+}
+
+.personal-page-content {
+    position: relative;
+    z-index: 2;
+    padding-right: 40px;
+}
+
+.personal-page-title {
+    font-family: 'Nunito', system-ui, sans-serif;
+    font-weight: 800;
+    font-size: 2.8rem;
+    color: #1a1a2e;
+    margin: 0 0 16px 0;
+    letter-spacing: -1px;
+    line-height: 1.15;
+}
+
+.personal-page-highlight {
+    color: var(--primary);
+}
+
+.personal-page-desc {
+    font-size: 1.1rem;
+    color: #4a4a6a;
+    line-height: 1.7;
+    margin-bottom: 24px;
+    max-width: 440px;
+}
+
+.personal-page-link {
+    background: var(--gray-50);
+    border-radius: 12px;
+    padding: 12px 20px;
+    border: 1px solid var(--gray-200);
+    display: inline-block;
+}
+
+.personal-page-link code {
+    font-size: 1rem;
+    color: var(--gray-700);
+    background: transparent;
+    border: none;
+}
+
+.personal-page-link code i {
+    color: var(--primary);
+    margin-right: 8px;
+}
+
+/* ===== ПРАВАЯ КОЛОНКА: СКРИНЫ ===== */
+.personal-page-screens-wrapper {
+    position: relative;
+}
+
+/* Общий фон */
+.personal-page-bg {
+    position: absolute;
+    top: -30%;
+    left: -40%;
+    width: 140%;
+    height: 160%;
+    background: linear-gradient(145deg, var(--primary-lighter) 0%, #dce5ff 50%, var(--primary-light) 100%);
+    border-radius: 0 80px 80px 0;
+    transform: rotate(2deg);
+    opacity: 0.6;
+    z-index: 0;
+}
+
+.personal-page-bg-depth {
+    position: absolute;
+    bottom: -10%;
+    left: -10%;
+    width: 120%;
+    height: 120%;
+    background: radial-gradient(ellipse at 70% 50%, rgba(64,83,211,0.06) 0%, transparent 70%);
+    z-index: 0;
+}
+
+/* Десктопные скрины */
+.desktop-screens {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 40px 0;
+}
+
+.screen-item {
+    flex: 0 0 28%;
+    max-width: 28%;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--gray-200);
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.screen-item-1 {
+    transform: rotate(-4deg) translateY(12px);
+}
+
+.screen-item-2 {
+    flex: 0 0 30%;
+    max-width: 30%;
+    box-shadow: 0 12px 45px rgba(64, 83, 211, 0.15);
+    border: 2px solid var(--primary);
+    transform: rotate(0deg) translateY(-16px);
+}
+
+.screen-item-3 {
+    transform: rotate(4deg) translateY(12px);
+}
+
+.screen-inner {
+    aspect-ratio: 9 / 16;
+    background: var(--gray-50);
+    padding: 6px;
+}
+
+.screen-inner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    border-radius: 6px;
+}
+
+/* ===== МОБИЛЬНЫЙ СЛАЙДЕР ===== */
+.mobile-slider-wrapper {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .personal-page-section {
+        padding: 50px 0;
+    }
+
+    .personal-page-title {
+        font-size: 2rem;
+    }
+
+    .personal-page-desc {
+        font-size: 0.95rem;
+        max-width: 100%;
+    }
+
+    .personal-page-content {
+        padding-right: 0;
+        padding-bottom: 20px;
+    }
+
+    .personal-page-link code {
+        font-size: 0.85rem;
+    }
+
+    /* Скрываем десктопные скрины */
+    .desktop-screens {
+        display: none !important;
+    }
+
+
+    /* Показываем слайдер */
+    .mobile-slider-wrapper {
+        display: block;
+        position: relative;
+        z-index: 1;
+        margin-top: 10px;
+        padding: 0 10px;
+        overflow: hidden;
+        touch-action: pan-y;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    .mobile-slider-track {
+        display: flex;
+        gap: 12px;
+        transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        will-change: transform;
+        padding: 4px 0;
+    }
+
+    .mobile-slide {
+        flex: 0 0 78%;
+        aspect-ratio: 9 / 16;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+        border: 1px solid var(--gray-200);
+        background: white;
+        transition: all 0.5s ease;
+        filter: brightness(0.5) scale(0.92);
+        opacity: 0.6;
+    }
+
+    .mobile-slide.active {
+        filter: brightness(1) scale(1);
+        opacity: 1;
+        box-shadow: 0 12px 45px rgba(64, 83, 211, 0.12);
+        border-color: var(--primary-light);
+    }
+
+    .slide-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+
+    .slide-inner img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+
+    /* Точки */
+    .mobile-slider-dots {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 16px;
+    }
+
+    .mobile-slider-dots .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #d1d5db;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .mobile-slider-dots .dot.active {
+        background: var(--primary);
+        width: 24px;
+        border-radius: 4px;
+    }
+}
+
 
 
 /* ============================================================ */
