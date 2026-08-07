@@ -78,9 +78,9 @@
             </div>
 
             <!-- Фоновые объёмные круги -->
-            <div class="bg-circle bg-circle-1"></div>
+            <!-- <div class="bg-circle bg-circle-1"></div>
             <div class="bg-circle bg-circle-2"></div>
-            <div class="bg-circle bg-circle-3"></div>
+            <div class="bg-circle bg-circle-3"></div> -->
 
             <div class="row">
                 <!-- 1. Умное расписание -->
@@ -211,23 +211,23 @@
                 <div class="personal-page-bg"></div>
 
                 <!-- Дополнительный слой для глубины -->
-                <div class="personal-page-bg-depth"></div>
+                <!-- <div class="personal-page-bg-depth"></div> -->
 
                 <!-- Три скрина (десктопная версия) -->
                 <div class="desktop-screens">
                     <div class="screen-item screen-item-1">
                         <div class="screen-inner">
-                            <img src="{% static 'images/screens/page-master.png' %}" alt="Страница мастера">
+                            <img src="{% static 'images/personal-page-1.jpg' %}" alt="Страница мастера">
                         </div>
                     </div>
                     <div class="screen-item screen-item-2">
                         <div class="screen-inner">
-                            <img src="{% static 'images/screens/page-services.png' %}" alt="Выбор услуги">
+                            <img src="{% static 'images/personal-page-2.jpg' %}" alt="Выбор услуги">
                         </div>
                     </div>
                     <div class="screen-item screen-item-3">
                         <div class="screen-inner">
-                            <img src="{% static 'images/screens/page-confirm.png' %}" alt="Запись подтверждена">
+                            <img src="{% static 'images/personal-page-3.jpg' %}" alt="Запись подтверждена">
                         </div>
                     </div>
                 </div>
@@ -237,18 +237,18 @@
                     <div class="mobile-slider-track" id="sliderTrack">
                         <div class="mobile-slide" data-index="0">
                             <div class="slide-inner">
-                                <img src="{% static 'images/screens/page-master.png' %}" alt="Страница мастера">
+                                <img src="{% static 'images/personal-page-1.jpg' %}" alt="Страница мастера">
                             </div>
                         </div>
                         <div class="mobile-slide" data-index="1">
                             <div class="slide-inner">
-                                <img src="{% static 'images/screens/page-services.png' %}" alt="Выбор услуги">
+                                <img src="{% static 'images/personal-page-2.jpg' %}" alt="Выбор услуги">
                                 
                             </div>
                         </div>
                         <div class="mobile-slide" data-index="2">
                             <div class="slide-inner">
-                                <img src="{% static 'images/screens/page-confirm.png' %}" alt="Подтверждение">
+                                <img src="{% static 'images/personal-page-3.jpg' %}" alt="Подтверждение">
                                 
                             </div>
                         </div>
@@ -340,50 +340,53 @@
 
 
 <!-- ============================================================ -->
-<!-- СЕКЦИЯ: КАК ЭТО ВЫГЛЯДИТ (с телефоном) -->
+<!-- СЕКЦИЯ: КАК ЭТО ВЫГЛЯДИТ (ВИДЕО В МОКАПЕ) -->
 <!-- ============================================================ -->
-<section id="how-it-looks" class="how-it-looks-section">
+<section id="how-it-looks" class="how-it-looks-video">
     <div class="container">
-        <div class="section-header text-center">
-            <h2 class="section-title">Посмотрите, как это работает</h2>
-            <p class="section-subtitle">Всё в вашем смартфоне — от записи до статистики</p>
-        </div>
-        <div class="how-it-looks-wrapper">
-            <!-- Телефон с анимацией -->
-            <div class="looks-phone-wrapper">
-                <div class="looks-phone">
+        <div class="row align-items-center g-5">
+
+            <!-- Левая колонка: мокап с видео -->
+            <div class="col-lg-6">
+                <div class="video-mockup">
                     <!-- Чёлка -->
-                    <div class="looks-notch">
-                        <div class="looks-notch-camera"></div>
-                        <div class="looks-notch-speaker"></div>
+                    <div class="mockup-notch">
+                        <span class="mockup-notch-speaker"></span>
+                        <span class="mockup-notch-camera"></span>
                     </div>
-                    <!-- Экран -->
-                    <div class="looks-screen" id="looksScreen">
-                        <img src="{% static 'images/dashboard.png' %}" alt="Дашборд" class="looks-screenshot active" data-index="0">
-                        <img src="{% static 'images/screens/calendar.png' %}" alt="Календарь" class="looks-screenshot" data-index="1">
-                        <img src="{% static 'images/screens/booking.png' %}" alt="Запись" class="looks-screenshot" data-index="2">
+                    <!-- Экран с видео -->
+                    <div class="mockup-screen">
+                        <video controls poster="{% static 'images/video-poster.jpg' %}" preload="metadata" playsinline>
+                            <source src="{% static 'video/tour.mp4' %}" type="video/mp4">
+                            Ваш браузер не поддерживает видео.
+                        </video>
                     </div>
                     <!-- Домашняя кнопка -->
-                    <div class="looks-home-button"></div>
-                    <!-- Боковые кнопки -->
-                    <div class="looks-side-button looks-side-top"></div>
-                    <div class="looks-side-button looks-side-bottom"></div>
-                </div>
-
-                <!-- Подпись + индикаторы -->
-                <div class="looks-caption">
-                    <div class="looks-indicators">
-                        <span class="looks-dot active" data-index="0"></span>
-                        <span class="looks-dot" data-index="1"></span>
-                        <span class="looks-dot" data-index="2"></span>
-                    </div>
-                    <div class="looks-caption-text">
-                        <span class="looks-step">01</span>
-                        <h4 id="looksCaptionTitle">Дашборд мастера</h4>
-                        <p id="looksCaptionDesc">Все записи, статистика и календарь — в одном окне</p>
-                    </div>
+                    <div class="mockup-home"></div>
                 </div>
             </div>
+
+            <!-- Правая колонка: текст -->
+            <div class="col-lg-6">
+                <div class="video-content">
+                    <span class="video-badge">Обзор</span>
+                    <h2 class="video-title">Как это выглядит</h2>
+                    <p class="video-subtitle">Посмотри, как работает кабинет мастера</p>
+
+                    <ul class="video-features-list">
+                        <li><i class="fas fa-check-circle"></i> Все записи на дашборде</li>
+                        <li><i class="fas fa-check-circle"></i> Календарь с занятыми слотами</li>
+                        <li><i class="fas fa-check-circle"></i> Карточка клиента с историей</li>
+                        <li><i class="fas fa-check-circle"></i> Статистика в реальном времени</li>
+                    </ul>
+
+                    <a href="#" class="btn btn-pink mt-3" data-bs-toggle="modal" data-bs-target="#registerModal">
+                        Попробовать бесплатно
+                        <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+
         </div>
     </div>
 </section>
@@ -989,70 +992,34 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 // ============================================================
-// АНИМАЦИЯ ТЕЛЕФОНА (секция «Как это выглядит»)
+// секция «Как это выглядит»
 // ============================================================
 document.addEventListener('DOMContentLoaded', function() {
-    const screens = document.querySelectorAll('.looks-screenshot');
-    const dots = document.querySelectorAll('.looks-dot');
-    const captionTitle = document.getElementById('looksCaptionTitle');
-    const captionDesc = document.getElementById('looksCaptionDesc');
-    
-    const captions = [
-        { title: 'Дашборд мастера', desc: 'Все записи, статистика и календарь — в одном окне' },
-        { title: 'Умное расписание', desc: 'Все записи и свободные окна — в удобном календаре' },
-        { title: 'Страница клиента', desc: 'Клиент выбирает услугу, время и записывается за 2 клика' }
+    const steps = document.querySelectorAll('.tour-step');
+    const slides = document.querySelectorAll('.tour-slide');
+    const description = document.querySelector('.tour-desc-text');
+
+    if (!steps.length || !slides.length) return;
+
+    const descriptions = [
+        'Здесь ты видишь все записи на сегодня. Можно подтверждать, редактировать и удалять.',
+        'Управляй расписанием: добавляй рабочие дни, перерывы и выходные.',
+        'Полная история клиентов: визиты, услуги, контакты — всё под рукой.',
+        'Аналитика в реальном времени: доход, загруженность, популярные услуги.'
     ];
-    
-    let currentIndex = 0;
-    let interval;
 
-    function showSlide(index) {
-        screens.forEach((screen, i) => {
-            screen.classList.toggle('active', i === index);
+    steps.forEach((step, index) => {
+        step.addEventListener('click', function() {
+            steps.forEach(s => s.classList.remove('active'));
+            this.classList.add('active');
+
+            slides.forEach(s => s.classList.remove('active'));
+            slides[index].classList.add('active');
+
+            if (description) {
+                description.textContent = descriptions[index];
+            }
         });
-        dots.forEach((dot, i) => {
-            dot.classList.toggle('active', i === index);
-        });
-        captionTitle.textContent = captions[index].title;
-        captionDesc.textContent = captions[index].desc;
-        currentIndex = index;
-    }
-
-    function nextSlide() {
-        const next = (currentIndex + 1) % screens.length;
-        showSlide(next);
-    }
-
-    function startSlider() {
-        if (interval) clearInterval(interval);
-        interval = setInterval(nextSlide, 4000);
-    }
-
-    function stopSlider() {
-        if (interval) {
-            clearInterval(interval);
-            interval = null;
-        }
-    }
-
-    // Клик по точкам
-    dots.forEach((dot, index) => {
-        dot.addEventListener('click', function() {
-            stopSlider();
-            showSlide(index);
-            setTimeout(startSlider, 5000);
-        });
-    });
-
-    showSlide(0);
-    startSlider();
-
-    document.addEventListener('visibilitychange', function() {
-        if (document.hidden) {
-            stopSlider();
-        } else {
-            startSlider();
-        }
     });
 });
 </script>
