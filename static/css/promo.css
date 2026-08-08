@@ -440,7 +440,6 @@ body {
 }
 
 
-/* Для ноутбуков (1024px - 1366px) */
 @media (min-width: 769px) and (max-width: 1366px) {
     .hero-phone {
         width: 240px;
@@ -1437,11 +1436,7 @@ body {
 }
 
 /* ============================================================ */
-/* ========== СЕКЦИЯ: КАК ЭТО ВЫГЛЯДИТ ========== */
-/* ============================================================ */
-
-/* ============================================================ */
-/* ========== СЕКЦИЯ: КАК ЭТО ВЫГЛЯДИТ (ВИДЕО В МОКАПЕ) ========== */
+/* ========== СЕКЦИЯ: ВИДЕО В МОКАПЕ ========== */
 /* ============================================================ */
 
 .how-it-looks-video {
@@ -1449,51 +1444,34 @@ body {
     background: white;
 }
 
-/* ===== МОКАП С ВИДЕО ===== */
-.video-mockup {
+/* ===== МОКАП ТЕЛЕФОНА (как в Hero) ===== */
+.video-mockup-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.video-phone {
     position: relative;
     width: 300px;
-    margin: 0 auto;
+    height: 610px;
     background: #1a1a2e;
-    border-radius: 40px;
-    padding: 16px 12px 20px 12px;
-    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04);
+    border-radius: 42px;
+    padding: 14px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
+    flex-shrink: 0;
 }
 
-/* Чёлка */
-.mockup-notch {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 12px;
-    padding-bottom: 12px;
-}
-
-.mockup-notch-speaker {
-    width: 50px;
-    height: 4px;
-    background: #2d2d44;
-    border-radius: 4px;
-}
-
-.mockup-notch-camera {
-    width: 8px;
-    height: 8px;
-    background: #2d2d44;
-    border-radius: 50%;
-    border: 1px solid #3d3d55;
-}
-
-/* Экран */
-.mockup-screen {
+.video-screen {
     width: 100%;
-    aspect-ratio: 9 / 16;
-    border-radius: 16px;
+    height: 100%;
+    border-radius: 30px;
     overflow: hidden;
     background: #000;
+    position: relative;
 }
 
-.mockup-screen video {
+.video-screen video {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -1501,14 +1479,50 @@ body {
     background: #000;
 }
 
-/* Домашняя кнопка */
-.mockup-home {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.08);
-    margin: 12px auto 0;
+/* Чёлка */
+.video-notch {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 28px;
+    background: #1a1a2e;
+    border-radius: 0 0 16px 16px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
 }
+
+.video-notch-camera {
+    width: 8px;
+    height: 8px;
+    background: #2d2d44;
+    border-radius: 50%;
+    border: 1px solid #3d3d55;
+}
+
+.video-notch-speaker {
+    width: 40px;
+    height: 4px;
+    background: #2d2d44;
+    border-radius: 4px;
+}
+
+/* Боковые кнопки */
+.video-side-button {
+    position: absolute;
+    right: -2px;
+    width: 3px;
+    height: 36px;
+    background: rgba(0, 0, 0, 0.12);
+    border-radius: 0 4px 4px 0;
+}
+
+.video-side-top { top: 100px; }
+.video-side-bottom { top: 150px; }
 
 /* ===== ПРАВАЯ КОЛОНКА ===== */
 .video-content {
@@ -1571,51 +1585,99 @@ body {
     flex-shrink: 0;
 }
 
-/* ===== АДАПТИВ ===== */
-@media (max-width: 768px) {
-    .how-it-looks-video {
-        padding: 50px 0;
-    }
-
-    .video-mockup {
-        width: 220px;
-        padding: 12px 10px 16px 10px;
+@media (min-width: 769px) and (max-width: 1366px) {
+    .video-phone {
+        width: 240px;
+        height: 480px;
+        padding: 10px;
         border-radius: 32px;
     }
 
-    .mockup-notch {
-        padding-bottom: 8px;
+    .video-screen {
+        border-radius: 22px;
+    }
+
+    .video-notch {
+        width: 90px;
+        height: 22px;
+        top: 10px;
         gap: 8px;
     }
 
-    .mockup-notch-speaker {
-        width: 40px;
-        height: 3px;
-    }
-
-    .mockup-notch-camera {
+    .video-notch-camera {
         width: 6px;
         height: 6px;
     }
 
-    .mockup-screen {
-        border-radius: 12px;
+    .video-notch-speaker {
+        width: 30px;
+        height: 3px;
     }
 
-    .mockup-home {
-        width: 28px;
-        height: 28px;
-        margin-top: 8px;
+    .video-side-button {
+        height: 24px;
     }
+
+    .video-side-top { top: 60px; }
+    .video-side-bottom { top: 100px; }
+}
+@media (max-width: 767px) {
+    .how-it-looks-video {
+        padding: 10px;
+    }
+
+    .how-it-looks-video .row [class*="col-"] {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .video-content .btn-pink {
+        display: none !important;
+    }
+
+    .video-phone {
+        width: 230px;
+        height: 410px;
+        border-radius: 32px;
+    }
+
+    .video-screen {
+        border-radius: 22px;
+    }
+
+    .video-notch {
+        width: 70px;
+        height: 18px;
+        top: 10px;
+        gap: 6px;
+    }
+
+    .video-notch-camera {
+        width: 5px;
+        height: 5px;
+    }
+
+    .video-notch-speaker {
+        width: 25px;
+        height: 2.5px;
+    }
+
+    .video-side-button {
+        height: 24px;
+    }
+
+    .video-side-top { top: 60px; }
+    .video-side-bottom { top: 90px; }
 
     .video-content {
         max-width: 100%;
         text-align: center;
-        margin-top: 20px;
+        margin: 0;
+        padding: 0;
     }
 
     .video-title {
-        font-size: 2rem;
+        font-size: 1.8rem;
     }
 
     .video-subtitle {
@@ -1634,9 +1696,8 @@ body {
         padding: 6px 0;
     }
 
-    .video-badge {
-        font-size: 0.6rem;
-        padding: 3px 12px;
+    .video-mockup-wrapper {
+        margin-top: 0px;
     }
 }
 
@@ -1741,12 +1802,6 @@ body {
     grid-row: 2 / 3;
 }
 
-/* Оверлей */
-
-/* ===== ОВЕРЛЕЙ ДЛЯ МОЗАИКИ ===== */
-
-/* ===== ОВЕРЛЕЙ ДЛЯ МОЗАИКИ ===== */
-
 .mosaic-overlay {
     position: absolute;
     bottom: 20px;
@@ -1802,11 +1857,6 @@ body {
     transform: rotate(1deg);
 }
 
-
-
-/* ============================================================ */
-/* ========== МОБИЛЬНАЯ ВЕРСИЯ ========== */
-/* ============================================================ */
 
 @media (max-width: 768px) {
 
@@ -1907,8 +1957,49 @@ body {
     
     .bubble-text {
         width: 90%;
+    }   
+
+        /* Отключаем рамку и тень при наведении */
+    .mosaic-item:hover {
+        outline: 2px solid transparent !important;
+        outline-offset: -2px !important;
+        z-index: auto !important;
+        box-shadow: none !important;
+        opacity: 1 !important;
     }
 
+    /* Отключаем затемнение остальных при наведении */
+    .mosaic-grid:hover .mosaic-item:not(:hover) {
+        opacity: 1 !important;
+    }
+
+    /* Отключаем появление подписей при наведении */
+    .mosaic-item:hover .mosaic-overlay {
+        opacity: 0 !important;
+        transform: translateY(20px) scale(0.95) !important;
+        transition: none !important;
+    }
+
+    /* Отключаем поворот облачка при наведении */
+    .mosaic-item:hover .mosaic-bubble {
+        transform: rotate(-2deg) !important;
+    }
+
+    /* Гарантируем, что активная карточка работает через JS */
+    .mosaic-item.active {
+        outline-offset: -3px !important;
+        z-index: 10 !important;
+        box-shadow: 0 12px 40px rgba(64, 83, 211, 0.15) !important;
+    }
+
+    .mosaic-item.active .mosaic-overlay {
+        opacity: 1 !important;
+        transform: translateY(0) scale(1) !important;
+    }
+
+    .mosaic-item.inactive {
+        opacity: 0.4 !important;
+    }
     
 }
 

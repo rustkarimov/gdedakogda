@@ -337,39 +337,36 @@
 </section>
 
 
-
-
 <!-- ============================================================ -->
 <!-- СЕКЦИЯ: КАК ЭТО ВЫГЛЯДИТ (ВИДЕО В МОКАПЕ) -->
 <!-- ============================================================ -->
 <section id="how-it-looks" class="how-it-looks-video">
     <div class="container">
-        <div class="row align-items-center g-5">
+        <div class="row align-items-center">
 
-            <!-- Левая колонка: мокап с видео -->
-            <div class="col-lg-6">
-                <div class="video-mockup">
-                    <!-- Чёлка -->
-                    <div class="mockup-notch">
-                        <span class="mockup-notch-speaker"></span>
-                        <span class="mockup-notch-camera"></span>
+            <!-- Мокап с видео (на десктопе слева, на мобильных снизу) -->
+            <div class="col-lg-6 order-lg-1 order-2">
+                <div class="video-mockup-wrapper">
+                    <div class="video-phone">
+                        <div class="video-notch">
+                            <div class="video-notch-camera"></div>
+                            <div class="video-notch-speaker"></div>
+                        </div>
+                        <div class="video-screen">
+                            <video controls poster="{% static 'images/video-poster.jpg' %}" preload="metadata" playsinline>
+                                <source src="{% static 'videos/tour.mp4' %}" type="video/mp4">
+                                Ваш браузер не поддерживает видео.
+                            </video>
+                        </div>
+                        <div class="video-side-button video-side-top"></div>
+                        <div class="video-side-button video-side-bottom"></div>
                     </div>
-                    <!-- Экран с видео -->
-                    <div class="mockup-screen">
-                        <video controls poster="{% static 'images/video-poster.jpg' %}" preload="metadata" playsinline>
-                            <source src="{% static 'video/tour.mp4' %}" type="video/mp4">
-                            Ваш браузер не поддерживает видео.
-                        </video>
-                    </div>
-                    <!-- Домашняя кнопка -->
-                    <div class="mockup-home"></div>
                 </div>
             </div>
 
-            <!-- Правая колонка: текст -->
-            <div class="col-lg-6">
+            <!-- Текст (на десктопе справа, на мобильных сверху) -->
+            <div class="col-lg-6 order-lg-2 order-1">
                 <div class="video-content">
-                    <span class="video-badge">Обзор</span>
                     <h2 class="video-title">Как это выглядит</h2>
                     <p class="video-subtitle">Посмотри, как работает кабинет мастера</p>
 
