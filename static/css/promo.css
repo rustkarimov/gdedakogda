@@ -1707,7 +1707,7 @@ body {
 /* ============================================================ */
 
 .for-whom-section {
-    padding: 80px 0;
+    padding: 50px 0;
     background: white;
 }
 
@@ -2124,7 +2124,40 @@ body {
 
 .pricing-section {
     padding: 80px 0;
-    background: white;
+    background: var(--primary-lighter);
+
+}
+
+.pricing-header {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.pricing-title {
+    font-family: 'Nunito', system-ui, sans-serif;
+    font-weight: 800;
+    font-size: 2.5rem;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+.pricing-subtitle {
+    font-family: 'Nunito', system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 1.1rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* Сетка — карточки по центру, не на всю ширину */
+.pricing-grid {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    max-width: 900px;
+    margin: 0 auto;
+    flex-wrap: wrap;
 }
 
 .pricing-card {
@@ -2134,19 +2167,16 @@ body {
     text-align: center;
     border: 1px solid var(--gray-200);
     transition: all 0.3s ease;
-    height: 100%;
     display: flex;
     flex-direction: column;
+    flex: 0 1 350px;
+    max-width: 400px;
+    width: 100%;
 }
 
 .pricing-card.active {
     border-color: var(--primary-light);
     box-shadow: 0 8px 32px rgba(139, 92, 246, 0.08);
-}
-
-.pricing-card.active:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 48px rgba(139, 92, 246, 0.12);
 }
 
 .pricing-card.disabled {
@@ -2157,25 +2187,6 @@ body {
 
 .pricing-card.disabled .pricing-features li {
     color: #9ca3af;
-}
-
-.pricing-badge {
-    display: inline-block;
-    background: var(--primary-gradient);
-    color: white;
-    padding: 4px 16px;
-    border-radius: 100px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 16px;
-    align-self: center;
-}
-
-.pricing-badge.secondary {
-    background: var(--gray-300);
-    color: var(--gray-600);
 }
 
 .pricing-card h3 {
@@ -2253,6 +2264,7 @@ body {
     font-size: 1rem;
     border-radius: 100px;
     justify-content: center;
+    margin-top: auto;
 }
 
 .pricing-card .btn-outline-secondary {
@@ -2262,19 +2274,29 @@ body {
     cursor: not-allowed;
 }
 
-.pricing-card .btn-outline-secondary:hover {
-    background: transparent;
-    border-color: var(--gray-300);
-    color: var(--gray-500);
-}
-
+/* ===== АДАПТИВ ===== */
 @media (max-width: 768px) {
-    /* ===== ТАРИФЫ ===== */
     .pricing-section {
         padding: 50px 0;
     }
 
+    .pricing-title {
+        font-size: 1.8rem;
+    }
+
+    .pricing-subtitle {
+        font-size: 0.95rem;
+    }
+
+    .pricing-grid {
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+    }
+
     .pricing-card {
+        flex: 0 1 auto;
+        max-width: 100%;
         padding: 28px 20px;
         border-radius: 20px;
     }
@@ -2298,9 +2320,34 @@ body {
 /* ========== СЕКЦИЯ: FAQ ========== */
 /* ============================================================ */
 
+/* ============================================================ */
+/* ========== СЕКЦИЯ: FAQ ========== */
+/* ============================================================ */
+
 .faq-section {
     padding: 80px 0;
-    background: var(--primary-lighter);
+}
+
+.faq-header {
+    text-align: center;
+    margin-bottom: 48px;
+}
+
+.faq-title {
+    font-family: 'Nunito', system-ui, sans-serif;
+    font-weight: 800;
+    font-size: 2.5rem;
+    color: #1a1a2e;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+}
+
+.faq-subtitle {
+    font-family: 'Nunito', system-ui, sans-serif;
+    font-weight: 400;
+    font-size: 1.1rem;
+    color: #6b7280;
+    margin: 0;
 }
 
 .faq-list {
@@ -2342,8 +2389,8 @@ body {
     margin-left: 16px;
 }
 
-.faq-question.active i {
-    transform: rotate(180deg);
+.faq-question i.active {   /* ← ищем класс на иконке */
+    transform: rotate(90deg);
 }
 
 .faq-answer {
@@ -2362,9 +2409,16 @@ body {
 }
 
 @media (max-width: 768px) {
-    /* ===== FAQ ===== */
     .faq-section {
-        padding: 50px 0;
+        padding: 50px 10px;
+    }
+
+    .faq-title {
+        font-size: 1.8rem;
+    }
+
+    .faq-subtitle {
+        font-size: 0.95rem;
     }
 
     .faq-question {
@@ -2382,167 +2436,87 @@ body {
 /* ============================================================ */
 /* ========== СЕКЦИЯ: ПОДДЕРЖКА ========== */
 /* ============================================================ */
+/* ============================================================ */
+/* ========== СЕКЦИЯ: ПОДДЕРЖКА ========== */
+/* ============================================================ */
 
 .support-section {
     padding: 80px 0;
-    background: var(--primary-lighter);
 }
 
-.support-content h2 {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: #1a1a2e;
-    margin-bottom: 16px;
+.support-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 60px;
+    max-width: 1000px;
+    margin: 0 auto;
 }
 
-.support-content p {
-    font-size: 1.05rem;
-    color: #4a4a6a;
-    line-height: 1.7;
-    margin-bottom: 24px;
+.support-content {
+    flex: 1;
     max-width: 480px;
 }
 
-.support-features {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 24px;
-}
-
-.support-feature {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: white;
-    padding: 10px 20px;
-    border-radius: 100px;
-    font-size: 0.9rem;
-    font-weight: 500;
+.support-title {
+    font-family: 'Nunito', system-ui, sans-serif;
+    font-weight: 800;
+    font-size: 2.5rem;
     color: #1a1a2e;
-    border: 1px solid var(--gray-200);
-    transition: all 0.3s ease;
+    margin-bottom: 16px;
+    letter-spacing: -0.5px;
 }
 
-.support-feature:hover {
-    border-color: var(--primary-light);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+.support-desc {
+    font-size: 1.05rem;
+    color: #4a4a6a;
+    line-height: 1.7;
+    margin: 0;
 }
 
-.support-feature i {
-    color: var(--primary);
-    font-size: 1.1rem;
-}
-
-/* Иллюстрация с пузырями */
-.support-illustration {
-    position: relative;
+.support-image {
+    flex: 1;
     display: flex;
-    align-items: center;
     justify-content: center;
-    min-height: 300px;
-    background: rgba(139, 92, 246, 0.04);
-    border-radius: 32px;
-    padding: 40px;
+    align-items: center;
+    max-width: 400px;
 }
 
-.support-emoji {
-    font-size: 5rem;
-    animation: float 4s ease-in-out infinite;
-}
-
-.support-bubble {
-    position: absolute;
-    background: white;
-    padding: 12px 20px;
+.support-chat-img {
+    width: 100%;
+    height: auto;
     border-radius: 20px;
-    font-size: 0.9rem;
-    color: #1a1a2e;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(0, 0, 0, 0.04);
-    animation: float 5s ease-in-out infinite;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--gray-200);
+    display: block;
 }
 
-.support-bubble-1 {
-    top: 10%;
-    right: 10%;
-    animation-delay: 0s;
-}
-
-.support-bubble-2 {
-    bottom: 20%;
-    left: 8%;
-    animation-delay: 1.5s;
-}
-
-.support-bubble-3 {
-    bottom: 30%;
-    right: 15%;
-    animation-delay: 3s;
-}
-
-@keyframes float {
-    0%, 100% {
-        transform: translateY(0px);
-    }
-    50% {
-        transform: translateY(-12px);
-    }
-}
-
+/* ===== АДАПТИВ ===== */
 @media (max-width: 768px) {
     .support-section {
         padding: 50px 0;
     }
 
-    .support-content h2 {
-        font-size: 1.8rem;
+    .support-wrapper {
+        flex-direction: column;
+        gap: 32px;
         text-align: center;
     }
 
-    .support-content p {
-        font-size: 0.95rem;
-        text-align: center;
+    .support-content {
         max-width: 100%;
     }
 
-    .support-features {
-        justify-content: center;
+    .support-title {
+        font-size: 1.8rem;
     }
 
-    .support-feature {
-        font-size: 0.8rem;
-        padding: 8px 14px;
+    .support-desc {
+        font-size: 0.95rem;
     }
 
-    .support-illustration {
-        min-height: 200px;
-        padding: 20px;
-        margin-top: 20px;
-    }
-
-    .support-emoji {
-        font-size: 3.5rem;
-    }
-
-    .support-bubble {
-        font-size: 0.75rem;
-        padding: 8px 14px;
-        border-radius: 14px;
-    }
-
-    .support-bubble-1 {
-        top: 5%;
-        right: 5%;
-    }
-
-    .support-bubble-2 {
-        bottom: 10%;
-        left: 5%;
-    }
-
-    .support-bubble-3 {
-        display: none;
+    .support-image {
+        max-width: 280px;
     }
 }
 
@@ -2556,50 +2530,174 @@ body {
     color: white;
 }
 
-.cta-section h2 {
-    font-size: 2.8rem;
+.cta-title {
+    font-family: 'Nunito', system-ui, sans-serif;
     font-weight: 800;
+    font-size: 2.8rem;
+    color: white;
+    margin-bottom: 16px;
+    letter-spacing: -0.5px;
 }
 
-.cta-section .lead {
+.cta-subtitle {
     font-size: 1.2rem;
     opacity: 0.9;
     max-width: 500px;
     margin: 0 auto 32px;
+    line-height: 1.6;
 }
 
-.cta-section .btn-primary-gradient {
-    background: white;
-    color: var(--primary);
+.cta-section .btn-pink {
+    background: white !important;
+    color: var(--primary) !important;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
-.cta-section .btn-primary-gradient:hover {
-    background: white;
-    color: var(--primary);
+.cta-section .btn-pink:hover {
+    background: white !important;
+    color: var(--primary-dark) !important;
     transform: translateY(-2px);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
 }
 
-
 @media (max-width: 768px) {
-
     .cta-section {
         padding: 50px 0;
     }
 
-    .cta-section h2 {
+    .cta-title {
         font-size: 2rem;
     }
 
-    .cta-section .lead {
+    .cta-subtitle {
         font-size: 1rem;
         padding: 0 16px;
     }
 
-    .cta-section .btn {
+    .cta-section .btn-pink {
         font-size: 0.95rem;
         padding: 12px 28px;
+    }
+}
+
+
+/* ============================================================ */
+/* ========== ПОДВАЛ (FOOTER) ========== */
+/* ============================================================ */
+
+.footer {
+    background: #1a1a2e;   /* тёмный фон, как у CTA */
+    color: rgba(255, 255, 255, 0.7);
+    padding: 60px 0 40px 0;
+    margin: 0 !important;
+}
+
+.footer .logo-daty {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 40px;
+    color: white !important;
+    text-decoration: none;
+    text-transform: lowercase;
+    letter-spacing: -4px;
+    display: inline-block;
+    position: relative;
+    line-height: 0.8;
+    opacity: 0.9;
+    transition: opacity 0.2s ease;
+}
+
+.footer .logo-daty:hover {
+    opacity: 1;
+    color: white !important;
+}
+
+.footer .logo-daty .letter-light {
+    font-weight: 400;
+}
+
+.footer .logo-daty .letter-bold {
+    font-weight: 900;
+}
+
+.footer .logo-daty .letter-medium {
+    font-weight: 700;
+}
+
+.footer .logo-daty .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+    margin-left: 1px;
+    margin-bottom: -1px;
+    vertical-align: bottom;
+}
+
+.footer p,
+.footer a {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer a:hover {
+    color: white !important;
+}
+
+.footer .text-muted {
+    color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.footer .row:last-child {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    padding-top: 20px;
+    margin-top: 20px;
+}
+
+.footer .row:last-child p {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.footer i {
+    color: rgba(255, 255, 255, 0.3);
+    width: 20px;
+}
+
+@media (max-width: 768px) {
+    .footer {
+        padding: 40px 0 30px 0;
+        text-align: center;
+    }
+
+    .footer .logo-daty {
+        font-size: 28px;
+        letter-spacing: -3.5px;
+    }
+    
+    .footer .logo-daty .dot {
+        width: 8px;
+        height: 8px;
+    }
+
+    .footer .col-md-4 {
+        margin-bottom: 24px;
+    }
+
+    .footer .col-md-4 a {
+        font-size: 0.8rem;
+    }
+
+    .footer .col-md-4:last-child {
+        margin-bottom: 0;
+    }
+
+    .footer .row:last-child {
+        margin-top: 10px;
+        padding-top: 16px;
     }
 }
 

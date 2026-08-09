@@ -442,12 +442,12 @@
                 </div>
 
                 <!-- 6. Барбер -->
-                <div class="mosaic-item mosaic-item-6">
+                <!-- <div class="mosaic-item mosaic-item-6">
                     <img src="{% static 'images/barber.webp' %}" alt="Мастер">
                     <div class="mosaic-overlay">
                         <div class="mosaic-bubble">Барбер</div>
                     </div>
-                </div>
+                </div> -->
 
             </div>
         </div>
@@ -528,50 +528,45 @@
 <!-- ============================================================ -->
 <section id="pricing" class="pricing-section">
     <div class="container">
-        <div class="section-header text-center">
-            <h2 class="section-title">Выберите свой тариф</h2>
-            <p class="section-subtitle">Никаких скрытых платежей</p>
+        <div class="pricing-header">
+            <h2 class="pricing-title">Выбери свой тариф</h2>
+            <p class="pricing-subtitle">Никаких скрытых платежей</p>
         </div>
-        <div class="row g-4 align-items-center justify-content-center">
+
+        <div class="pricing-grid">
             <!-- Базовый — бесплатный -->
-            <div class="col-md-6 col-lg-5">
-                <div class="pricing-card active">
-                    <div class="pricing-badge">Бесплатно</div>
-                    <h3>Базовый</h3>
-                    <div class="pricing-price">₽0 <span>/ месяц</span></div>
-                    <ul class="pricing-features">
-                        <li><i class="fas fa-check"></i> До 50 записей в месяц</li>
-                        <li><i class="fas fa-check"></i> Базовое расписание</li>
-                        <li><i class="fas fa-check"></i> Страница для клиентов</li>
-                        <li><i class="fas fa-check"></i> Email-напоминания</li>
-                        <li class="disabled"><i class="fas fa-times"></i> SMS и Telegram</li>
-                        <li class="disabled"><i class="fas fa-times"></i> Расширенная статистика</li>
-                    </ul>
-                    <a href="#" class="btn btn-primary-gradient w-100" data-bs-toggle="modal" data-bs-target="#registerModal">
-                        Начать бесплатно
-                        <i class="fas fa-arrow-right ms-2"></i>
-                    </a>
-                </div>
+            <div class="pricing-card active">
+                <h3>Базовый</h3>
+                <div class="pricing-price">₽0 <span>/ месяц</span></div>
+                <ul class="pricing-features">
+                    <li><i class="fas fa-check"></i>Личная страница мастера</li>
+                    <li><i class="fas fa-check"></i>Удобный кабинет</li>
+                    <li><i class="fas fa-check"></i>Гибкая настройка расписания</li>
+                    <li><i class="fas fa-check"></i>Уведомления о записях</li>
+                    <li><i class="fas fa-check"></i>Статистика</li>
+                    <li><i class="fas fa-check"></i>Прямая связь с клиентами</li>
+                </ul>
+                <a href="#" class="btn btn-pink w-100" data-bs-toggle="modal" data-bs-target="#registerModal">
+                    Начать бесплатно
+                    <i class="fas fa-arrow-right ms-2"></i>
+                </a>
             </div>
 
             <!-- Профи — скоро -->
-            <div class="col-md-6 col-lg-5">
-                <div class="pricing-card disabled">
-                    <div class="pricing-badge secondary">Скоро</div>
-                    <h3>Профи</h3>
-                    <div class="pricing-price">—</div>
-                    <ul class="pricing-features">
-                        <li><i class="fas fa-lock"></i> Неограниченно записей</li>
-                        <li><i class="fas fa-lock"></i> Умное расписание с перерывами</li>
-                        <li><i class="fas fa-lock"></i> SMS + Telegram напоминания</li>
-                        <li><i class="fas fa-lock"></i> Полная статистика</li>
-                        <li><i class="fas fa-lock"></i> Приоритетная поддержка</li>
-                        <li><i class="fas fa-lock"></i> Импорт данных</li>
-                    </ul>
-                    <button class="btn btn-outline-secondary w-100" disabled>
-                        <i class="fas fa-clock me-2"></i>Скоро будет доступно
-                    </button>
-                </div>
+            <div class="pricing-card disabled">
+                <h3>Профи</h3>
+                <div class="pricing-price">—</div>
+                <ul class="pricing-features">
+                    <li><i class="fas fa-lock"></i>Неограниченное количество записей</li>
+                    <li><i class="fas fa-lock"></i>Умное расписание</li>
+                    <li><i class="fas fa-lock"></i>SMS-напоминания</li>
+                    <li><i class="fas fa-lock"></i>Расширенная личная страница</li>
+                    <li><i class="fas fa-lock"></i>Голосовой помощник</li>
+                    <li><i class="fas fa-lock"></i>Импорт данных</li>
+                </ul>
+                <button class="btn btn-outline-secondary w-100" disabled>
+                    <i class="fas fa-clock me-2"></i>Скоро будет доступно
+                </button>
             </div>
         </div>
     </div>
@@ -582,9 +577,9 @@
 <!-- ============================================================ -->
 <section id="faq" class="faq-section">
     <div class="container">
-        <div class="section-header text-center">
-            <h2 class="section-title">Частые вопросы</h2>
-            <p class="section-subtitle">Всё, что вы хотели знать о сервисе</p>
+        <div class="faq-header">
+            <h2 class="faq-title">Частые вопросы</h2>
+            <p class="faq-subtitle">Всё, что ты хотел знать о сервисе</p>
         </div>
         <div class="row justify-content-center">
             <div class="col-lg-8">
@@ -593,7 +588,7 @@
                     <div class="faq-item">
                         <div class="faq-question" onclick="toggleFaq(this)">
                             <span>Сколько стоит?</span>
-                            <i class="fas fa-chevron-down"></i>
+                            <i class="fas fa-chevron-right"></i>
                         </div>
                         <div class="faq-answer">
                             Базовый тариф бесплатный навсегда. Профи-тариф появится позже — следите за новостями!
@@ -603,40 +598,40 @@
                     <div class="faq-item">
                         <div class="faq-question" onclick="toggleFaq(this)">
                             <span>Можно ли попробовать?</span>
-                            <i class="fas fa-chevron-down"></i>
+                            <i class="fas fa-chevron-right"></i>
                         </div>
                         <div class="faq-answer">
-                            Да, регистрация бесплатна и не требует ввода банковской карты. Просто войдите и начните пользоваться.
+                            Да, регистрация бесплатна и не требует ввода данных банковской карты. Просто зарегистрируйся и начни пользоваться. При желании аккаунт можно удалить. 
                         </div>
                     </div>
                     <!-- Вопрос 3 -->
                     <div class="faq-item">
                         <div class="faq-question" onclick="toggleFaq(this)">
                             <span>Безопасно ли хранить данные?</span>
-                            <i class="fas fa-chevron-down"></i>
+                            <i class="fas fa-chevron-right"></i>
                         </div>
                         <div class="faq-answer">
-                            Да, все номера телефонов клиентов хранятся в зашифрованном виде. Только вы имеете доступ к своим данным.
+                            Да, все номера телефонов клиентов хранятся в зашифрованном виде. Только ты имеешь доступ к этим данным.
                         </div>
                     </div>
                     <!-- Вопрос 4 -->
                     <div class="faq-item">
                         <div class="faq-question" onclick="toggleFaq(this)">
-                            <span>Что будет, если превысить лимит записей?</span>
-                            <i class="fas fa-chevron-down"></i>
+                            <span>Если клиент не имеет возможности записаться?</span>
+                            <i class="fas fa-chevron-right"></i>
                         </div>
                         <div class="faq-answer">
-                            Вы получите уведомление. Вы всегда можете перейти на Профи-тариф, когда он станет доступен.
+                            В личном кабинете ты сможешь самостоятельно записать клиента. Процесс занимает не больше 30 секунд.
                         </div>
                     </div>
                     <!-- Вопрос 5 -->
                     <div class="faq-item">
                         <div class="faq-question" onclick="toggleFaq(this)">
                             <span>Нужна ли установка?</span>
-                            <i class="fas fa-chevron-down"></i>
+                            <i class="fas fa-chevron-right"></i>
                         </div>
                         <div class="faq-answer">
-                            Нет, всё работает в браузере на любом устройстве — компьютере, планшете или телефоне.
+                            Нет, всё работает в браузере на любом устройстве — компьютере, планшете или смартфоне. Скоро сделаем мобильное приложение для смартфонов на iOs и Android.
                         </div>
                     </div>
                 </div>
@@ -650,45 +645,26 @@
 <!-- ============================================================ -->
 <section id="support" class="support-section">
     <div class="container">
-        <div class="row align-items-center g-5">
-            <div class="col-lg-6">
-                <div class="support-content">
-                    <h2>Мы всегда рядом</h2>
-                    <p>
-                        Наша команда поддержки отвечает на вопросы в течение 15 минут.
-                        Мы не просто сервис — мы партнёры, которым важно развитие вашего бизнеса.
-                    </p>
-                    <div class="support-features">
-                        <div class="support-feature">
-                            <i class="fas fa-headset"></i>
-                            <span>Поддержка в чате</span>
-                        </div>
-                        <div class="support-feature">
-                            <i class="fas fa-comments"></i>
-                            <span>Telegram-бот</span>
-                        </div>
-                        <div class="support-feature">
-                            <i class="fas fa-envelope"></i>
-                            <span>Email-поддержка</span>
-                        </div>
-                    </div>
-                    <a href="#" class="btn btn-primary-gradient mt-3" data-bs-toggle="modal" data-bs-target="#registerModal">
-                        Задать вопрос
-                        <i class="fas fa-arrow-right ms-2"></i>
-                    </a>
-                </div>
+        <div class="support-wrapper">
+            
+            <!-- Левая колонка: текст -->
+            <div class="support-content">
+                <h2 class="support-title">Мы всегда рядом</h2>
+                <p class="support-desc">
+                    Наша команда поддержки отвечает на вопросы в течение 15 минут. 
+                    Мы не просто сервис — мы партнёры, которым важно развитие вашего бизнеса.
+                </p>
             </div>
-            <div class="col-lg-6">
-                <div class="support-illustration">
-                    <div class="support-emoji">💬</div>
-                    <div class="support-bubble support-bubble-1">Привет! Как записаться?</div>
-                    <div class="support-bubble support-bubble-2">Сейчас всё покажем 👋</div>
-                    <div class="support-bubble support-bubble-3">Выберите услугу → время → готово!</div>
-                </div>
+
+            <!-- Правая колонка: скрин переписки -->
+            <div class="support-image">
+                <img src="{% static 'images/support-chat.png' %}" alt="Чат поддержки" class="support-chat-img">
             </div>
+
         </div>
     </div>
 </section>
+
 
 <!-- ============================================================ -->
 <!-- СЕКЦИЯ: CTA (финальный призыв) -->
@@ -697,11 +673,11 @@
     <div class="container">
         <div class="row justify-content-center text-center">
             <div class="col-lg-8">
-                <h2 class="display-5 fw-bold mb-4">Готовы попробовать?</h2>
-                <p class="lead mb-4">
-                    Присоединяйтесь к 500+ мастерам, которые уже экономят время с ДАТЫ
+                <h2 class="cta-title">Попробуем?</h2>
+                <p class="cta-subtitle">
+                    Присоединяйся к мастерам, которые уже экономят время с сервисом Даты
                 </p>
-                <a href="#" class="btn btn-primary-gradient btn-lg" data-bs-toggle="modal" data-bs-target="#registerModal">
+                <a href="#" class="btn btn-pink btn-lg" data-bs-toggle="modal" data-bs-target="#registerModal">
                     Начать бесплатно
                     <i class="fas fa-arrow-right ms-2"></i>
                 </a>
