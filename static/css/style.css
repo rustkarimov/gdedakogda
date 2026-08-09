@@ -3,7 +3,8 @@
 /* ============================================================ */
 
 :root {
-    --primary: #4053d3 !important;           
+    --primary: #4053d3 !important;
+    /* --primary: #4f6af5 !important;            */
     --primary-dark: #6b7bc6 !important;
     --primary-light: #e0e5ff !important;
     --primary-lighter: #f0f2ff !important;
@@ -285,7 +286,6 @@ body {
 }
 
 .nav-item:hover {
-    /* background-color: var(--gray-100); */
     color: var(--primary);
 }
 
@@ -366,6 +366,10 @@ body {
 /* ========== ЛОГОТИП ========== */
 /* ============================================================ */
 
+.logo-wrapper {
+    transform: translateY(-2px);
+}
+
 .logo-daty {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     font-size: 40px;
@@ -375,7 +379,7 @@ body {
     letter-spacing: -5px;
     display: inline-block;
     position: relative;
-    line-height: 0.8;
+    line-height: 1;
 }
 
 .logo-daty .letter-light {
@@ -402,8 +406,16 @@ body {
 }
 
 
-/* Мобильная версия */
 @media (max-width: 768px) {
+    .logo-wrapper {
+        position: absolute !important;
+        left: 50% !important;
+        top: 45% !important;
+        transform: translate(-50%, -50%) !important;  /* ← центрируем по горизонтали и вертикали */
+        z-index: 1 !important;
+    
+    }
+
     .logo-daty {
         font-size: 28px;
         letter-spacing: -3.5px;
@@ -574,7 +586,6 @@ body {
         position: relative !important;
     }
 
-    /* Скрываем бургер */
     .sidebar-toggle {
         display: none !important;
     }
@@ -635,23 +646,6 @@ body {
         object-fit: cover !important;
     }
 
-    /* Логотип — абсолютно по центру */
-    .logo {
-        position: absolute !important;
-        left: 50% !important;
-        transform: translateX(-50%) !important;
-        color: var(--gray-800) !important;
-        display: flex !important;
-        justify-content: center !important;
-        align-items: center !important;
-        z-index: 0 !important;
-    }
-    .logo img {
-        height: 32px !important;
-    }
-    .logo a {
-        color: var(--gray-800) !important;
-    }
 
     /* Правая часть */
     .top-bar-right {
@@ -681,9 +675,6 @@ body {
         font-size: 1.2rem !important;
     }
 
-    /* .top-bar-right .support-link span {
-        display: none !important;
-    } */
 
     .top-bar-right .support-link .support-text {
         display: none !important;
@@ -691,17 +682,24 @@ body {
 
 
     /* Кнопка "Добавить запись" на мобильных — только иконка */
+
     .add-booking-header-btn {
-        background: transparent !important;
-        padding: 4px 6px !important;
-        border-radius: 0 !important;
-        color: var(--gray-600) !important;
-        font-size: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 25px !important;
+        height: 25px !important;
+        padding: 0 !important;
+        border-radius: 50% !important;
+        background: var(--primary-light) !important;
+        color: white !important;
+        border: none !important;
+        transition: all 0.2s ease !important;
     }
 
     .add-booking-header-btn i {
         font-size: 1.4rem !important;
-        color: var(--gray-600) !important;
+        color: rgb(77, 76, 76);
     }
 
     .add-booking-header-btn span {
