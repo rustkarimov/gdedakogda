@@ -3,13 +3,24 @@
 /* ============================================================ */
 
 :root {
+    /* Основной (базовый) синий — остаётся */
     --primary: #4053d3 !important;
-    /* --primary: #4f6af5 !important;            */
-    --primary-dark: #6b7bc6 !important;
-    --primary-light: #e0e5ff !important;
-    --primary-lighter: #f0f2ff !important;
-    --primary-gradient: linear-gradient(135deg, #6c7bdb 0%, #8b9af0 50%, #a8b4f5 100%) !important;
-    --primary-gradient: linear-gradient(135deg, #a8b4f5 0%, #8b9af0 50%, #6c7bdb 100%) !important;    --accent: #f59e0b;
+
+    /* Для кнопок, ссылок, акцентов — чуть теплее, благороднее */
+    --primary-accent: #4a5fd8 !important;
+
+    /* Для затемнённых состояний (hover, активные элементы) */
+    --primary-dark: #2f41b3 !important;
+
+    /* Для фонов карточек, лёгких заливок */
+    --primary-light: #c8d0fc !important;
+
+    /* Для самых светлых фонов (секции, подложки) */
+    --primary-lighter: #f4f6ff !important;
+
+    /* Основной градиент — плавный переход */
+    --primary-gradient: linear-gradient(135deg, #4053d3 0%, #6c7feb 50%, #8b9cf5 100%) !important;
+
     --accent-light: #fef3c7;
     --success: #10b981;
     --danger: #ef4444;
@@ -26,6 +37,7 @@
     --gray-800: #1f2937;
     --gray-900: #111827;
 }
+
 
 * {
     margin: 0;
@@ -68,21 +80,44 @@ body {
     padding: 20px;
 }
 
-/* Кнопки */
 .btn-primary {
-    background: var(--primary-gradient);
+    position: relative;
+    overflow: hidden;
+    background: var(--primary);
     color: white;
     border: none;
     padding: 10px 24px;
     border-radius: 30px;
     font-weight: 500;
-    transition: all 0.2s;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Блик */
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+    transition: left 0.6s ease;
+    pointer-events: none;
+}
+
+.btn-primary:hover::before {
+    left: 100%;
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
+    background: var(--primary-gradient);
     color: white;
+    box-shadow: 0 6px 20px rgba(64, 83, 211, 0.35);
+    /* transform: none; */
 }
 
 .btn-outline-primary {
@@ -144,6 +179,14 @@ body {
 .btn-secondary:hover {
     background-color: var(--gray-600);
     color: white;
+}
+
+
+@media (max-width: 768px) {
+    .btn-primary {
+        width: 100% !important;
+        justify-content: center !important;
+    }
 }
 
 @font-face {
@@ -235,9 +278,8 @@ body {
     font-display: swap;
 }
 
-
 /* ============================================================ */
-/* ========== КОНТЕЙНЕР ПРИЛОЖЕНИЯ И САЙДБАР ========== */
+/* ========== 2. КОНТЕЙНЕР ПРИЛОЖЕНИЯ И САЙДБАР ========== */
 /* ============================================================ */
 
 .app-container {
@@ -302,7 +344,7 @@ body {
 
 
 /* ============================================================ */
-/* ========== ШАПКА С ГРАДИЕНТОМ ========== */
+/* ========== 3. ШАПКА (ОСНОВНАЯ) ========== */
 /* ============================================================ */
 
 .main-content {
@@ -342,8 +384,9 @@ body {
     gap: 20px;
 }
 
+
 /* ============================================================ */
-/* ========== БУРГЕР ========== */
+/* ========== 4. БУРГЕР ========== */
 /* ============================================================ */
 
 .sidebar-toggle {
@@ -362,8 +405,9 @@ body {
     background: rgba(255, 255, 255, 0.3);
 }
 
+
 /* ============================================================ */
-/* ========== ЛОГОТИП ========== */
+/* ========== 5. ЛОГОТИП ========== */
 /* ============================================================ */
 
 .logo-wrapper {
@@ -406,29 +450,8 @@ body {
 }
 
 
-@media (max-width: 768px) {
-    .logo-wrapper {
-        position: absolute !important;
-        left: 50% !important;
-        top: 45% !important;
-        transform: translate(-50%, -50%) !important;  /* ← центрируем по горизонтали и вертикали */
-        z-index: 1 !important;
-    
-    }
-
-    .logo-daty {
-        font-size: 28px;
-        letter-spacing: -3.5px;
-    }
-    
-    .logo-daty .dot {
-        width: 8px;
-        height: 8px;
-    }
-}
-
 /* ============================================================ */
-/* ========== ПРАВАЯ ЧАСТЬ ========== */
+/* ========== 6. ЭЛЕМЕНТЫ ШАПКИ (ДЕСКТОП) ========== */
 /* ============================================================ */
 
 .notification-bell {
@@ -567,23 +590,57 @@ body {
     font-size: 0.9rem;
 }
 
+
 /* ============================================================ */
-/* ========== МОБИЛЬНАЯ ШАПКА (до 768px) ========== */
+/* ========== 7. МОБИЛЬНАЯ ВЕРСИЯ ========== */
 /* ============================================================ */
 
 @media (max-width: 768px) {
+
+    .app-container {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    /* "Вытаскиваем" шапку из потока */
     .top-bar {
-        background: transparent !important;
-        box-shadow: none !important;
-        margin: 0 !important;
-        padding: 10px 16px !important;
-        border-radius: 0 !important;
+        position: fixed !important;
         top: 0 !important;
-        border-bottom: none !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 1050 !important;
+        background: white !important;
+        padding: 10px 16px !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        transition: box-shadow 0.3s ease !important;
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
-        position: relative !important;
+        min-height: 60px !important;
+        
+    }
+
+    .top-bar.scrolled {
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08) !important;
+        /* border-bottom: 1px solid var(--gray-200) !important; */
+    }
+
+    .main-content {
+        flex: 1;
+        overflow: visible !important;
+        padding-top: 70px !important;   /* ← отступ под фиксированную шапку */
+    }
+
+    .content-wrapper {
+        padding: 16px !important;
+        padding-bottom: 80px !important;
+    }
+
+    .sidebar {
+        display: none !important;
     }
 
     .sidebar-toggle {
@@ -646,6 +703,25 @@ body {
         object-fit: cover !important;
     }
 
+    /* Логотип */
+    .logo-wrapper {
+        position: absolute !important;
+        left: 50% !important;
+        top: 45% !important;
+        transform: translate(-50%, -50%) !important;
+        z-index: 1 !important;
+    
+    }
+
+    .logo-daty {
+        font-size: 28px;
+        letter-spacing: -3.5px;
+    }
+    
+    .logo-daty .dot {
+        width: 8px;
+        height: 8px;
+    }
 
     /* Правая часть */
     .top-bar-right {
@@ -668,21 +744,19 @@ body {
         padding: 4px 6px !important;
         border-radius: 0 !important;
         color: var(--gray-600) !important;
+        flex-shrink: 0 !important;
     }
 
     .top-bar-right .support-link i {
-        color: var(--gray-600) !important;
+        color: var(--gray-900) !important;
         font-size: 1.2rem !important;
     }
-
 
     .top-bar-right .support-link .support-text {
         display: none !important;
     }
 
-
     /* Кнопка "Добавить запись" на мобильных — только иконка */
-
     .add-booking-header-btn {
         display: flex !important;
         align-items: center !important;
@@ -695,11 +769,12 @@ body {
         color: white !important;
         border: none !important;
         transition: all 0.2s ease !important;
+        flex-shrink: 0 !important;
     }
 
     .add-booking-header-btn i {
         font-size: 1.4rem !important;
-        color: rgb(77, 76, 76);
+        color: var(--gray-900) !important;
     }
 
     .add-booking-header-btn span {
@@ -726,7 +801,7 @@ body {
 
 
 /* ============================================================ */
-/* ========== УВЕДОМЛЕНИЯ ========== */
+/* ========== 8. УВЕДОМЛЕНИЯ ========== */
 /* ============================================================ */
 
 /* ---- Точка уведомлений (десктоп) ---- */
@@ -823,7 +898,7 @@ body {
 }
 
 /* ============================================================ */
-/* ========== МОДАЛЬНОЕ ОКНО УВЕДОМЛЕНИЙ ========== */
+/* ========== 9. МОДАЛЬНОЕ ОКНО УВЕДОМЛЕНИЙ ========== */
 /* ============================================================ */
 
 /* ---- Десктопная версия ---- */
@@ -921,12 +996,8 @@ body {
     margin-right: 6px !important;
 }
 
-/* ============================================================ */
-/* ========== МОДАЛЬНОЕ ОКНО УВЕДОМЛЕНИЙ (МОБИЛЬНАЯ ВЕРСИЯ) ========== */
-/* ============================================================ */
-
+/* ---- Мобильная версия модалки уведомлений ---- */
 @media (max-width: 768px) {
-    /* Окно на весь экран */
     #notificationsModal .modal-dialog {
         margin: 0 !important;
         max-width: 100% !important;
@@ -967,7 +1038,6 @@ body {
         border-top: 1px solid var(--gray-200) !important;
     }
     
-    /* Компактные уведомления на мобильных */
     #notificationsModal .notification-item {
         padding: 10px 14px !important;
     }
@@ -991,7 +1061,6 @@ body {
         border-radius: 30px !important;
     }
     
-    /* Кнопка "Загрузить ещё" на мобильных */
     #load-more-notifications {
         padding: 8px 16px !important;
     }
@@ -1002,7 +1071,6 @@ body {
         border-radius: 30px !important;
     }
     
-    /* Анимация появления */
     #notificationsModal .modal-content {
         animation: slideUp 0.3s ease-out;
     }
@@ -1054,17 +1122,6 @@ body {
 /* ============================================================ */
 /* ========== ЧАТ ПОДДЕРЖКИ ========== */
 /* ============================================================ */
-/* ============================================================ */
-/* ========== ЧАТ ПОДДЕРЖКИ ========== */
-/* ============================================================ */
-
-/* ============================================================ */
-/* ========== ЧАТ ПОДДЕРЖКИ ========== */
-/* ============================================================ */
-
-/* ============================================================ */
-/* ========== ЧАТ ПОДДЕРЖКИ ========== */
-/* ============================================================ */
 
 #supportChatModal .modal-dialog {
     max-width: 600px;
@@ -1100,12 +1157,10 @@ body {
     padding: 0;
     display: flex;
     flex-direction: column;
-    /* max-height: calc(110vh - 140px); */
-    max-height: 700px;  /* ← фиксированная высота для десктопа */
-    height: 700px;      /* ← добавить для надёжности */
+    max-height: 700px;
+    height: 700px;
 }
 
-/* ---- Контейнер сообщений ---- */
 #chat-messages {
     padding: 0 !important;
     overflow-y: auto;
@@ -1113,7 +1168,6 @@ body {
     flex: 1;
 }
 
-/* ---- Поле ввода ---- */
 #chat-input {
     resize: none;
     font-size: 0.9rem;
@@ -1124,39 +1178,29 @@ body {
 
 #chat-input:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    box-shadow: none !important;
 }
 
+/* ===== КНОПКА ОТПРАВИТЬ ===== */
 #chat-send-btn {
-    white-space: nowrap;
-    border-radius: 30px;
-    padding: 8px 20px;
-    background: var(--primary-gradient);
-    border: none;
-    color: white;
-    font-weight: 500;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
+    margin-left: auto !important;          /* ← прижимаем к правому краю */
+    display: inline-flex !important;       /* ← flex для правильного отображения */
+    align-items: center !important;
 }
 
-#chat-send-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
-    color: white;
-}
-
-/* ---- Низ модалки (поле ввода) ---- */
 #supportChatModal .p-3.border-top.bg-white {
     padding: 10px 16px !important;
     flex-shrink: 0;
     border-top: 1px solid var(--gray-200) !important;
+    display: flex !important;              /* ← чтобы margin-left: auto работал */
+    flex-direction: column !important;
+    align-items: flex-end !important;      /* ← прижимаем всё содержимое вправо */
 }
 
 #supportChatModal .p-3.border-top.bg-white .small.text-muted {
     font-size: 0.7rem !important;
 }
 
-/* ---- Мобильная версия ---- */
 @media (max-width: 768px) {
     #supportChatModal .modal-dialog {
         margin: 0 !important;
@@ -1167,6 +1211,7 @@ body {
         top: 0 !important;
         left: 0 !important;
         transform: none !important;
+        padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px)) !important;
     }
     
     #supportChatModal .modal-content {
@@ -1206,8 +1251,9 @@ body {
     }
 }
 
+
 /* ============================================================ */
-/* ========== МОБИЛЬНОЕ НИЖНЕЕ МЕНЮ ========== */
+/* ========== 11. МОБИЛЬНОЕ НИЖНЕЕ МЕНЮ ========== */
 /* ============================================================ */
 
 .mobile-bottom-nav {
@@ -1234,7 +1280,6 @@ body {
         z-index: 1060 !important;
     }
     
-    /* Модальные окна получают нижний отступ */
     .modal.show {
         padding-bottom: 70px !important;
     }
@@ -1268,12 +1313,10 @@ body {
         padding: 20px 0 80px 0;
     }
     
-    /* Скрываем колокольчик и поддержку в шапке на мобильных */
     .notification-bell {
         display: none !important;
     }
     
-    /* Убираем имя пользователя на мобильных */
     .user-name {
         display: none;
     }
@@ -1281,7 +1324,6 @@ body {
     .sidebar-toggle {
         display: none !important;
     }
-
 }
 
 @media (max-width: 380px) {
@@ -1298,44 +1340,14 @@ body {
     }
 }
 
+
 /* ============================================================ */
-/* ========== МОБИЛЬНАЯ ТОЧКА УВЕДОМЛЕНИЙ ========== */
+/* ========== 12. ВОССТАНОВЛЕНИЕ ПАРОЛЯ (МОБИЛЬНЫЙ АДАПТИВ) ========== */
 /* ============================================================ */
 
-.mobile-notification-link {
-    position: relative !important;
-}
-
-.mobile-notification-dot {
-    position: absolute !important;
-    top: -2px !important;
-    right: 50% !important;
-    transform: translateX(calc(50% + 8px)) !important;
-    width: 10px !important;
-    height: 10px !important;
-    background-color: #ff4444 !important;
-    border-radius: 50% !important;
-    border: 2px solid white !important;
-    display: none !important;
-    z-index: 10 !important;
-}
-
-/* Показываем точку только на мобильных */
 @media (max-width: 768px) {
-    .mobile-notification-dot.show {
-        display: block !important;
-    }
-}
-
-
-/* ============================================================ */
-/* ========== ВОССТАНОВЛЕНИЕ ПАРОЛЯ (МОБИЛЬНЫЙ АДАПТИВ) ========== */
-/* ============================================================ */
-
-@media (max-width: 768) {
-    /* Шаг 1: форма */
     #reset-step-1 .form-control {
-        font-size: 16px !important; /* чтобы не зумало на iPhone */
+        font-size: 16px !important;
         padding: 12px !important;
     }
     
@@ -1344,7 +1356,6 @@ body {
         padding: 14px !important;
     }
     
-    /* Шаг 2: номер для звонка */
     #reset-call-info .h4 {
         font-size: 1.5rem !important;
         word-break: break-all;
@@ -1356,7 +1367,6 @@ body {
         margin-top: 4px;
     }
     
-    /* Шаг 3: новый пароль */
     #reset-step-3 .form-control {
         font-size: 16px !important;
         padding: 12px !important;
@@ -1367,7 +1377,6 @@ body {
         padding: 14px !important;
     }
     
-    /* Спиннер и текст */
     #reset-step-2 .spinner-border {
         width: 2.5rem !important;
         height: 2.5rem !important;
