@@ -1,15 +1,13 @@
 {% extends 'masters/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
 
 {% block title %}Личный кабинет - {{ master.first_name }} {{ master.last_name }}{% endblock %}
 
 {% block content %}
-<!-- Кнопка добавления записи -->
-<!-- <div class="mb-4 text-end">
-    <a href="{% url 'add_manual_booking' %}" class="btn btn-primary add-booking-btn">
-        <i class="fas fa-pen-alt me-1"></i>
-        <span>Добавить запись</span>
-    </a>
-</div> -->
 
 <!-- Ближайшие записи -->
 <div class="card mb-4">
