@@ -346,6 +346,7 @@ def get_booking_details(request, booking_id):
         current_services = [{
             'booking_id': booking.id,  # ← обязательно booking_id!
             'name': booking.service.name,
+            'category_name': booking.service.category.name if booking.service.category else None,
             'time': booking.time.strftime('%H:%M'),
             'duration': booking.service.duration,
             'service_id': booking.service.id,

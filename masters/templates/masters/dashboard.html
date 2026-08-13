@@ -9,50 +9,7 @@
 
 {% block content %}
 
-<div class="card mb-4" style="
-    @media (max-width: 768px) {
-        background: white !important;
-        border: none !important;
-        border-radius: 16px !important;
-        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.04) !important;
-    }
-">
-    <div class="card-header bg-white" style="
-        @media (max-width: 768px) {
-            background: transparent !important;
-            border-bottom: 1px solid var(--gray-100) !important;
-            padding: 14px 16px 8px 16px !important;
-        }
-    ">
-        <h5 class="mb-0" style="
-            @media (max-width: 768px) {
-                font-size: 0.85rem !important;
-                font-weight: 600 !important;
-                color: var(--gray-600) !important;
-                text-transform: uppercase !important;
-                letter-spacing: 0.3px !important;
-            }
-        ">
-            <i class="fas fa-clock me-2" style="color: var(--primary);"></i>
-            Ближайшие записи
-        </h5>
-    </div>
-    <div class="card-body" style="
-        @media (max-width: 768px) {
-            padding: 8px 12px 12px 12px !important;
-        }
-    ">
-        <!-- остальное -->
-    </div>
-    <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center pt-0 flex-wrap" style="
-        @media (max-width: 768px) {
-            background: transparent !important;
-            padding: 4px 12px 14px 12px !important;
-        }
-    ">
-        <!-- остальное -->
-    </div>
-</div>
+
 
 <!-- Ближайшие записи -->
 <div class="card mb-4">
@@ -70,16 +27,23 @@
         <button id="load-more-bookings" class="btn btn-sm btn-outline-primary" style="display: none;" onclick="loadMoreBookings()">
             <i class="fas fa-chevron-down me-1"></i>Показать еще
         </button>
-        <div class="d-flex align-items-center gap-2">
-            <label class="form-label me-1 mb-0 small">Показывать:</label>
-            <select id="bookings-limit-select" class="form-select form-select-sm" style="width: 70px;">
-                <option value="3" selected>3</option>
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="15">15</option>
-            </select>
-            <span class="badge bg-primary" id="total-bookings-count">0</span>
+
+        <div class="footer-info-row">
+            <div class="footer-right">
+                <span class="total-label">Всего записей</span>
+                <span class="total-number" id="total-bookings-count">0</span>
+            </div>
+            <div class="footer-left">
+                <label class="form-label me-1 mb-0 small">Показывать:</label>
+                <select id="bookings-limit-select" class="form-select form-select-sm">
+                    <option value="3" selected>3</option>
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                </select>
+            </div>
         </div>
+
     </div>
 </div>
 
@@ -184,9 +148,6 @@
     </div>
 </div>
 
-
-<!-- МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ -->
-<!-- МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ -->
 <!-- МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ -->
 <div class="modal fade" id="confirmModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -203,7 +164,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="confirmModalCancel">Отмена</button>
-                <button type="button" class="btn btn-pink" id="confirmModalOk">Да</button>
+                <button type="button" class="btn btn-primary" id="confirmModalOk">Да</button>
             </div>
         </div>
     </div>
@@ -2631,13 +2592,16 @@ function showBookingDetails(bookingId) {
             if (data.success) {
                 let servicesHtml = '';
                 data.services.forEach((service, idx) => {
+                    let serviceDisplay = escapeHtml(service.name);
+                    if (service.category_name) {
+                        serviceDisplay = `<span class="text-muted small">${escapeHtml(service.category_name)}:</span> ${serviceDisplay}`;
+                    }
+                    
                     servicesHtml += `
-                        <div class="d-flex justify-content-between align-items-center mb-2 p-2 bg-light rounded">
+                        <div class="d-flex justify-content-between align-items-center mb-2 p-2">
                             <div>
-                                <span>${escapeHtml(service.name)}</span>
-                                <span class="text-muted small ms-2">${service.time}</span>
+                                <div>${serviceDisplay}</div>
                             </div>
-                            <!-- 👇 УБРАЛИ КНОПКИ РЕДАКТИРОВАНИЯ И УДАЛЕНИЯ -->
                         </div>
                     `;
                 });
@@ -2645,7 +2609,7 @@ function showBookingDetails(bookingId) {
                 let visitsHtml = '';
                 data.client_stats.visits.forEach(visit => {
                     visitsHtml += `
-                        <div class="d-flex justify-content-between align-items-center mb-1 p-1 bg-light rounded">
+                        <div class="d-flex justify-content-between align-items-center mb-1 p-1">
                             <span>${visit.date}</span>
                             <span class="text-muted small">${visit.time}</span>
                             <span class="text-muted small">${escapeHtml(visit.service)}</span>

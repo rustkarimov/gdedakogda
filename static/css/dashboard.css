@@ -1,16 +1,47 @@
 
+@media (max-width: 768px) {
+    .content-wrapper {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .modal-header .modal-title i {
+        display: none !important;
+    }
+    
+    /* Делаем заголовки чуть крупнее и жирнее */
+    .modal-header .modal-title {
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+    }
+
+    #confirmModal .modal-footer {
+        flex-direction: row !important;  /* в один ряд */
+        justify-content: center !important;
+        gap: 8px !important;
+        padding: 12px 16px !important;
+    }
+    
+    #confirmModal .modal-footer .btn {
+        flex: 1 !important;              /* равномерно растягиваются */
+        max-width: 48% !important;       /* чтобы не слипались */
+        justify-content: center !important;
+        padding: 8px 12px !important;
+        border-radius: 30px !important;
+        font-size: 0.8rem !important;
+        white-space: nowrap !important;  /* текст в одну строку */
+    }
+}
+
+
+
 /* ============================================================ */
 /* ======================= ЗАПИСИ ============================= */
 /* ============================================================ */
-
-.card-footer {
-    border-top: none !important;
-    padding-top: 0 !important;
-    padding-bottom: 20px !important;
-    flex-direction: row !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-}
+.card {
+    border-radius: 20px !important;  /* или нужные вам значения */
+    overflow: hidden !important;      /* чтобы содержимое не вылезало за углы */
+    }
 
 #load-more-bookings {
     width: auto !important;
@@ -70,8 +101,8 @@
     padding: 4px 10px;
     height: 32px;
     border-radius: 8px;
-    border: 1px solid var(--gray-300);
-    background: white;
+    border: none;
+    background: transparent;
     font-size: 0.7rem;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -181,10 +212,236 @@
     }
 }
 
+.card-footer {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    padding: 8px 16px 14px 16px !important;
+}
+
+/* Кнопка "Показать еще" */
+#load-more-bookings {
+    width: 20% !important;
+    padding: 8px !important;
+    font-size: 0.85rem !important;
+    border-radius: 30px !important;
+    border: 1px solid var(--primary) !important;
+    color: var(--primary) !important;
+    background: transparent !important;
+    justify-content: center !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+#load-more-bookings:hover {
+    background: var(--primary-gradient) !important;
+    border-color: transparent !important;
+    color: white !important;
+}
+
+/* Одна строка с двумя блоками */
+.footer-info-row {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    padding-top: 6px !important;
+    justify-content: flex-start !important;
+    gap: 30px;
+}
+
+.footer-left {
+    display: flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+.footer-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+}
+
+/* Стили для "Показывать" */
+.footer-left .form-label {
+    font-size: 0.75rem !important;
+    color: var(--gray-500) !important;
+    font-weight: 400 !important;
+    margin-bottom: 0 !important;
+}
+
+#bookings-limit-select {
+    font-size: 0.75rem !important;
+    height: 28px !important;
+    padding: 2px 4px 2px 8px !important;
+    border-radius: 16px !important;
+    border: 1px solid var(--gray-200) !important;
+    width: 50px !important;
+}
+
+/* Стили для "Всего записей" */
+.footer-right .total-label {
+    font-size: 0.75rem !important;
+    color: var(--gray-500) !important;
+    font-weight: 400 !important;
+}
+
+.footer-right .total-number {
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    color: var(--gray-700) !important;
+    background: var(--gray-100) !important;
+    padding: 0 12px !important;
+    border-radius: 16px !important;
+    line-height: 24px !important;
+    min-width: 28px !important;
+    text-align: center !important;
+}
+
+#editBookingModal .modal-content {
+    border-radius: 20px !important;
+    border: none !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08) !important;
+    overflow: hidden !important;
+}
+
+#editBookingModal .modal-header {
+    padding: 16px 20px !important;
+    border-bottom: 1px solid var(--gray-100) !important;
+    background: white !important;
+}
+
+#editBookingModal .modal-header .modal-title {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    color: var(--gray-800) !important;
+}
+
+#editBookingModal .modal-header .modal-title i {
+    color: var(--primary) !important;
+    margin-right: 8px !important;
+}
+
+#editBookingModal .modal-body {
+    padding: 20px !important;
+    background: white !important;
+}
+
+#editBookingModal .modal-footer {
+    padding: 12px 20px !important;
+    border-top: 1px solid var(--gray-100) !important;
+    background: white !important;
+    gap: 8px !important;
+}
+
+/* Поля формы */
+#editBookingModal .form-label {
+    font-size: 0.8rem !important;
+    font-weight: 500 !important;
+    color: var(--gray-600) !important;
+    margin-bottom: 4px !important;
+}
+
+#editBookingModal .form-control,
+#editBookingModal .form-select {
+    border-radius: 10px !important;
+    border: 1px solid var(--gray-200) !important;
+    padding: 8px 12px !important;
+    font-size: 0.9rem !important;
+    transition: border-color 0.2s ease !important;
+    background: white !important;
+}
+
+#editBookingModal .form-control:focus,
+#editBookingModal .form-select:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 3px rgba(64, 83, 211, 0.1) !important;
+}
+
+/* Карточки услуг, дат и времени */
+#editBookingModal .service-card,
+#editBookingModal .date-card,
+#editBookingModal .slot-card {
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    border: 1px solid var(--gray-200) !important;
+    border-radius: 12px !important;
+    background: white !important;
+    padding: 8px !important;
+    text-align: center !important;
+}
+
+#editBookingModal .service-card:hover,
+#editBookingModal .date-card:hover,
+#editBookingModal .slot-card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06) !important;
+}
+
+#editBookingModal .border-pink {
+    border: 2px solid var(--primary) !important;
+    background-color: var(--primary-light) !important;
+}
+
+/* Кнопки */
+#editBookingModal .btn-secondary {
+    background: var(--gray-100) !important;
+    color: var(--gray-600) !important;
+    border: none !important;
+    padding: 8px 24px !important;
+    border-radius: 30px !important;
+    font-weight: 500 !important;
+    font-size: 0.85rem !important;
+}
+
+#editBookingModal .btn-secondary:hover {
+    background: var(--gray-200) !important;
+    color: var(--gray-700) !important;
+}
+
+#editBookingModal .btn-pink {
+    background: var(--primary-gradient) !important;
+    color: white !important;
+    border: none !important;
+    padding: 8px 24px !important;
+    border-radius: 30px !important;
+    font-weight: 500 !important;
+    font-size: 0.85rem !important;
+}
+
+#editBookingModal .btn-pink:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 16px rgba(64, 83, 211, 0.35) !important;
+}
+
 @media (max-width: 768px) {
+
+    .card {
+        border-radius: 30px !important;
+    }
+
+    .card-body {
+        padding: 10px 10px 0 10px !important;
+    }
+
+    .card-header {
+        border-bottom: none !important;
+        padding: 16px 16px 4px 16px !important;
+    }
+       
+    .card-header h5 {
+        font-weight: 700 !important;
+    }
+
+    .card-header h5 i {
+        display: none !important;
+    }
+
+  
     .all-buttons-row {
         flex-wrap: wrap;
         gap: 4px;
+
     }
     
     .all-buttons-row .contact-dropdown-btn span {
@@ -195,6 +452,7 @@
         padding: 4px 8px;
         width: 32px;
         justify-content: center;
+        
     }
 
     #upcoming-bookings-table,
@@ -203,22 +461,26 @@
     #upcoming-bookings-table td {
         display: block !important;
     }
+
+    #upcoming-bookings-table {
+        margin: 0;  /* обычно 0 */
+    }
     
     #upcoming-bookings-table thead {
         display: none !important;
     }
     
     #upcoming-bookings-table tr {
-        background: white;
         border-radius: 12px !important;
+        margin: 0 !important;
         margin-bottom: 8px !important;
-        padding: 10px 12px !important;
+        padding: 8px 10px !important;
         box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-        border: 1px solid var(--gray-200);
+        border: 0.5px solid rgb(155, 155, 155);
     }
     
     #upcoming-bookings-table td {
-        padding: 2px 0 !important;
+        padding: 1px 0 !important;
         border: none !important;
         font-size: 0.8rem !important;
     }
@@ -233,7 +495,7 @@
     #upcoming-bookings-table td:nth-child(2) {
         display: inline-block !important;
         width: auto !important;
-        font-size: 0.7rem !important;
+        font-size: 13px !important;
     }
     
     #upcoming-bookings-table td:first-child {
@@ -243,7 +505,8 @@
     }
     
     #upcoming-bookings-table td:nth-child(2) {
-        color: var(--gray-500) !important;
+        color: black !important;
+        font-weight: 600 !important;
     }
     
     /* Имя клиента */
@@ -271,9 +534,9 @@
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
-        margin-top: 4px !important;
-        padding-top: 6px !important;
         border-top: 1px solid var(--gray-200) !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
     
     .action-icons {
@@ -331,31 +594,139 @@
         padding: 2px 8px !important;
     }
     
-    /* Футер карточки записей */
     .card-footer {
-        flex-direction: column !important;
-        gap: 10px !important;
-        align-items: stretch !important;
-        padding-top: 8px !important;
-    }
-    
-    .card-footer .flex-grow-1 {
-        width: 100% !important;
+        padding: 6px 12px 12px 12px !important;
+        gap: 6px !important;
     }
     
     #load-more-bookings {
         width: 100% !important;
-        padding: 10px !important;
-        font-size: 0.85rem !important;
-        border-radius: 30px !important;
-        border: 1px solid var(--primary) !important;
-        color: var(--primary) !important;
-        background: transparent !important;
+        font-size: 0.8rem !important;
+        padding: 8px !important;
     }
     
-    .card-footer .d-flex {
-        justify-content: center !important;
+    .footer-info-row {
+        padding-top: 4px !important;
+        flex-wrap: wrap !important;
+        justify-content: space-between !important;
     }
+    
+    .footer-left .form-label {
+        font-size: 0.7rem !important;
+    }
+    
+    #bookings-limit-select {
+        font-size: 0.7rem !important;
+        height: 25px !important;
+        width: 50px !important;
+        padding: 0 4px 0 6px !important;
+        font-weight: 900;
+    }
+    
+    .footer-right .total-label {
+        font-size: 0.7rem !important;
+    }
+    
+    .footer-right .total-number {
+        font-size: 0.7rem !important;
+        line-height: 20px !important;
+        padding: 0 8px !important;
+        min-width: 20px !important;
+    }
+
+        #editBookingModal .modal-dialog {
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: stretch !important;
+    }
+    
+    #editBookingModal .modal-content {
+        height: 100% !important;
+        border-radius: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        max-height: none !important;
+    }
+    
+    #editBookingModal .modal-header {
+        padding: 14px 16px !important;
+        flex-shrink: 0 !important;
+        border-bottom: 1px solid var(--gray-100) !important;
+    }
+    
+    #editBookingModal .modal-header .modal-title {
+        font-size: 0.9rem !important;
+    }
+    
+    #editBookingModal .modal-header .modal-title i {
+        display: none !important;  /* скрываем иконку на мобильных */
+    }
+    
+    #editBookingModal .modal-body {
+        flex: 1 !important;
+        max-height: none !important;
+        overflow-y: auto !important;
+        padding: 12px 16px !important;
+    }
+    
+    #editBookingModal .modal-footer {
+        padding: 10px 16px !important;
+        flex-shrink: 0 !important;
+        border-top: 1px solid var(--gray-100) !important;
+        flex-direction: column-reverse !important;
+        gap: 6px !important;
+    }
+    
+    #editBookingModal .modal-footer .btn {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 10px !important;
+        font-size: 0.9rem !important;
+    }
+    
+    /* Поля формы на мобильных */
+    #editBookingModal .form-label {
+        font-size: 0.75rem !important;
+    }
+    
+    #editBookingModal .form-control,
+    #editBookingModal .form-select {
+        font-size: 16px !important;  /* для удобства ввода на телефоне */
+        padding: 8px 12px !important;
+        height: 40px !important;
+    }
+    
+    /* Карточки на мобильных - компактнее */
+    #editBookingModal .service-card,
+    #editBookingModal .date-card,
+    #editBookingModal .slot-card {
+        padding: 6px 4px !important;
+        font-size: 0.75rem !important;
+    }
+    
+    #editBookingModal .service-card .card-body,
+    #editBookingModal .date-card .card-body,
+    #editBookingModal .slot-card .card-body {
+        padding: 4px !important;
+    }
+    
+    /* Сетка для дат и времени - по 3 в ряд */
+    #editBookingModal .col-md-3 {
+        flex: 0 0 33.333% !important;
+        max-width: 33.333% !important;
+        padding: 0 4px !important;
+    }
+    
+    #editBookingModal .col-md-2 {
+        flex: 0 0 25% !important;
+        max-width: 25% !important;
+        padding: 0 4px !important;
+    }
+
+
     
 }
 
