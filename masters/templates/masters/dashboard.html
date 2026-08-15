@@ -392,7 +392,7 @@
                         <label class="form-label">Время</label>
                         <div id="edit_times_list_modal" class="row"></div>
                     </div>
-                    <div class="mb-3">
+                    <!-- <div class="mb-3">
                         <label class="form-label">Статус</label>
                         <select class="form-select" id="edit_status">
                             <option value="confirmed">Подтверждена</option>
@@ -403,7 +403,7 @@
                     <div class="mb-3">
                         <label class="form-label">Комментарий</label>
                         <textarea class="form-control" id="edit_comment" rows="2"></textarea>
-                    </div>
+                    </div> -->
                 </form>
             </div>
             <div class="modal-footer">
@@ -1621,8 +1621,7 @@ function editBookingInModal(bookingId) {
             document.getElementById('edit_booking_id').value = data.id;
             document.getElementById('edit_client_name').value = data.client_name;
             document.getElementById('edit_client_phone').value = data.client_phone;
-            document.getElementById('edit_comment').value = data.comment || '';
-            document.getElementById('edit_status').value = data.status;
+            // Убрали комментарий
             editSelectedDate = data.date;
             editSelectedTime = data.time;
             editSelectedServiceId = data.service_id;
@@ -1642,17 +1641,13 @@ function loadEditServicesForModal(selectedServiceId, selectedDate, selectedTime)
             editSelectedDate = selectedDate;
             editSelectedTime = selectedTime;
             
-            console.log('📝 Загружаем услуги, выбрано:', selectedServiceId);
-            
             let html = '<div class="row">';
-            html += '<div class="col-12 mb-2 text-muted small">Выберите услугу для этой записи.</div>';
             
             for (const cat of data.categories) {
                 if (cat.services.length === 0) continue;
                 html += `<div class="col-12 mb-2"><strong>${escapeHtml(cat.name)}</strong></div><div class="row mb-3">`;
                 cat.services.forEach(service => {
                     const isSelected = Number(service.id) === Number(selectedServiceId);
-                    console.log(`🔍 Услуга ${service.id} (${service.name}): ${isSelected ? '✅ ВЫБРАНА' : '❌ нет'}`);
                     
                     html += `
                         <div class="col-md-4 mb-2">
@@ -1693,18 +1688,17 @@ function loadEditServicesForModal(selectedServiceId, selectedDate, selectedTime)
             html += '</div>';
             document.getElementById('edit_services_list_modal').innerHTML = html;
             
-            // Прокручиваем к выбранной услуге
-            setTimeout(() => {
-                const selectedService = document.querySelector('#edit_services_list_modal .service-card.border-pink');
-                if (selectedService) {
-                    selectedService.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center',
-                        inline: 'nearest'
-                    });
-                    console.log('📌 Прокрутка к выбранной услуге');
-                }
-            }, 300);
+            // ===== УБРАЛИ АВТОМАТИЧЕСКИЙ СКРОЛЛ =====
+            // setTimeout(() => {
+            //     const selectedService = document.querySelector('#edit_services_list_modal .service-card.border-pink');
+            //     if (selectedService) {
+            //         selectedService.scrollIntoView({
+            //             behavior: 'smooth',
+            //             block: 'center',
+            //             inline: 'nearest'
+            //         });
+            //     }
+            // }, 300);
             
             if (selectedServiceId) {
                 loadEditDatesForServiceModal(selectedServiceId, selectedDate);
@@ -1778,22 +1772,15 @@ function loadEditSlotsForDateModal(serviceId, date, selectedTime) {
         url += `&exclude_booking_id=${editOriginalBookingId}&original_booking_id=${editOriginalBookingId}`;
     }
     
-    console.log('🔍 Загружаем слоты:', { serviceId, date, selectedTime, url });
-    
     fetch(url)
         .then(response => response.json())
         .then(data => {
-            console.log('📊 Получены слоты:', data);
-            
             if (data.slots && data.slots.length > 0) {
                 let html = '<div class="row">';
                 data.slots.forEach(slot => {
-                    // Приводим к формату HH:MM
                     const slotTime = slot.start.length > 5 ? slot.start.slice(0, 5) : slot.start;
                     const selectedTimeShort = selectedTime && selectedTime.length > 5 ? selectedTime.slice(0, 5) : selectedTime;
                     const isSelected = slotTime === selectedTimeShort;
-                    
-                    console.log(`⏰ Слот: ${slotTime}, Выбрано: ${selectedTimeShort}, Совпадает: ${isSelected}`);
                     
                     html += `
                         <div class="col-md-2 col-3 mb-2">
@@ -1831,19 +1818,6 @@ function saveEditedBooking() {
     let clientPhone = document.getElementById('edit_client_phone').value.trim();
     clientPhone = clientPhone.replace(/\D/g, '');
     if (clientPhone.length === 10) clientPhone = '7' + clientPhone;
-    const comment = document.getElementById('edit_comment').value;
-    const status = document.getElementById('edit_status').value;
-    
-    console.log("📤 Отправляем данные:", {
-        bookingId,
-        clientName,
-        clientPhone,
-        editSelectedServiceId,
-        editSelectedDate,
-        editSelectedTime,
-        comment,
-        status
-    });
     
     if (!clientName || !clientPhone || clientPhone.length !== 11 || !editSelectedServiceId || !editSelectedDate || !editSelectedTime) {
         showAlert('Заполните все поля правильно. Телефон должен содержать 11 цифр.', 'Ошибка');
@@ -1866,9 +1840,7 @@ function saveEditedBooking() {
             client_name: clientName,
             client_phone: clientPhone,
             date: editSelectedDate,
-            time: editSelectedTime,
-            comment: comment,
-            status: status
+            time: editSelectedTime
         })
     })
     .then(response => response.json())
@@ -1909,7 +1881,6 @@ function deleteBooking(bookingId, clientName, time) {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Перезагружаем данные без лишних окон
                     loadCalendar();
                     loadBookings(1, false);
                     if (currentSelectedDate) {
@@ -1917,10 +1888,6 @@ function deleteBooking(bookingId, clientName, time) {
                             .then(r => r.json())
                             .then(data => renderDayBookings(data.bookings));
                     }
-                    // Показываем только одно уведомление (быстрое, без кнопки)
-                //     showToast('✅ Запись удалена', 'success');
-                // } else {
-                //     showAlert(data.error || 'Ошибка при удалении', 'Ошибка');
                 }
             })
             .catch(error => {
