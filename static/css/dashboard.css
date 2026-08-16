@@ -868,11 +868,11 @@
 }
 
 .calendar-weekday {
-    font-weight: 600;
+    font-weight: 800;
     padding: 8px;
-    background-color: #f8f0ff;
+    /* background-color: #f8f0ff; */
     border-radius: 8px;
-    font-size: 0.9rem;
+    font-size: 15px;
 }
 
 .calendar-dates {
@@ -901,8 +901,7 @@
 }
 
 .calendar-date.working {
-    background-color: #ede9fe !important;  /* было #d4edda */
-    border-color: 1px solid #d3d3d3;
+    background-color: var(--primary-light);
 }
 
 .calendar-date.non-working {
@@ -999,6 +998,35 @@
     font-weight: normal;
 }
 
+.calendar-nav-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 36px !important;
+    height: 36px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    border: 1px solid var(--gray-300) !important;
+    background: white !important;
+    color: var(--gray-600) !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+}
+
+.calendar-nav-btn:hover {
+    border-color: var(--primary) !important;
+    background: var(--primary-light) !important;
+    color: var(--primary) !important;
+}
+
+.calendar-nav-btn svg {
+    display: block;
+    width: 18px;
+    height: 18px;
+}
+
+
+
 #workingDayActions, #dayOffActions {
     display: none !important;
 }
@@ -1022,6 +1050,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
 
 @media (max-width: 768px) {
+
 
     .calendar-date.working {
         background-color: transparent !important;
@@ -1077,10 +1106,9 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         margin: 0 auto;
     }
     
-    /* ---- Рабочий день: цифра в зелёном кружке ---- */
+    /* ---- Рабочий день: */
     .calendar-date.working .date-number {
-
-        background: #ede9fe !important;
+        background-color: var(--primary-light);
         color: #000000 !important;
     }
     
@@ -1124,18 +1152,18 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     }
     
     .booking-badge {
-        font-size: 0.4rem !important;
-        min-width: 12px !important;
-        height: 12px !important;
+        font-size: 0.55rem !important;    /* было 0.4rem */
+        min-width: 14px !important;       /* было 12px */
+        height: 14px !important;          /* было 12px */
         border-radius: 50% !important;
-        padding: 0 2px !important;
-        /* background: var(--primary); */
+        padding: 0 3px !important;
         color: white;
         font-weight: 700;
         display: flex;
         align-items: center;
         justify-content: center;
         line-height: 1;
+
     }
     
     .break-badge {
@@ -1153,13 +1181,12 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     }
     
     /* ---- Сегодня: иконки белые ---- */
-    .calendar-date.today .calendar-icons .booking-badge {
+    /* .calendar-date.today .calendar-icons .booking-badge {
         background-color: #7ab5f7;
         color: rgb(0, 0, 0) !important;
-
-        background: var(--primary) !important;  /* #7c3aed */
+        background: var(--primary) !important; 
         color: white !important;
-    }
+    } */
     
     .calendar-date.today .calendar-icons .break-badge {
         color: white !important;
@@ -1180,10 +1207,10 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     }
     
     .calendar-weekday {
-        font-weight: 500;
+        font-weight: 700;
         font-size: 0.6rem;
         padding: 4px 0;
-        color: var(--gray-400);
+        /* color: var(--gray-400); */
         text-transform: uppercase;
         letter-spacing: 0.3px;
         background-color: transparent !important;
@@ -1194,6 +1221,16 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         display: grid;
         grid-template-columns: repeat(7, 1fr);
         gap: 6px;
+    }
+
+    .calendar-nav-btn {
+        width: 25px !important;
+        height: 25px !important;
+    }
+    
+    .calendar-nav-btn svg {
+        width: 16px;
+        height: 16px;
     }
 }
 
@@ -1885,11 +1922,12 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         font-size: 0.65rem !important;
     }
     
-    .booking-badge {
+    /* .booking-badge {
         font-size: 0.35rem !important;
         min-width: 10px !important;
         height: 10px !important;
-    }
+        
+    } */
     
     .break-badge {
         font-size: 0.4rem !important;

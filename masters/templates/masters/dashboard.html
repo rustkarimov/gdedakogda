@@ -53,11 +53,26 @@
         <h5 class="mb-0"><i class="far fa-calendar-alt me-2" style="color: var(--primary);"></i>Календарь</h5>
     </div>
     <div class="card-body">
-        <div class="text-center mb-3">
+        <!-- <div class="text-center mb-3">
             <button class="btn btn-sm btn-outline-primary" onclick="changeMonth(-1)">←</button>
             <span class="mx-3 fw-bold" id="current-month"></span>
             <button class="btn btn-sm btn-outline-primary" onclick="changeMonth(1)">→</button>
+        </div> -->
+
+        <div class="text-center mb-3">
+            <button class="btn btn-sm btn-outline-primary calendar-nav-btn" onclick="changeMonth(-1)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+            </button>
+            <span class="mx-3 fw-bold" id="current-month"></span>
+            <button class="btn btn-sm btn-outline-primary calendar-nav-btn" onclick="changeMonth(1)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 6 15 12 9 18"></polyline>
+                </svg>
+            </button>
         </div>
+
         <div id="calendar-grid"></div>
         
 
@@ -642,7 +657,6 @@ function renderCalendar(data, countsData, year, month) {
         } else if (schedule) {
             workingClass = 'working';
             statusText = `${schedule.start} - ${schedule.end}`;
-            // ← ДОБАВИТЬ ПРОВЕРКУ ПЕРЕРЫВОВ ДЛЯ SCHEDULE
             if (schedule.breaks && schedule.breaks.length > 0) {
                 hasBreaks = true;
             }
