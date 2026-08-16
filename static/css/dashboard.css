@@ -40,8 +40,17 @@
 /* ============================================================ */
 .card {
     border-radius: 20px !important;  /* или нужные вам значения */
-    overflow: hidden !important;      /* чтобы содержимое не вылезало за углы */
+    /* overflow: hidden !important;      */
     }
+
+#upcoming-bookings-container,
+#upcoming-bookings-container .table-responsive,
+#upcoming-bookings-table,
+#upcoming-bookings-table tbody,
+#upcoming-bookings-table tr,
+#upcoming-bookings-table td {
+    overflow: visible !important;
+}
 
 #load-more-bookings {
     width: auto !important;
@@ -172,6 +181,7 @@
     justify-content: center;
 }
 
+
 /* Галочка подтверждения */
 .confirm-btn {
     display: inline-flex;
@@ -297,6 +307,10 @@
     min-width: 28px !important;
     text-align: center !important;
 }
+
+
+
+
 
 /* ============================================================ */
 /* ========== МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ (ДЕСКТОП) ========== */
@@ -829,6 +843,13 @@
     
     #editBookingModal .mb-2 {
         margin-bottom: 4px !important;
+    }
+
+    .all-buttons-row .contact-dropdown-menu {
+        left: 50% !important;                    /* ← центрируем */
+        right: auto !important;                  /* ← убираем привязку к правому краю */
+        transform: translateX(-50%) !important;  /* ← сдвигаем на половину ширины */
+        min-width: 160px !important;
     }
 
 }
