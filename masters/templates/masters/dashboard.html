@@ -13,92 +13,86 @@
 
 <!-- Ближайшие записи -->
 <div class="card mb-4">
-    <div class="card-header bg-white">
-        <h5 class="mb-0"><i class="fas fa-clock me-2" style="color: var(--primary);"></i>Ближайшие записи</h5>
-    </div>
-    <div class="card-body">
-        <div id="upcoming-bookings-container">
-            <div class="text-center">
-                <div class="spinner-border" style="color: var(--primary);"></div>
+    <div class="card-inner">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="fas fa-clock me-2" style="color: var(--primary);"></i>Ближайшие записи</h5>
+        </div>
+        <div class="card-body">
+            <div id="upcoming-bookings-container">
+                <div class="text-center">
+                    <div class="spinner-border" style="color: var(--primary);"></div>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center pt-0 flex-wrap">
-        <button id="load-more-bookings" class="btn btn-sm btn-outline-primary" style="display: none;" onclick="loadMoreBookings()">
-            <i class="fas fa-chevron-down me-1"></i>Показать еще
-        </button>
+        <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center pt-0 flex-wrap">
+            <button id="load-more-bookings" class="btn btn-sm btn-outline-primary" style="display: none;" onclick="loadMoreBookings()">
+                <i class="fas fa-chevron-down me-1"></i>Показать еще
+            </button>
 
-        <div class="footer-info-row">
-            <div class="footer-right">
-                <span class="total-label">Всего записей</span>
-                <span class="total-number" id="total-bookings-count">0</span>
-            </div>
-            <div class="footer-left">
-                <label class="form-label me-1 mb-0 small">Показывать:</label>
-                <select id="bookings-limit-select" class="form-select form-select-sm">
-                    <option value="3" selected>3</option>
-                    <option value="5">5</option>
-                    <option value="10">10</option>
-                    <option value="15">15</option>
-                </select>
+            <div class="footer-info-row">
+                <div class="footer-right">
+                    <span class="total-label">Всего записей</span>
+                    <span class="total-number" id="total-bookings-count">0</span>
+                </div>
+                <div class="footer-left">
+                    <label class="form-label me-1 mb-0 small">Показывать:</label>
+                    <select id="bookings-limit-select" class="form-select form-select-sm">
+                        <option value="3" selected>3</option>
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                    </select>
+                </div>
             </div>
         </div>
-
     </div>
 </div>
 
 <!-- Календарь -->
 <div class="card mb-4">
-    <div class="card-header bg-white">
-        <h5 class="mb-0"><i class="far fa-calendar-alt me-2" style="color: var(--primary);"></i>Календарь</h5>
-    </div>
-    <div class="card-body">
-        <!-- <div class="text-center mb-3">
-            <button class="btn btn-sm btn-outline-primary" onclick="changeMonth(-1)">←</button>
-            <span class="mx-3 fw-bold" id="current-month"></span>
-            <button class="btn btn-sm btn-outline-primary" onclick="changeMonth(1)">→</button>
-        </div> -->
-
-        <div class="text-center mb-3">
-            <button class="btn btn-sm btn-outline-primary calendar-nav-btn" onclick="changeMonth(-1)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="15 18 9 12 15 6"></polyline>
-                </svg>
-            </button>
-            <span class="mx-3 fw-bold" id="current-month"></span>
-            <button class="btn btn-sm btn-outline-primary calendar-nav-btn" onclick="changeMonth(1)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="9 6 15 12 9 18"></polyline>
-                </svg>
-            </button>
+    <div class="card-inner">
+        <div class="card-header bg-white">
+            <h5 class="mb-0"><i class="far fa-calendar-alt me-2" style="color: var(--primary);"></i>Календарь</h5>
         </div>
+        <div class="card-body">
+            <div class="text-center mb-3">
+                <button class="btn btn-sm btn-outline-primary calendar-nav-btn" onclick="changeMonth(-1)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+                <span class="mx-3 fw-bold" id="current-month"></span>
+                <button class="btn btn-sm btn-outline-primary calendar-nav-btn" onclick="changeMonth(1)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 6 15 12 9 18"></polyline>
+                    </svg>
+                </button>
+            </div>
 
-        <div id="calendar-grid"></div>
-        
-
-        <!-- <div class="legend-container">
-            <button class="legend-toggle" id="legendToggle" onclick="toggleLegend()">
-                <i class="fas fa-info-circle" id="legendIcon"></i>
-            </button>
-            <div class="legend-content" id="legendContent" style="display: none;">
-                <div class="legend-items">
-                    <div class="legend-item">
-                        <span class="legend-dot working-dot"></span>
-                        Рабочий день
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-badge booking-badge">3</span>
-                        Записи
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-icon">💤</span>
-                        Перерыв
+            <div id="calendar-grid"></div>
+            
+            <!-- <div class="legend-container">
+                <button class="legend-toggle" id="legendToggle" onclick="toggleLegend()">
+                    <i class="fas fa-info-circle" id="legendIcon"></i>
+                </button>
+                <div class="legend-content" id="legendContent" style="display: none;">
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <span class="legend-dot working-dot"></span>
+                            Рабочий день
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-badge booking-badge">3</span>
+                            Записи
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-icon">💤</span>
+                            Перерыв
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div> -->
-
-
+            </div> -->
+        </div>
     </div>
 </div>
 
@@ -642,7 +636,7 @@ function renderCalendar(data, countsData, year, month) {
         const bookingCount = (countsData.counts && countsData.counts[dateStr]) ? countsData.counts[dateStr] : 0;
 
         let workingClass = '', statusText = '';
-        let hasBreaks = false;  // ← ДОБАВИТЬ
+        let hasBreaks = false;
 
         if (isDayOff) {
             workingClass = 'non-working';
@@ -650,7 +644,6 @@ function renderCalendar(data, countsData, year, month) {
         } else if (extraDay) {
             workingClass = 'working';
             statusText = `${extraDay.start} - ${extraDay.end}`;
-            // ← ДОБАВИТЬ ПРОВЕРКУ ПЕРЕРЫВОВ ДЛЯ EXTRA_DAY
             if (extraDay.breaks && extraDay.breaks.length > 0) {
                 hasBreaks = true;
             }
@@ -669,7 +662,6 @@ function renderCalendar(data, countsData, year, month) {
         const isToday = currentDate.toDateString() === today.toDateString();
         const todayClass = isToday ? 'today' : '';
 
-        // Показываем иконки ТОЛЬКО если день не прошедший
         const showIcons = !isPast;
 
         html += `<div class="calendar-date ${workingClass} ${todayClass}" onclick="openDayModal('${dateStr}')">
@@ -677,10 +669,15 @@ function renderCalendar(data, countsData, year, month) {
                     <div class="calendar-time">${statusText}</div>
                     <div class="calendar-icons">
                         ${showIcons && bookingCount > 0 ? `<span class="booking-badge">${bookingCount}</span>` : ''}
-                        ${showIcons && hasBreaks ? `<span class="break-badge" title="В этот день есть перерывы">💤</span>` : ''}
+                        ${showIcons && hasBreaks ? `<span class="break-badge" title="В этот день есть перерывы">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                        </span>` : ''}
                     </div>
                 </div>`;
-            }
+    }
     html += '</div>';
     document.getElementById('calendar-grid').innerHTML = html;
 }
