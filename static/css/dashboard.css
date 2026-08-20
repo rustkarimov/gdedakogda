@@ -1651,10 +1651,10 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
     #dayModal .work-edit-mode .work-save-btn,
     #dayModal .work-edit-mode .work-cancel-btn {
-        width: 22px !important;
-        height: 22px !important;
+        width: 24px !important;
+        height: 24px !important;
         padding: 0 !important;
-        font-size: 0.45rem !important;
+        font-size: 0.8rem !important;
     }
 
     #dayModal .work-edit-mode {
@@ -1668,22 +1668,31 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         flex-wrap: wrap !important;
         align-items: center !important;
         gap: 6px !important;
+        min-height: 32px !important;
     }
 
     /* Исключаем кнопку редактирования из width: 100% */
     #dayModal #editWorkTimeBtn {
-        width: auto !important;  /* ← или фиксированная ширина */
+        width: auto !important; 
         flex-shrink: 0 !important;
+        font-size: 0.8rem !important;
     }
 
+
     #dayModal .work-edit-mode .work-time-input {
-        width: 55px !important;
-        min-width: 45px !important;
-        max-width: 65px !important;
-        height: 26px !important;
-        font-size: 0.6rem !important;
-        padding: 0 4px !important;
+        width: 48px !important;
+        min-width: 40px !important;
+        height: 28px !important;
+        font-size: 12px !important;
+        padding: 0 2px !important;
     }
+
+    #dayModal #breaksContainer .break-label i {
+        display: none !important;
+    }
+
+    
+
 
     #dayModal .modal-header,
     /* #editBookingModal .modal-header, */
@@ -1780,20 +1789,6 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         align-items: center;
     }
 }
-/* 
-@media (max-width: 480px) {
-    #dayModalDate {
-        font-size: 20px;
-    }
-
-    #currentStatusText {
-        font-size: 0.8rem;
-    }
-
-    #currentStatusText .break-info {
-        font-size: 0.75rem;
-    }
-} */
 
 
 
