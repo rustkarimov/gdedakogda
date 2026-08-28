@@ -1259,6 +1259,8 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 /* ========== МОДАЛЬНЫЕ ОКНА КАЛЕНДАРЯ ========== */
 /* ============================================================ */
 
+
+
 #dayModalDate {
     font-size: 1.3rem;
     font-weight: 700;
@@ -1588,6 +1590,26 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     margin-top: 2px;
 }
 
+/* Иконки Сохранить и Отмена в перерывах — как у рабочих часов */
+#dayModal .break-edit-mode .save-break-btn,
+#dayModal .break-edit-mode .cancel-break-btn {
+    width: 24px !important;
+    height: 24px !important;
+    padding: 0 !important;
+    font-size: 0.8rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    border-radius: 50% !important;
+}
+
+
+
+
 @media (max-width: 768px) {
     #dayModalDate {
         font-size: 1.1rem;
@@ -1641,8 +1663,12 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     #dayModal .btn-pink {
         width: 100% !important;
         padding: 8px 10px !important;
-        font-size: 0.85rem !important;
+        font-size: 0.8rem !important;
         border-radius: 30px !important;
+    }
+
+    #dayModal #workTimeDisplay {
+        font-size: 0.8rem !important;
     }
 
     #dayModal #workTimeLabel i {
@@ -1687,12 +1713,69 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         padding: 0 2px !important;
     }
 
+    #dayModal .break-edit-mode .break-time-input {
+        width: 48px !important;
+        min-width: 40px !important;
+        height: 28px !important;
+        font-size: 12px !important;
+        padding: 0 2px !important;
+        text-align: center !important;
+    }
+
+    #dayModal .break-edit-mode .break-start,
+    #dayModal .break-edit-mode .break-end {
+        width: 48px !important;
+        min-width: 48px !important;
+        height: 28px !important;
+        font-size: 12px !important;
+        padding: 0 2px !important;
+        text-align: center !important;
+    }
+
+    /* Убрали иконку в мобильных */
     #dayModal #breaksContainer .break-label i {
         display: none !important;
     }
 
+    #dayModal #breaksContainer .fw-bold {
+        font-weight: 400 !important;
+    }
+
+    #dayModal #breaksContainer .break-item {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        gap: 4px !important;
+    }
+
+    #dayModal #breaksContainer .break-view-mode {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+    }
+
+    #dayModal #breaksContainer .break-display {
+        font-size: 0.8rem !important;
+        white-space: nowrap !important;
+    }
     
 
+    #dayModal #breaksContainer .edit-break-btn,
+    #dayModal #breaksContainer .delete-break-btn,
+    #dayModal #breaksContainer .add-break-btn {
+        width: 24px !important;        /* ← было 22px */
+        height: 24px !important;       /* ← было 22px */
+        padding: 0 !important;
+        font-size: 0.8rem !important;  /* ← было 0.5rem */
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        flex-shrink: 0 !important;
+        background: transparent !important;
+        border: none !important;
+    }
+ 
 
     #dayModal .modal-header,
     /* #editBookingModal .modal-header, */
