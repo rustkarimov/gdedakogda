@@ -232,9 +232,9 @@
         </span>
         <!-- РЕЖИМ РЕДАКТИРОВАНИЯ (скрыт) -->
         <span class="work-edit-mode" id="workEditMode" style="display: none;">
-            <input type="text" class="form-control form-control-sm work-time-input" id="editWorkStart">
+            <input type="time" class="form-control form-control-sm work-time-input" id="editWorkStart">
             <span class="work-time-separator">-</span>
-            <input type="text" class="form-control form-control-sm work-time-input" id="editWorkEnd">
+            <input type="time" class="form-control form-control-sm work-time-input" id="editWorkEnd">
             <button class="btn btn-sm work-save-btn" onclick="saveWorkTime()" title="Сохранить">
                 <i class="fas fa-check"></i>
             </button>
@@ -249,6 +249,22 @@
     </div>
 </div>
 
+
+                    <!-- РЕДАКТИРОВАНИЕ РАБОЧЕГО ВРЕМЕНИ (скрыто) -->
+                    <!-- <div id="editWorkTimeBlock" style="display: none;" class="mb-2">
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span><i class="fas fa-clock me-2" style="color: var(--primary);"></i>Работаю:</span>
+                            <input type="time" class="form-control form-control-sm" id="editWorkStart" style="width: 100px;">
+                            <span>—</span>
+                            <input type="time" class="form-control form-control-sm" id="editWorkEnd" style="width: 100px;">
+                            <button class="btn btn-sm btn-success" onclick="saveWorkTime()">
+                                <i class="fas fa-save"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="cancelEditWorkTime()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div> -->
 
                     <!-- СТРОКИ: ПЕРЕРЫВЫ -->
                     <div id="breaksContainer">
@@ -681,7 +697,7 @@ function openDayModal(dateStr) {
 
     document.getElementById('viewDayPanel').style.display = 'block';
     document.getElementById('addBookingPanel').style.display = 'none';
-    document.getElementById('dayModalTitle').innerHTML = '<i class="far fa-calendar-alt me-2" style="color: var(--primary);"></i> Редактируем день';
+    document.getElementById('dayModalTitle').innerHTML = '<i class="far fa-calendar-alt me-2" style="color: var(--primary);"></i> Редактирование дня';
     
     // Сбрасываем режим редактирования
     const viewMode = document.querySelector('.work-view-mode');
@@ -768,10 +784,6 @@ function openDayModal(dateStr) {
             }
         }
     }, 150);
-
-    setTimeout(() => {
-        initTimeMasks();
-    }, 100);
 }
 
 
@@ -835,30 +847,6 @@ function makeDayOff() {
     });
 }
 
-function makeWorkingFromDayOff() {
-    // Меняем надпись сразу!
-    document.getElementById('workTimeLabelText').textContent = 'Работаю:';
-    document.getElementById('workDisplay').textContent = '09:00 - 18:00';
-    
-    // Показываем кнопку редактирования
-    document.getElementById('editWorkTimeBtn').style.display = 'inline-block';
-    
-    // Скрываем кнопку "Сделать рабочим"
-    document.getElementById('dayOffActions').style.display = 'none';
-    
-    // Показываем остальные элементы
-    document.getElementById('workTimeRow').style.display = 'flex';
-    document.getElementById('breaksContainer').style.display = 'block';
-    document.getElementById('editWorkTimeBlock').style.display = 'block';
-    
-    // Заполняем поля
-    document.getElementById('editWorkStart').value = '09:00';
-    document.getElementById('editWorkEnd').value = '18:00';
-    
-    // Показываем кнопку "Добавить запись"
-    const addBookingBtn = document.querySelector('#dayActionsContainer .btn-pink');
-    if (addBookingBtn) addBookingBtn.style.display = 'inline-block';
-}
 
 
 // ============================================================
@@ -2571,8 +2559,9 @@ function editWorkTime() {
     
     // Скрываем режим просмотра, показываем режим редактирования
     viewMode.style.display = 'none';
+    editMode.classList.add('active');
     editMode.style.display = 'inline-flex';
-    editBtn.style.display = 'none';  // ← СКРЫВАЕМ КНОПКУ РЕДАКТИРОВАНИЯ
+    editBtn.style.display = 'none';
 }
 
 function cancelEditWorkTime() {
@@ -2585,13 +2574,22 @@ function cancelEditWorkTime() {
     const isDayOff = currentDayData && (currentDayData.is_day_off || !(currentDayData.has_schedule || currentDayData.is_extra));
     
     if (isDayOff) {
-        labelText.textContent = 'Выходной день';
+        labelText.textContent = 'Выходной день';  // ← возвращаем "Выходной день"
         display.textContent = '';
         viewMode.style.display = 'none';
         editBtn.style.display = 'none';
+        document.getElementById('dayOffActions').style.display = 'block';
+        document.getElementById('makeDayOffBtn').style.display = 'none';
+        const addBookingBtn = document.querySelector('#dayActionsContainer .btn-pink');
+        if (addBookingBtn) addBookingBtn.style.display = 'none';
+        document.getElementById('breaksContainer').style.display = 'none';
     } else {
+        // 👇 ВОЗВРАЩАЕМ "Работаю:" ЕСЛИ ЭТО БЫЛ РАБОЧИЙ ДЕНЬ
+        labelText.textContent = 'Работаю:';
         viewMode.style.display = 'inline';
-        editBtn.style.display = 'inline-flex';  // ← ПОКАЗЫВАЕМ КНОПКУ ОБРАТНО
+        editBtn.style.display = 'inline-flex';
+        document.getElementById('makeDayOffBtn').style.display = 'inline-block';
+        document.getElementById('dayOffActions').style.display = 'none';
     }
     
     editMode.style.display = 'none';
@@ -2801,51 +2799,6 @@ function createBreakItem(breakData, index, showAddButton) {
     return item;
 }
 
-// function toggleBreakEdit(index) {
-//     const item = document.getElementById(`break-item-${index}`);
-//     if (!item) return;
-    
-//     const viewMode = item.querySelector('.break-view-mode');
-//     const editBtn = item.querySelector('.edit-break-btn');
-//     const deleteBtn = item.querySelector('.delete-break-btn');
-//     const addBtn = item.querySelector('.add-break-btn');
-//     let editMode = item.querySelector('.break-edit-mode');
-    
-//     if (item._breakEditMode) {
-//         // Выход из режима редактирования
-//         if (editMode) editMode.remove();
-//         viewMode.style.setProperty('display', 'inline-flex', 'important');
-//         editBtn.style.setProperty('display', 'inline-flex', 'important');
-//         if (deleteBtn) deleteBtn.style.setProperty('display', 'inline-flex', 'important');
-//         if (addBtn) addBtn.style.setProperty('display', 'inline-flex', 'important');
-//         item._breakEditMode = false;
-//     } else {
-//         // Вход в режим редактирования
-//         viewMode.style.setProperty('display', 'none', 'important');
-//         editBtn.style.setProperty('display', 'none', 'important');
-//         if (deleteBtn) deleteBtn.style.setProperty('display', 'none', 'important');
-//         if (addBtn) addBtn.style.setProperty('display', 'none', 'important');
-        
-//         editMode = document.createElement('span');
-//         editMode.className = 'break-edit-mode d-flex align-items-center gap-1';
-//         editMode.innerHTML = `
-//             <input type="text" class="form-control form-control-sm break-start" value="${item._breakStart}">
-//             <span>—</span>
-//             <input type="text" class="form-control form-control-sm break-end" value="${item._breakEnd}" >
-//             <button class="btn btn-sm save-break-btn" onclick="saveBreakFromModal(${index})">
-//                 <i class="fas fa-check"></i>
-//             </button>
-//             <button class="btn btn-sm cancel-break-btn" onclick="cancelEditBreakFromModal(${index})">
-//                 <i class="fas fa-times"></i>
-//             </button>
-//         `;
-        
-//         const label = item.querySelector('.break-label');
-//         label.parentNode.insertBefore(editMode, label.nextSibling);
-//         item._breakEditMode = true;
-//     }
-// }
-
 function toggleBreakEdit(index) {
     const item = document.getElementById(`break-item-${index}`);
     if (!item) return;
@@ -2874,13 +2827,13 @@ function toggleBreakEdit(index) {
         editMode = document.createElement('span');
         editMode.className = 'break-edit-mode d-flex align-items-center gap-1';
         editMode.innerHTML = `
-            <input type="text" class="form-control form-control-sm break-start" value="${item._breakStart}">
-            <span>-</span>
-            <input type="text" class="form-control form-control-sm break-end" value="${item._breakEnd}">
-            <button class="btn btn-sm save-break-btn" onclick="saveBreakFromModal(${index})">
-                <i class="fas fa-check"></i>
+            <input type="time" class="form-control form-control-sm break-start" value="${item._breakStart}" style="width: 90px; height: 36px;">
+            <span>—</span>
+            <input type="time" class="form-control form-control-sm break-end" value="${item._breakEnd}" style="width: 90px; height: 36px;">
+            <button class="btn btn-sm btn-success save-break-btn" onclick="saveBreakFromModal(${index})">
+                <i class="fas fa-save"></i>
             </button>
-            <button class="btn btn-sm cancel-break-btn" onclick="cancelEditBreakFromModal(${index})">
+            <button class="btn btn-sm btn-outline-secondary cancel-break-btn" onclick="cancelEditBreakFromModal(${index})">
                 <i class="fas fa-times"></i>
             </button>
         `;
@@ -2888,9 +2841,6 @@ function toggleBreakEdit(index) {
         const label = item.querySelector('.break-label');
         label.parentNode.insertBefore(editMode, label.nextSibling);
         item._breakEditMode = true;
-        
-        // 👇 ДОБАВЛЯЕМ ИНИЦИАЛИЗАЦИЮ МАСКИ ПОСЛЕ СОЗДАНИЯ ПОЛЕЙ
-        initTimeMasks();
     }
 }
 
@@ -3427,61 +3377,26 @@ function updateDayActions() {
     }
 }
 
+
 // ============================================================
 // ПЕРЕХОД ИЗ ВЫХОДНОГО В РАБОЧИЙ ДЕНЬ
 // ============================================================
 
 function makeWorkingFromDayOff() {
-    // Просто открываем редактирование рабочего времени
-    // Изначально предлагаем 09:00 - 18:00
+    // Меняем "Выходной день" на "Установи время работы"
+    document.getElementById('workTimeLabelText').textContent = 'Установи время работы';
+    
+    // Показываем время
     document.getElementById('workTimeDisplay').textContent = '09:00 - 18:00';
+    
+    // Скрываем кнопку "Сделать рабочим"
     document.getElementById('dayOffActions').style.display = 'none';
+    
+    // Показываем блок с перерывами
+    document.getElementById('breaksContainer').style.display = 'block';
+    
+    // Включаем режим редактирования
     editWorkTime();
-}
-
-
-// ============================================================
-// МАСКА ДЛЯ ВВОДА ВРЕМЕНИ
-// ============================================================
-function timeMask(input) {
-    let value = input.value.replace(/\D/g, '');
-    if (value.length === 0) {
-        input.value = '';
-        return;
-    }
-    if (value.length > 4) {
-        value = value.slice(0, 4);
-    }
-    
-    // Проверяем часы (первая цифра не больше 2)
-    if (value.length >= 1 && parseInt(value[0]) > 2) {
-        value = '0' + value[0];
-    }
-    // Проверяем часы (первые две цифры не больше 23)
-    if (value.length >= 2 && parseInt(value.slice(0, 2)) > 23) {
-        value = value.slice(0, 1);
-    }
-    // Проверяем минуты (не больше 59)
-    if (value.length >= 3 && parseInt(value.slice(2, 4)) > 59) {
-        value = value.slice(0, 2);
-    }
-    
-    let formatted = '';
-    if (value.length > 0) {
-        formatted = value.slice(0, 2);
-        if (value.length > 2) {
-            formatted += ':' + value.slice(2, 4);
-        }
-    }
-    input.value = formatted;
-}
-
-// Инициализация масок для полей времени
-function initTimeMasks() {
-    document.querySelectorAll('.work-time-input, .break-start, .break-end').forEach(input => {
-        input.removeEventListener('input', function() { timeMask(this); });
-        input.addEventListener('input', function() { timeMask(this); });
-    });
 }
 </script>
 
