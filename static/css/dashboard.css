@@ -1451,6 +1451,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     margin-bottom: 4px;
 }
 
+
 #dayModal .form-control,
 #editBookingModal .form-control,
 #dayModal .form-select,
@@ -1469,6 +1470,14 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 #editBookingModal .form-select:focus {
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+}
+
+#dayModal #breaksContainer .break-item {
+    /* margin-bottom: 6px !important;    */
+    /* ← отступ между перерывами */
+    display: flex !important;
+    padding: 4px 0 !important;        /* ← внутренние отступы */
+    align-items: center !important;
 }
 
 /* ---- Карточки услуг/дат/времени как на других страницах ---- */
@@ -1607,6 +1616,61 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     border-radius: 50% !important;
 }
 
+/* ===== ПОЛЯ ДЛЯ РАБОЧИХ ЧАСОВ (ДЕСКТОП) ===== */
+#dayModal .work-edit-mode .work-time-input {
+    width: 70px !important;          /* ← фиксируем ширину */
+    min-width: 60px !important;
+    max-width: 80px !important;
+    height: 28px !important;
+    padding: 4px 6px !important;
+    font-size: 0.8rem !important;
+    border-radius: 6px !important;
+    border: 1px solid var(--gray-300) !important;
+    text-align: center !important;
+}
+
+/* ===== ПОЛЯ ДЛЯ ПЕРЕРЫВОВ (ДЕСКТОП) ===== */
+#dayModal .break-edit-mode .break-start,
+#dayModal .break-edit-mode .break-end {
+    width: 70px !important;
+    min-width: 60px !important;
+    max-width: 80px !important;
+    height: 30px !important;
+    padding: 4px 6px !important;
+    font-size: 0.8rem !important;
+    border-radius: 6px !important;
+    border: 1px solid var(--gray-300) !important;
+    text-align: center !important;
+}
+
+#dayModal .work-edit-mode,
+#dayModal .break-edit-mode {
+    align-items: center !important;
+    gap: 4px !important;
+}
+
+#dayModal #workTimeLabel {
+    margin-right: 8px !important;   /* ← отступ после "Работаю:" */
+}
+
+#dayModal #breaksContainer .fw-bold {
+    font-weight: 400 !important;
+}
+
+/* Убираем иконку часов перед "Работаю:" на десктопе */
+#dayModal #workTimeLabel i {
+    display: none !important;
+}
+
+/* Убираем иконку кофе перед "Перерыв:" на десктопе */
+#dayModal #breaksContainer .break-label i {
+    display: none !important;
+}
+
+/* Убираем лишний отступ у "Перерыв:" */
+#dayModal #breaksContainer .break-label .fw-bold {
+    margin-right: 0 !important;
+}
 
 
 
@@ -1671,10 +1735,6 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         font-size: 0.8rem !important;
     }
 
-    #dayModal #workTimeLabel i {
-        display: none !important;
-    }
-
     #dayModal .work-edit-mode .work-save-btn,
     #dayModal .work-edit-mode .work-cancel-btn {
         width: 24px !important;
@@ -1697,6 +1757,11 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         min-height: 32px !important;
     }
 
+    #dayModal #workTimeLabel {
+        margin-right: 0 !important;   /* ← отменяем отступ на мобильных */
+    }
+    
+
     /* Исключаем кнопку редактирования из width: 100% */
     #dayModal #editWorkTimeBtn {
         width: auto !important; 
@@ -1706,11 +1771,12 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
 
     #dayModal .work-edit-mode .work-time-input {
-        width: 48px !important;
+        width: 60px !important;
         min-width: 40px !important;
         height: 28px !important;
         font-size: 12px !important;
         padding: 0 2px !important;
+        border-radius: 8px;
     }
 
     #dayModal .break-edit-mode .break-time-input {
@@ -1730,23 +1796,6 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         font-size: 12px !important;
         padding: 0 2px !important;
         text-align: center !important;
-    }
-
-    /* Убрали иконку в мобильных */
-    #dayModal #breaksContainer .break-label i {
-        display: none !important;
-    }
-
-    #dayModal #breaksContainer .fw-bold {
-        font-weight: 400 !important;
-    }
-
-    #dayModal #breaksContainer .break-item {
-        display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        align-items: center !important;
-        gap: 4px !important;
     }
 
     #dayModal #breaksContainer .break-view-mode {
@@ -1871,9 +1920,24 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         gap: 4px;
         align-items: center;
     }
+
+    #dayModal #breaksContainer .break-item {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        gap: 4px !important;
+        padding: 4px 0 !important;
+        margin-bottom: 4px !important;
+        background-color: #0f4daf;
+    }
+
+    #dayModal #breaksContainer {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 2px !important;
 }
-
-
+}
 
 
 /* ============================================================ */

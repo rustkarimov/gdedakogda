@@ -2743,7 +2743,7 @@ function renderBreaks(breaks) {
 
 function createBreakItem(breakData, index, showAddButton) {
     const hasBreak = breakData !== null;
-    const displayText = hasBreak ? `${breakData.start} - ${breakData.end}` : '—';
+    const displayText = hasBreak ? `${breakData.start} - ${breakData.end}` : '';
     const startVal = hasBreak ? breakData.start : '';
     const endVal = hasBreak ? breakData.end : '';
     const label = hasBreak ? (index === 0 ? 'Перерыв:' : `Перерыв ${index + 1}:`) : 'Перерыв:';
@@ -2826,13 +2826,13 @@ function toggleBreakEdit(index) {
         editMode = document.createElement('span');
         editMode.className = 'break-edit-mode d-flex align-items-center gap-1';
         editMode.innerHTML = `
-            <input type="time" class="form-control form-control-sm break-start" value="${item._breakStart}" style="width: 90px; height: 36px;">
-            <span>—</span>
-            <input type="time" class="form-control form-control-sm break-end" value="${item._breakEnd}" style="width: 90px; height: 36px;">
-            <button class="btn btn-sm btn-success save-break-btn" onclick="saveBreakFromModal(${index})">
-                <i class="fas fa-save"></i>
+            <input type="time" class="form-control form-control-sm break-start" value="${item._breakStart}">
+            <span>-</span>
+            <input type="time" class="form-control form-control-sm break-end" value="${item._breakEnd}">
+            <button class="btn btn-sm save-break-btn" onclick="saveBreakFromModal(${index})">
+                <i class="fas fa-check"></i>
             </button>
-            <button class="btn btn-sm btn-outline-secondary cancel-break-btn" onclick="cancelEditBreakFromModal(${index})">
+            <button class="btn btn-sm cancel-break-btn" onclick="cancelEditBreakFromModal(${index})">
                 <i class="fas fa-times"></i>
             </button>
         `;
