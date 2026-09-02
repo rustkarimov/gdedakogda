@@ -249,21 +249,6 @@
 </div>
 
 
-                    <!-- РЕДАКТИРОВАНИЕ РАБОЧЕГО ВРЕМЕНИ (скрыто) -->
-                    <!-- <div id="editWorkTimeBlock" style="display: none;" class="mb-2">
-                        <div class="d-flex align-items-center gap-2 flex-wrap">
-                            <span><i class="fas fa-clock me-2" style="color: var(--primary);"></i>Работаю:</span>
-                            <input type="time" class="form-control form-control-sm" id="editWorkStart" style="width: 100px;">
-                            <span>—</span>
-                            <input type="time" class="form-control form-control-sm" id="editWorkEnd" style="width: 100px;">
-                            <button class="btn btn-sm btn-success" onclick="saveWorkTime()">
-                                <i class="fas fa-save"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-secondary" onclick="cancelEditWorkTime()">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    </div> -->
 
                     <!-- СТРОКИ: ПЕРЕРЫВЫ -->
                     <div id="breaksContainer">
@@ -2741,6 +2726,7 @@ function renderBreaks(breaks) {
     });
 }
 
+
 function createBreakItem(breakData, index, showAddButton) {
     const hasBreak = breakData !== null;
     const displayText = hasBreak ? `${breakData.start} - ${breakData.end}` : '';
@@ -2749,18 +2735,19 @@ function createBreakItem(breakData, index, showAddButton) {
     const label = hasBreak ? (index === 0 ? 'Перерыв:' : `Перерыв ${index + 1}:`) : 'Перерыв:';
     
     const item = document.createElement('div');
-    item.className = 'break-item d-flex align-items-center gap-2 mb-1 flex-wrap';
+    item.className = 'break-item';
     item.dataset.index = index;
     item.id = `break-item-${index}`;
     
     let html = `
-        <span class="break-label">
-            <i class="fas fa-coffee me-1" style="color: #f59e0b;"></i>
-            <span class="fw-bold me-1">${label}</span>
-        </span>
-        <span class="break-view-mode d-flex align-items-center gap-1">
+        <div class="break-label-wrapper">
+            <span class="break-label">
+                <i class="fas fa-coffee me-1" style="color: #f59e0b;"></i>
+                <span class="fw-bold me-1">${label}</span>
+            </span>
+        </div>
+        <div class="break-view-mode">
             <span class="break-display">${displayText}</span>
-        </span>
     `;
     
     // ✏️ всегда показываем
@@ -2788,15 +2775,17 @@ function createBreakItem(breakData, index, showAddButton) {
         `;
     }
     
+    html += `</div>`;
+    
     item.innerHTML = html;
     
-    // Сохраняем данные для редактирования
     item._breakStart = startVal;
     item._breakEnd = endVal;
     item._breakEditMode = false;
     
     return item;
 }
+
 
 function toggleBreakEdit(index) {
     const item = document.getElementById(`break-item-${index}`);

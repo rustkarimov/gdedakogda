@@ -1068,6 +1068,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 }
 
 
+
 @media (max-width: 768px) {
 
 
@@ -1258,8 +1259,6 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 /* ============================================================ */
 /* ========== МОДАЛЬНЫЕ ОКНА КАЛЕНДАРЯ ========== */
 /* ============================================================ */
-
-
 
 #dayModalDate {
     font-size: 1.3rem;
@@ -1478,6 +1477,14 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     display: flex !important;
     padding: 4px 0 !important;        /* ← внутренние отступы */
     align-items: center !important;
+    min-height: 36px !important;
+    height: 50px !important;
+}
+
+#dayModal #breaksContainer .break-view-mode {
+    display: inline-flex !important;
+    align-items: center !important;
+    min-height: 30px !important;
 }
 
 /* ---- Карточки услуг/дат/времени как на других страницах ---- */
@@ -1537,7 +1544,7 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
 #dayBookingsContainer .action-icons {
     display: flex;
-    gap: 6px;
+    gap: 16px;
     align-items: center;
 }
 
@@ -1618,23 +1625,9 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
 /* ===== ПОЛЯ ДЛЯ РАБОЧИХ ЧАСОВ (ДЕСКТОП) ===== */
 #dayModal .work-edit-mode .work-time-input {
-    width: 70px !important;          /* ← фиксируем ширину */
-    min-width: 60px !important;
-    max-width: 80px !important;
-    height: 28px !important;
-    padding: 4px 6px !important;
-    font-size: 0.8rem !important;
-    border-radius: 6px !important;
-    border: 1px solid var(--gray-300) !important;
-    text-align: center !important;
-}
-
-/* ===== ПОЛЯ ДЛЯ ПЕРЕРЫВОВ (ДЕСКТОП) ===== */
-#dayModal .break-edit-mode .break-start,
-#dayModal .break-edit-mode .break-end {
-    width: 70px !important;
-    min-width: 60px !important;
-    max-width: 80px !important;
+    width: 90px !important;          /* ← фиксируем ширину */
+    min-width: 80px !important;
+    max-width: 100px !important;
     height: 30px !important;
     padding: 4px 6px !important;
     font-size: 0.8rem !important;
@@ -1643,10 +1636,45 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
     text-align: center !important;
 }
 
-#dayModal .work-edit-mode,
+#dayModal .work-time-row {
+    min-height: 36px !important;   /* ← фиксируем минимальную высоту */
+}
+
+#dayModal .work-edit-mode .work-save-btn,
+#dayModal .work-edit-mode .work-cancel-btn,
+#dayModal .break-edit-mode .save-break-btn,
+#dayModal .break-edit-mode .cancel-break-btn {
+    height: 30px !important;       /* ← кнопки одной высоты с полями */
+    width: 30px !important;
+}
+
+/* ===== ПОЛЯ ДЛЯ ПЕРЕРЫВОВ (ДЕСКТОП) ===== */
+#dayModal .break-edit-mode .break-start,
+#dayModal .break-edit-mode .break-end {
+    width: 90px !important;
+    min-width: 80px !important;
+    max-width: 100px !important;
+    height: 30px !important;
+    padding: 4px 6px !important;
+    font-size: 0.8rem !important;
+    border-radius: 6px !important;
+    border: 1px solid var(--gray-300) !important;
+    text-align: center !important;
+}
+
+/* #dayModal .work-edit-mode, */
 #dayModal .break-edit-mode {
     align-items: center !important;
     gap: 4px !important;
+}
+
+#dayModal .break-edit-mode {
+    display: inline-flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 4px !important;
+    min-height: 30px !important;
 }
 
 #dayModal #workTimeLabel {
@@ -1670,6 +1698,22 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 /* Убираем лишний отступ у "Перерыв:" */
 #dayModal #breaksContainer .break-label .fw-bold {
     margin-right: 0 !important;
+}
+
+
+#dayModal #breaksContainer .break-label {
+    display: inline-flex !important;
+    align-items: center !important;
+    margin-right: 8px !important;
+    font-weight: 400 !important;
+    line-height: 36px !important;   /* ← вместо height */
+    vertical-align: middle !important;
+    padding: 0 !important;
+}
+
+
+#dayModal #breaksContainer .edit-break-btn {
+    margin-left: 12px !important;
 }
 
 
@@ -1747,19 +1791,42 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
         gap: 2px !important;
     }
 
-    #dayModal .work-time-row,
+    #dayModal .work-time-row {
+        display: flex !important;
+        flex-direction: column !important;  /* ← главное: колонка */
+        align-items: flex-start !important;
+        width: 100% !important;
+        gap: 0px !important;
+    }
+
     #dayModal .work-time-row .d-flex {
         display: flex !important;
-        flex-direction: row !important;
+        flex-direction: row !important;  /* ← внутри строка */
         flex-wrap: wrap !important;
         align-items: center !important;
-        gap: 6px !important;
-        min-height: 32px !important;
+        gap: 0px !important;
+        width: 100% !important;
+        min-height: 28px !important;
+        height: 28px !important;
+        margin-bottom: 30px;
     }
 
     #dayModal #workTimeLabel {
-        margin-right: 0 !important;   /* ← отменяем отступ на мобильных */
+        display: block !important;
+        width: 100% !important;
+        font-weight: 600 !important;
+        font-size: 0.85rem !important;
     }
+
+    /* Отступы от Работаю */
+    #dayModal .work-time-row .work-view-mode {
+        margin-top: 2px !important;
+    }
+
+    #dayModal .work-time-row .work-edit-mode {
+        margin-top: 6px !important;
+    }
+
     
 
     /* Исключаем кнопку редактирования из width: 100% */
@@ -1771,11 +1838,11 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
 
     #dayModal .work-edit-mode .work-time-input {
-        width: 60px !important;
-        min-width: 40px !important;
+        width: 80px !important;        /* ← было 60px */
+        min-width: 60px !important;    /* ← было 40px */
         height: 28px !important;
-        font-size: 12px !important;
-        padding: 0 2px !important;
+        font-size: 12px !important;    /* ← было 12px */
+        padding: 0 2px !important;     /* ← было 0 2px */
         border-radius: 8px;
     }
 
@@ -1790,26 +1857,39 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
     #dayModal .break-edit-mode .break-start,
     #dayModal .break-edit-mode .break-end {
-        width: 48px !important;
-        min-width: 48px !important;
+        width: 80px !important;
+        min-width: 60px !important;
         height: 28px !important;
         font-size: 12px !important;
-        padding: 0 2px !important;
+        /* padding: 0 2px !important; */
         text-align: center !important;
     }
 
     #dayModal #breaksContainer .break-view-mode {
-        display: inline-flex !important;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
         align-items: center !important;
-        gap: 4px !important;
+        /* gap: 6px !important; */
+        margin-top: 0px !important;
+        min-height: 28px !important;
+        /* background-color: #16a34a; */
+        margin: 0 !important;
+        padding: 0 !important;
+        
+    }
+
+    #dayModal #breaksContainer .edit-break-btn {
+        margin-left: 10px !important;   /* ← отступ только перед первой иконкой (редактирование) */
     }
 
     #dayModal #breaksContainer .break-display {
         font-size: 0.8rem !important;
         white-space: nowrap !important;
+        margin-bottom: 0px;
+        /* background-color: #0f4daf; */
     }
     
-
     #dayModal #breaksContainer .edit-break-btn,
     #dayModal #breaksContainer .delete-break-btn,
     #dayModal #breaksContainer .add-break-btn {
@@ -1923,20 +2003,40 @@ body:has(#workingDayActions[style*="display: block"]) #addBookingButtonContainer
 
     #dayModal #breaksContainer .break-item {
         display: flex !important;
-        flex-direction: row !important;
-        flex-wrap: nowrap !important;
-        align-items: center !important;
-        gap: 4px !important;
-        padding: 4px 0 !important;
-        margin-bottom: 4px !important;
-        background-color: #0f4daf;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0px !important;        /* ← добавляем gap для отступа между строками */
+        width: 100% !important;
+        padding: 8px 0 !important;  /* ← добавляем padding, чтобы перерывы не накладывались */
+        margin-bottom: 25px !important; /* ← отступ между перерывами */
+        /* border-bottom: 1px solid var(--gray-100) !important;  */
+        /* background-color: aquamarine; */
     }
 
-    #dayModal #breaksContainer {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 2px !important;
-}
+
+    #dayModal #breaksContainer .break-item:last-child {
+        border-bottom: none !important;
+        margin-bottom: 0 !important;
+
+    }
+
+    #dayModal #breaksContainer .break-label {
+        display: block !important;
+        width: 100% !important;
+        font-weight: 600 !important;
+        font-size: 0.85rem !important;
+        min-height: 24px !important;
+        line-height: 1 !important;
+    }
+
+    #dayModal #breaksContainer .break-edit-mode {
+        margin-top: 2px !important;
+        min-height: 28px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+
 }
 
 
