@@ -382,7 +382,7 @@ body {
 }
 
 .nav-item.active {
-    background: linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, rgba(168, 85, 247, 0.1) 100%);
+    background: linear-gradient(135deg, rgba(64, 83, 211, 0.08) 0%, rgba(139, 156, 245, 0.08) 100%);
     color: var(--primary);
 }
 
@@ -1715,10 +1715,13 @@ body {
 /* ============================================================ */
 
 /* ---- Шапка страницы ---- */
-.services-page .page-header {
- 
-    margin-bottom: 16px;
 
+.services-page {
+   width: 60%;
+}
+
+.services-page .page-header {
+    margin-bottom: 16px;
 }
 
 .services-page .page-header h2 {
@@ -1865,18 +1868,19 @@ body {
 
 .services-page .service-card {
     background: white;
-    border: 1px solid var(--gray-200);
+    border: 0.1px solid rgb(114, 114, 114);
     border-radius: 12px;
     padding: 12px;
-    transition: all 0.2s ease;
     position: relative;
+    transition: none !important;
+    transform: none !important;
 }
 
-.services-page .service-card:hover {
+/* .services-page .service-card:hover {
     border-color: var(--primary);
     box-shadow: 0 2px 8px rgba(124, 58, 237, 0.08);
     transform: translateY(-2px);
-}
+} */
 
 .services-page .service-card .service-name {
     font-weight: 600;
@@ -1984,10 +1988,12 @@ body {
     margin-bottom: 16px;
 }
 
+
+
 /* ---- Мобильная версия ---- */
 @media (max-width: 768px) {
     .services-page {
-        margin: 0 10px;
+        width: 100%;
     }
     
     .services-page .page-header {
@@ -2730,58 +2736,6 @@ body {
     }
 }
 
-
-/* 
-.border-pink {
-    border: 2px solid #ff85b3 !important;
-    background-color: #fff9fb !important;
-}
-
-.border-2 {
-    border-width: 2px !important;
-}
-
-.bg-light {
-    background-color: #f8f9fa !important;
-}
-
-.service-card,
-.date-card,
-.slot-card {
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.service-card:hover,
-.date-card:hover,
-.slot-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.service-close-btn {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    z-index: 10;
-}
-
-.service-close-btn:hover {
-    background-color: #c82333;
-    transform: scale(1.1);
-} */
 
 
 /* ============================================================ */
