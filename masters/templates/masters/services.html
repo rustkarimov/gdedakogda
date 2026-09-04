@@ -42,9 +42,9 @@
             <div class="modal-body">
                 <!-- Форма добавления/редактирования категории -->
                 <div class="card mb-3">
-                    <div class="card-header bg-light">
+                    <!-- <div class="card-header bg-light">
                         <strong>Добавить / редактировать категорию</strong>
-                    </div>
+                    </div> -->
                     <div class="card-body">
                         <form id="categoryForm">
                             <input type="hidden" id="categoryId">
@@ -57,7 +57,7 @@
                                 <input type="number" class="form-control" id="categoryOrder" value="0" min="0">
                                 <small class="text-muted">Чем меньше число, тем выше категория в списке</small>
                             </div>
-                            <button type="button" class="btn btn-pink" onclick="saveCategory()">
+                            <button type="button" class="btn btn-primary" onclick="saveCategory()">
                                 <i class="fas fa-save me-1"></i>Сохранить категорию
                             </button>
                         </form>
