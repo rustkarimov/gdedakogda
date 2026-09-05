@@ -2208,7 +2208,7 @@ body {
 }
 
 #categoryModal .card-body .form-control[type="number"] {
-    color: var(--gray-400) !important;
+    color: var(--gray-700) !important;
 }
 
 #categoryModal .card-body .text-muted {
@@ -2218,7 +2218,7 @@ body {
 
 /* ---- Кнопка "Сохранить категорию" ---- */
 #categoryModal .btn-pink {
-    background: var(--primary-gradient);
+    background: var(--primary);
     color: white;
     border: none;
     padding: 8px 20px;
@@ -2431,6 +2431,12 @@ body {
         font-size: 12px !important;
         padding: 8px 12px !important;
         border-radius: 8px !important;
+    }
+
+    #categoryModal .card-body .text-muted {
+        display: block !important;
+        line-height: 1.3 !important;
+        margin-top: 5px;
     }
     
     /* Список категорий */
