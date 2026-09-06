@@ -5,7 +5,7 @@
 {% block content %}
 <div class="schedule-page">
     <div class="page-header">
-        <h2><i class="far fa-calendar-alt me-2"></i>Расписание работы</h2>
+        <h2>Расписание работы</h2>
     </div>
 
 
@@ -46,12 +46,11 @@
 </div>
 
 <div class="row">
-    <div class="col-lg-8">
 
-        <!-- Регулярное расписание -->
+    <!-- Регулярное расписание -->
         <div class="card">
             <div class="card-body">
-                <div class="section-title">Ваше регулярное расписание</div>
+                <div class="section-title">Регулярное расписание</div>
                 <div id="schedules-container">
                     {% include 'masters/_schedules_list.html' %}
                 </div>
@@ -101,7 +100,6 @@
             </div>
         </div>
 
-    </div>
 </div>
 
 <!-- Модальное окно для добавления/редактирования регулярного расписания -->

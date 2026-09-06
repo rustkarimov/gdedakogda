@@ -58,7 +58,7 @@
                                 <small class="text-muted">Чем меньше число, тем выше категория в списке</small>
                             </div>
                             <button type="button" class="btn btn-pink" onclick="saveCategory()">
-                                <i class="fas fa-save me-1"></i>Сохранить категорию
+                                <i class="fas fa-check me-1"></i>Сохранить категорию
                             </button>
                         </form>
                     </div>
@@ -332,18 +332,18 @@ function loadCategoriesList() {
                                 <span class="badge bg-secondary ms-2">${cat.services.length} услуг</span>
                                 <span class="text-muted ms-2">(порядок: ${cat.order})</span>
                             </div>
-                            <div class="category-edit-mode" style="display: none; width: 100%; margin-top: 8px;">
+                            <div class="category-edit-mode" style="display: none; width: 100%;">
                                 <div class="d-flex gap-2 align-items-center" style="width: 100%; flex-wrap: nowrap">
                                     <input type="text" class="form-control form-control-sm" value="${escapeHtml(cat.name)}" id="edit-name-${cat.id}" placeholder="Название">
                                     <input type="number" class="form-control form-control-sm" value="${cat.order}" id="edit-order-${cat.id}" min="0" style="width: 60px; flex-shrink: 0;">
                                 </div>
                             </div>
                             <div class="category-actions">
-                                <button class="btn btn-sm btn-outline-pink me-1" onclick="editCategoryInline(${cat.id})" id="edit-btn-${cat.id}">
+                                <button class="btn btn-sm" onclick="editCategoryInline(${cat.id})" id="edit-btn-${cat.id}">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <button class="btn btn-sm btn-outline-success me-1" onclick="saveCategoryInline(${cat.id})" id="save-btn-${cat.id}" style="display: none;">
-                                    <i class="fas fa-save"></i>
+                                    <i class="fas fa-check"></i>
                                 </button>
                                 <button class="btn btn-sm btn-outline-secondary me-1" onclick="cancelCategoryInline(${cat.id})" id="cancel-btn-${cat.id}" style="display: none;">
                                     <i class="fas fa-times"></i>

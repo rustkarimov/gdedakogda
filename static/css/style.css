@@ -183,6 +183,52 @@ body {
 }
 
 
+.btn-pink {
+    background: var(--primary) !important;
+    color: white !important;
+    border: none !important;
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: background 0.2s ease !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-pink:hover {
+    background: var(--primary-dark) !important;
+    color: white !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* ===== КНОПКА OUTLINE-PINK (ГЛОБАЛЬНАЯ) ===== */
+.btn-outline-pink {
+    border: 1px solid var(--primary) !important;
+    color: var(--primary) !important;
+    background: transparent !important;
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    transition: all 0.2s ease !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-outline-pink:hover {
+    background: var(--primary) !important;
+    border-color: transparent !important;
+    color: white !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+
+
 @media (max-width: 768px) {
     .btn-primary {
         width: 100% !important;
@@ -1750,30 +1796,6 @@ body {
     transition: all 0.2s ease !important;
 }
 
-.services-page .actions-bar .btn-pink {
-    background: var(--primary-gradient);
-    color: white;
-    border: none;
-}
-
-.services-page .actions-bar .btn-pink:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
-    color: white;
-}
-
-.services-page .actions-bar .btn-outline-pink {
-    border: 1px solid var(--primary);
-    color: var(--primary);
-    background: transparent;
-}
-
-.services-page .actions-bar .btn-outline-pink:hover {
-    background: var(--primary-gradient);
-    border-color: transparent;
-    color: white;
-}
-
 /* ---- Карточки категорий ---- */
 .services-page .category-card {
     border-radius: 16px;
@@ -2216,32 +2238,39 @@ body {
     color: var(--gray-400) !important;
 }
 
-/* ---- Кнопка "Сохранить категорию" ---- */
-#categoryModal .btn-pink {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 8px 20px;
-    border-radius: 30px;
-    font-weight: 500;
-    font-size: 0.85rem;
-    transition: all 0.2s ease;
-}
-
-#categoryModal .btn-pink:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
-    color: white;
-}
 
 /* ---- Список категорий в модалке ---- */
-#categoryModal .list-group-item {
+/* #categoryModal .list-group-item {
     padding: 12px 16px;
     border-left: none;
     border-right: none;
     border-bottom: 1px solid var(--gray-100);
     transition: background 0.2s ease;
+} */
+ 
+
+#categoryModal .list-group-item {
+    min-height: 48px !important;
+    height: 48px !important;
+    transition: none !important;
 }
+
+#categoryModal .list-group-item .category-view-mode,
+#categoryModal .list-group-item .category-edit-mode {
+    min-height: 28px !important;
+    height: 30px !important;
+    line-height: 32px !important;      /* ← выравниваем по вертикали */
+    vertical-align: middle !important;
+}
+
+#categoryModal .list-group-item .category-edit-mode .form-control-sm {
+    height: 32px !important;
+    padding: 4px 8px !important;
+    font-size: 0.8rem !important;
+    vertical-align: middle !important; /* ← выравниваем поля */
+}
+
+
 
 #categoryModal .list-group-item:last-child {
     border-bottom: none;
@@ -2261,11 +2290,6 @@ body {
 #categoryModal .list-group-item .text-muted {
     font-size: 0.75rem;
 }
-
-/* #categoryModal .list-group-item .category-edit-mode .form-control-sm {
-        flex: 1;
-        min-width: 50px;
-    } */
 
 
 /* Кнопки в списке категорий - чтобы не переносились */
@@ -2392,20 +2416,6 @@ body {
         justify-content: center !important;
     }
     
-    /* Карточка формы */
-    /* #categoryModal .card {
-        border-radius: 10px !important;
-    }
-    
-    #categoryModal .card-header {
-        padding: 8px 12px !important;
-        font-size: 0.8rem !important;
-    }
-    
-    #categoryModal .card-body {
-        padding: 12px !important;
-    } */
-
     #categoryModal .card {
         border: none !important;
         border-radius: 0 !important;
@@ -2441,12 +2451,15 @@ body {
     
     /* Список категорий */
     #categoryModal .list-group-item {
-        padding: 10px 12px !important;
+        /* padding: 10px 12px !important; */
+        flex-wrap: wrap !important;
+        min-height: 56px !important;
+        padding-left: 0px !important;        
     }
     
     #categoryModal .list-group-item .d-flex {
         flex-wrap: nowrap !important;
-        gap: 6px !important;
+        gap: 0px !important;
     }
     
     #categoryModal .list-group-item .category-view-mode {
@@ -2473,6 +2486,12 @@ body {
         height: 10px;
     }
 
+    #categoryModal .list-group-item .text-muted {
+        margin-top: 0px !important;   /* ← уменьшаем отступ */
+        margin-left: 0px !important;
+        font-size: 0.65rem !important;  /* ← уменьшаем шрифт */
+    }
+
     /* Кнопки в списке категорий */
     #categoryModal .list-group-item .btn-sm {
         padding: 2px 6px !important;
@@ -2480,45 +2499,6 @@ body {
     }
 }
 
-@media (max-width: 480px) {
-    #categoryModal .modal-dialog {
-        margin: 0 !important;
-        width: 100% !important;
-    }
-    
-    #categoryModal .modal-header {
-        padding: 10px 12px !important;
-    }
-    
-    #categoryModal .modal-header h5 {
-        font-size: 0.85rem !important;
-    }
-    
-    #categoryModal .modal-body {
-        padding: 10px 12px !important;
-    }
-    
-    #categoryModal .card-header {
-        font-size: 0.75rem !important;
-        padding: 6px 10px !important;
-    }
-    
-    #categoryModal .card-body {
-        padding: 10px !important;
-    }
-    
-    #categoryModal .card-body .form-label {
-        font-size: 0.75rem !important;
-    }
-    
-    #categoryModal .list-group-item {
-        padding: 8px 2px !important;
-    }
-    
-    #categoryModal .list-group-item .category-view-mode strong {
-        font-size: 0.8rem !important;
-    }
-}
 
 /* ============================================================ */
 /* ========== МОДАЛЬНОЕ ОКНО УСЛУГИ (serviceModal) ========== */
@@ -2627,22 +2607,6 @@ body {
     color: var(--gray-800);
 }
 
-#serviceModal .btn-pink {
-    background: var(--primary-gradient);
-    color: white;
-    border: none;
-    padding: 8px 20px;
-    border-radius: 30px;
-    font-weight: 500;
-    font-size: 0.85rem;
-    transition: all 0.2s ease;
-}
-
-#serviceModal .btn-pink:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
-    color: white;
-}
 
 /* ============================================================ */
 /* ========== МОДАЛЬНОЕ ОКНО УСЛУГИ (МОБИЛЬНАЯ ВЕРСИЯ) ========== */
@@ -2747,12 +2711,14 @@ body {
 }
 
 
-
 /* ============================================================ */
 /* ========== СТРАНИЦА РАСПИСАНИЯ (schedule.html) ========== */
 /* ============================================================ */
 
-/* ---- Шапка страницы ---- */
+.schedule-page {
+    width: 60%;
+}
+
 .schedule-page .page-header {
     margin-bottom: 24px;
 }
@@ -2806,18 +2772,6 @@ body {
     box-shadow: 0 1px 3px rgba(124, 58, 237, 0.15);
 }
 
-/* .schedule-page .card-header h5 {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--gray-800);
-    margin: 0;
-    display: inline-block;
-    background: #ede9fe;
-    padding: 6px 14px 6px 10px;
-    border-radius: 0 6px 6px 0;
-    border-left: 4px solid #7c3aed;
-    box-shadow: 0 1px 3px rgba(124, 58, 237, 0.15);
-} */
 
 /* скрываем иконки секций Расписания */
 .schedule-page .card-header h5 i {
@@ -3059,16 +3013,16 @@ body {
 }
 
 
-
-/* ============================================================ */
-/* ========== СТРАНИЦА РАСПИСАНИЯ (МОБИЛЬНАЯ ВЕРСИЯ) ========== */
-/* ============================================================ */
-
 /* ============================================================ */
 /* ========== СТРАНИЦА РАСПИСАНИЯ (МОБИЛЬНАЯ ВЕРСИЯ) ========== */
 /* ============================================================ */
 
 @media (max-width: 768px) {
+
+    .schedule-page {
+        width: 100%;
+        margin: 0;
+    }
 
     .schedule-page .page-header {
         margin-bottom: 16px;
@@ -3278,7 +3232,7 @@ body {
     }
 }
 
-@media (max-width: 480px) {
+/* @media (max-width: 480px) {
         
     .schedule-page .page-header .btn {
         font-size: 0.7rem;
@@ -3313,7 +3267,7 @@ body {
     .schedule-page .action-icons .btn i {
         font-size: 0.75rem !important;
     }
-}
+} */
 
 
 /* ============================================================ */
