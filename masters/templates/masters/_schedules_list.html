@@ -26,7 +26,7 @@
                             <span class="break-text">
                                 {{ break.start_time|time:"H:i" }} - {{ break.end_time|time:"H:i" }}
                             </span>
-                            {% if not forloop.last %}, {% endif %}
+                            <!-- {% if not forloop.last %}, {% endif %} -->
                         {% empty %}
                             <span class="text-muted">—</span>
                         {% endfor %}

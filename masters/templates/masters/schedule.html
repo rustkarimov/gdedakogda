@@ -547,7 +547,7 @@ function renderFutureDays(futureDays) {
             html += `
                 <tr id="extra-day-row-${day.id}">
                     <td data-label="day"><strong>${day.date_display}</strong></td>
-                    <td data-label="start">${day.start_time} + ${day.end_time}</td>
+                    <td data-label="start">${day.start_time} - ${day.end_time}</td>
                     <td data-label="breaks">${breaksHtml}</td>
                     <td data-label="actions">
                         <div class="action-icons">
@@ -952,6 +952,18 @@ document.addEventListener('hidden.bs.modal', function() {
     if (document.querySelectorAll('.modal.show').length) {
         document.body.classList.add('modal-open');
     }
+});
+
+document.addEventListener('hidden.bs.modal', function (event) {
+    // Восстанавливаем скролл после закрытия любой модалки
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+    
+    // Удаляем все оставшиеся backdrop'ы
+    document.querySelectorAll('.modal-backdrop').forEach(function(el) {
+        el.remove();
+    });
 });
 </script>
 
