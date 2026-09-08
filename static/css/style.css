@@ -2762,14 +2762,14 @@ body {
 .schedule-page .card-body .section-title {
     font-size: 1.1rem;
     font-weight: 700;
-    color: var(--gray-800);
-    margin: 0 0 12px 0;
+    color: var(--primary);
+    margin: 5px 0 12px 0;
     display: inline-block;
-    background: #ede9fe;
+    background: var(--primary-light);
     padding: 6px 14px 6px 10px;
     border-radius: 0 6px 6px 0;
-    border-left: 4px solid #7c3aed;
-    box-shadow: 0 1px 3px rgba(124, 58, 237, 0.15);
+    border-left: 4px solid var(--primary);  /* ← меняем цвет полоски */
+    box-shadow: 0 1px 3px rgba(64, 83, 211, 0.15);  /* ← меняем тень */
 }
 
 
@@ -2912,6 +2912,13 @@ body {
     width: 20px;
 }
 
+.work-time-mobile {
+    display: none !important;
+}
+.work-time-desktop {
+    display: inline !important;
+}
+
 /* ---- Иконки действий (как на странице Услуги) ---- */
 /* ---- Иконки действий (как на странице Услуги) ---- */
 .schedule-page .action-icons {
@@ -3034,26 +3041,11 @@ body {
         text-align: left;
     }
     
-    /* .schedule-page .page-header .btn {
-        width: 100%;
-        text-align: center;
-        justify-content: center;
-        font-size: 0.8rem;
-        padding: 8px 16px;
-        border-radius: 30px;
-    } */
-    
     .schedule-page .card {
         border-radius: 12px;
         margin-bottom: 12px;
+        margin-left: 0px;
     }
-    
-    /* .schedule-page .card-header {
-        padding: 10px 12px;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px;
-    } */
     
     .schedule-page .card-body .section-title {
         font-size: 1rem;
@@ -3066,25 +3058,9 @@ body {
     }
     
     .schedule-page .card-body {
-        padding: 12px;
+        padding: 8px 0px
     }
-
-    /* Эти строки расширяют кнопки в Расписании */
-    /* .schedule-page .section-actions {
-        margin-top: 12px;
-        padding-top: 10px;
-    }
-    
-    .schedule-page .section-actions .btn-pink {
-        width: 100%;
-        justify-content: center;
-    } */
-    
-    /* Таблица в карточки на мобильных */
-    .schedule-page .table {
-        font-size: 0.8rem;
-    }
-    
+ 
     .schedule-page .table thead {
         display: none;
     }
@@ -3093,10 +3069,10 @@ body {
         display: block;
         background: white;
         border-radius: 10px;
-        padding: 10px 12px;
-        margin-bottom: 8px;
-        border: 1px solid var(--gray-200);
+        border: 0.5px solid rgb(124, 124, 124);
         box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        padding: 4px 8px;
+        margin-bottom: 5px;
     }
     
     .schedule-page .table tbody td {
@@ -3105,15 +3081,15 @@ body {
         align-items: center;
         padding: 4px 0 !important;
         border: none !important;
-        font-size: 0.8rem;
+        font-size: 10px;
     }
     
     /* Строка 1: День недели (жирный, крупнее) */
     .schedule-page .table tbody td[data-label="day"] {
         font-weight: 600;
-        font-size: 0.95rem;
+        font-size: 14px;
         color: var(--gray-800);
-        padding-bottom: 6px !important;
+        padding-bottom: 3px !important;
         border-bottom: 1px solid var(--gray-100) !important;
     }
     
@@ -3121,23 +3097,31 @@ body {
     .schedule-page .table tbody td[data-label="start"],
     .schedule-page .table tbody td[data-label="end"] {
         display: inline-flex !important;
-        font-size: 0.85rem;
+        font-size: 12px;
         color: var(--gray-700);
     }
-    
+
     /* Объединяем start и end в одну строку с меткой "Рабочие часы" */
     .schedule-page .table tbody td[data-label="start"]:before {
         content: "Рабочие часы";
         font-weight: 500;
         color: var(--gray-500);
         margin-right: 8px;
-        display: inline-block;
+        display: inline-block;      
+    }
+
+    .work-time-desktop {
+        display: none !important;
+    }
+    .work-time-mobile {
+        display: inline !important;
     }
     
+    /* Скрываем ячейку end на мобильных */
     .schedule-page .table tbody td[data-label="end"] {
         display: none !important;
     }
-    
+
     /* Строка 3: Перерывы */
     .schedule-page .table tbody td[data-label="breaks"]:before {
         content: "Перерыв";
@@ -3145,7 +3129,7 @@ body {
         color: var(--gray-500);
         margin-right: 8px;
         display: inline-block;
- 
+        font-size: 12px;
     }
     
     .schedule-page .table tbody td[data-label="breaks"] {
@@ -3162,7 +3146,8 @@ body {
     }
     
     .schedule-page .break-text {
-        font-size: 0.8rem !important;
+        font-size: 12px;
+        
     }
 
     .schedule-page #days-off-container .table tbody td[data-label="reason"]:before {
@@ -3184,6 +3169,8 @@ body {
         border-top: 1px solid var(--gray-200) !important;
         padding-top: 8px !important;
         margin-top: 6px !important;
+        padding: 0 !important;  /* ← убираем отступы сверху и снизу */
+        margin: 0 !important;
         justify-content: flex-start !important;
     }
     
@@ -3200,14 +3187,22 @@ body {
     .schedule-page .action-icons .btn {
         background: transparent !important;
         border: none !important;
-        padding: 4px 8px !important;
+        padding: 6px 4px !important;
         border-radius: 6px !important;
         transition: all 0.2s ease !important;
     }
     
     .schedule-page .action-icons .btn i {
         color: #6b7280 !important;
-        font-size: 0.85rem !important;
+        font-size: 12px !important;
+    }
+
+    .schedule-page .section-actions {
+        margin: 5px 0 10px 0;
+        padding-top: 0px;
+        border-top: none;
+        display: flex;
+        justify-content: flex-start;  /* ← прижаты к левому краю */
     }
     
     .schedule-page .action-icons .btn:hover {
@@ -3231,43 +3226,6 @@ body {
         margin-top: 12px;
     }
 }
-
-/* @media (max-width: 480px) {
-        
-    .schedule-page .page-header .btn {
-        font-size: 0.7rem;
-        padding: 6px 12px;
-    }
-    
-    .schedule-page .table tbody tr {
-        padding: 8px 10px;
-    }
-    
-    .schedule-page .table tbody td[data-label="day"] {
-        font-size: 0.85rem;
-    }
-    
-    .schedule-page .table tbody td[data-label="start"] {
-        font-size: 0.75rem;
-    }
-    
-    .schedule-page .table tbody td[data-label="breaks"] {
-        font-size: 0.7rem;
-    }
-    
-    .schedule-page .break-text {
-        font-size: 0.6rem;
-        padding: 1px 6px;
-    }
-    
-    .schedule-page .action-icons .btn {
-        padding: 2px 6px !important;
-    }
-    
-    .schedule-page .action-icons .btn i {
-        font-size: 0.75rem !important;
-    }
-} */
 
 
 /* ============================================================ */

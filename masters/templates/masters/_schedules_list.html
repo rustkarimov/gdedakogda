@@ -16,7 +16,10 @@
                 {% for schedule in schedules %}
                 <tr id="schedule-row-{{ schedule.id }}">
                     <td data-label="day"><strong>{{ schedule.get_day_of_week_display }}</strong></td>
-                    <td data-label="start">{{ schedule.start_time|time:"H:i" }}</td>
+                    <td data-label="start">
+                        <span class="work-time-desktop">{{ schedule.start_time|time:"H:i" }}</span>
+                        <span class="work-time-mobile">{{ schedule.start_time|time:"H:i" }} - {{ schedule.end_time|time:"H:i" }}</span>
+                    </td>
                     <td data-label="end">{{ schedule.end_time|time:"H:i" }}</td>
                     <td data-label="breaks">
                         {% for break in schedule.breaks.all %}
