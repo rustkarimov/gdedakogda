@@ -160,9 +160,9 @@
                     
                 
                     <div class="mb-3 mt-2">
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex align-items-center gap-2" style="margin-bottom: 6px;">
                             <label class="form-label mb-0">Перерывы</label>
-                            <button type="button" class="btn btn-sm btn-outline-pink" onclick="addBreakField()" title="Добавить перерыв" style="padding: 2px 8px; font-size: 0.8rem;">
+                            <button type="button" class="btn-circle-plus" onclick="addBreakField()" title="Добавить перерыв" style="padding: 2px 8px; font-size: 0.8rem;">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
@@ -211,36 +211,18 @@
                         </div>
                     </div>
                     
-                    <!-- <div class="mb-3">
-                        <label class="form-label">Перерывы</label>
-                        <div id="extraDayBreaksContainer">
-                            <div class="break-item row mb-2">
-                                <div class="col-md-5">
-                                    <input type="time" class="form-control break-start" placeholder="Начало">
-                                </div>
-                                <div class="col-md-5">
-                                    <input type="time" class="form-control break-end" placeholder="Конец">
-                                </div>
-                                <div class="col-md-2">
-                                    <button type="button" class="btn btn-danger btn-sm remove-break" style="display: none;">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-sm btn-outline-pink mt-2" onclick="addExtraDayBreakField()">
-                            <i class="fas fa-plus me-1"></i>Добавить перерыв
-                        </button>
-                    </div> -->
 
-                    <div class="mb-3">
-                        <label class="form-label">Перерывы</label>
+                    <div class="mb-3" style="margin-top: 12px; ">
+                  
+                        <div class="d-flex align-items-center gap-2" style="margin-bottom: 6px;">
+                            <label class="form-label mb-0">Перерывы</label>
+                            <button type="button" class="btn-circle-plus" onclick="addExtraDayBreakField()" title="Добавить перерыв">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
                         <div id="extraDayBreaksContainer" style="display: none;">
                             <!-- Перерывы будут добавляться сюда -->
                         </div>
-                        <button type="button" class="btn btn-sm btn-outline-pink" onclick="addExtraDayBreakField()">
-                            <i class="fas fa-plus me-1"></i>Добавить перерыв
-                        </button>
                     </div>
 
                 </form>
@@ -331,7 +313,7 @@ function openAddModal() {
 
 
 function editSchedule(button) {
-    document.getElementById('modalTitle').innerText = `Редактировать расписание - ${button.dataset.dayName}`;
+    document.getElementById('modalTitle').innerText = `Редактировать расписание`;
     document.getElementById('scheduleId').value = button.dataset.id;
     
     // Скрываем select, показываем текстовое поле
