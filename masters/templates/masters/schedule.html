@@ -5,7 +5,7 @@
 {% block content %}
 <div class="schedule-page">
     <div class="page-header">
-        <h2>Расписание работы</h2>
+        <h2>Расписание</h2>
     </div>
 
 
@@ -75,7 +75,7 @@
                 </div>
                 <div class="section-actions">
                     <button class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#extraDayModal" onclick="openAddExtraDayModal()">
-                        <i class="fas fa-plus me-1"></i>Добавить рабочий день
+                        <i class="fas fa-plus me-1"></i>Добавить допдень
                     </button>
                 </div>
             </div>
@@ -115,24 +115,11 @@
                     {% csrf_token %}
                     <input type="hidden" id="scheduleId" name="schedule_id">
                     
-                    <!-- <div class="mb-3">
-                        <label class="form-label">День недели</label>
-                        <select class="form-select" id="dayOfWeek" required>
-                            <option value="">Выберите день</option>
-                            <option value="0">Понедельник</option>
-                            <option value="1">Вторник</option>
-                            <option value="2">Среда</option>
-                            <option value="3">Четверг</option>
-                            <option value="4">Пятница</option>
-                            <option value="5">Суббота</option>
-                            <option value="6">Воскресенье</option>
-                        </select>
-                    </div> -->
                     
                     <div class="mb-3">
                         <label class="form-label">День недели</label>
                         <select class="form-select" id="dayOfWeek" required>
-                            <option value="">Выберите день</option>
+                            <option value="">Выбери день</option>
                             <option value="0">Понедельник</option>
                             <option value="1">Вторник</option>
                             <option value="2">Среда</option>
@@ -188,7 +175,7 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Добавить дополнительный рабочий день</h5>
+                <h5 class="modal-title">Добавить допдень</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">

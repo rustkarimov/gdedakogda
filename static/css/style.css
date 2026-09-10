@@ -2226,7 +2226,8 @@ body {
 
 #categoryModal .card-body .form-control:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    /* box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1); */
+    box-shadow: none;
 }
 
 #categoryModal .card-body .form-control[type="number"] {
@@ -2566,7 +2567,8 @@ body {
 #serviceModal .form-control:focus,
 #serviceModal .form-select:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    /* box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1); */
+    box-shadow: none;
 }
 
 #serviceModal textarea.form-control {
@@ -3033,7 +3035,7 @@ body {
 
     .schedule-page .page-header {
         margin-bottom: 16px;
-        margin-left: 10px;
+        margin-left: 0px;
     }
     
     .schedule-page .page-header h2 {
@@ -3307,7 +3309,8 @@ body {
 #scheduleModal .form-control:focus,
 #scheduleModal .form-select:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    /* box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1); */
+    box-shadow: none;
 }
 
 /* ---- Перерывы с разделителями ---- */
@@ -3703,7 +3706,8 @@ body {
 #extraDayModal .form-control:focus,
 #extraDayModal .form-select:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    /* box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1); */
+    box-shadow: none;
 }
 
 /* ---- Перерывы с разделителями ---- */
@@ -3968,37 +3972,6 @@ body {
   
 }
 
-/* @media (max-width: 480px) {
-    #extraDayModal .modal-header {
-        padding: 10px 12px !important;
-    }
-    
-    #extraDayModal .modal-header h5 {
-        font-size: 0.85rem !important;
-    }
-    
-    #extraDayModal .modal-body {
-        padding: 10px 12px !important;
-    }
-    
-    #extraDayModal .form-label {
-        font-size: 0.75rem !important;
-    }
-    
-    #extraDayModal .form-control,
-    #extraDayModal .form-select {
-        font-size: 14px !important;
-        padding: 6px 10px !important;
-        height: 36px !important;
-    }
-    
-    #extraDayModal .break-item .form-control {
-        height: 34px !important;
-        font-size: 13px !important;
-    }
-} */
-
-
 /* ============================================================ */
 /* ========== МОДАЛЬНОЕ ОКНО ВЫХОДНОГО ДНЯ (dayOffModal) ========== */
 /* ============================================================ */
@@ -4063,7 +4036,8 @@ body {
 
 #dayOffModal .form-control:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    /* box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1); */
+    box-shadow: none;
 }
 
 /* ---- Кнопки в футере ---- */
@@ -4295,7 +4269,8 @@ body {
 
 .statistics-page .card-header .search-wrapper .form-control:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    /* box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1); */
+    box-shadow: none;
 }
 
 .statistics-page .card-body.p-0 {
@@ -4463,7 +4438,8 @@ body {
 
 #blacklistModal .form-control:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    /* box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1); */
+    box-shadow: none;
 }
 
 #blacklistModal textarea.form-control {
@@ -5418,7 +5394,8 @@ body {
 
 .profile-page .form-control:focus {
     border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+    /* box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1); */
+    box-shadow: none;
 }
 
 .profile-page textarea.form-control {
