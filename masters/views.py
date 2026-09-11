@@ -1755,7 +1755,8 @@ def clients_statistics(request):
         })
     
     # Сортируем по количеству визитов (по убыванию)
-    clients_list.sort(key=lambda x: x['total_visits'], reverse=True)
+    # clients_list.sort(key=lambda x: x['total_visits'], reverse=True)
+    clients_list.sort(key=lambda x: (-x['total_visits'], x['key']))
     
     # Пагинация
     page = int(request.GET.get('page', 1))
@@ -1788,9 +1789,9 @@ def get_clients_statistics_api(request):
     master = request.user.master
     
     # Берём ВСЕ записи (не только confirmed)
-    bookings = Booking.objects.filter(
-        master=master
-    ).select_related('service')
+    # bookings = Booking.objects.filter(master=master).select_related('service')
+    bookings = Booking.objects.filter(master=master, status='confirmed').select_related('service')
+
     
     from collections import defaultdict
     import re
@@ -1871,7 +1872,8 @@ def get_clients_statistics_api(request):
             'is_blacklisted': client_key in blacklisted_phones
         })
     
-    clients_list.sort(key=lambda x: x['total_visits'], reverse=True)
+    # clients_list.sort(key=lambda x: x['total_visits'], reverse=True)
+    clients_list.sort(key=lambda x: (-x['total_visits'], x['key']))
     
     # Пагинация
     page = int(request.GET.get('page', 1))
@@ -1899,7 +1901,9 @@ def search_clients_api(request):
         return JsonResponse({'clients': [], 'total': 0})
     
     # Получаем все записи мастера
-    bookings = Booking.objects.filter(master=master).select_related('service')
+    # bookings = Booking.objects.filter(master=master).select_related('service')
+    bookings = Booking.objects.filter(master=master, status='confirmed').select_related('service')
+    
     
     from collections import defaultdict
     import re

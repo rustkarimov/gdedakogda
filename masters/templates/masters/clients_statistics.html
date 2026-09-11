@@ -29,7 +29,7 @@
         </div>
     </div>
 
-    <!-- Таблица клиентов -->
+    <!-- Список клиентов -->
     <div class="card">
         <div class="card-header">
             <h5>Список клиентов</h5>
@@ -37,7 +37,9 @@
                 <input type="text" id="clients-search" class="form-control form-control-sm" placeholder="🔍 Поиск по имени или телефону...">
             </div>
         </div>
-        <div class="card-body p-0">
+
+        <!-- ДЕСКТОП: таблица -->
+        <div class="card-body p-0 d-none d-md-block">
             <div class="table-responsive">
                 <table class="table" id="clients-table">
                     <thead>
@@ -58,11 +60,6 @@
                                 {% if client.is_blacklisted %}
                                     <span class="badge bg-danger ms-1">В чёрном списке</span>
                                 {% endif %}
-                                <span class="action-icons-mobile">
-                                    <button class="btn btn-sm" onclick="showClientDetails('{{ client.key|escapejs }}')" title="Подробности">
-                                        <i class="fas fa-info-circle"></i>
-                                    </button>
-                                </span>
                             </td>
                             <td>{{ client.phone|default:"—" }}</td>
                             <td><span class="badge bg-primary">{{ client.total_visits }}</span></td>
@@ -83,6 +80,42 @@
                 </table>
             </div>
         </div>
+
+        <!-- МОБИЛЬНЫЙ: список карточек -->
+        <div class="card-body p-0 d-md-none">
+            <div class="clients-mobile-list" id="clients-mobile-list">
+                {% for client in clients %}
+                <div class="client-mobile-card" data-client-key="{{ client.key }}">
+                    <div class="client-card-header">
+                        <div class="client-card-name">
+                            <strong>{{ client.name }}</strong>
+                            {% if client.is_blacklisted %}
+                                <span class="badge bg-danger ms-1">В чёрном списке</span>
+                            {% endif %}
+                        </div>
+                        <button class="btn-icon" onclick="showClientDetails('{{ client.key|escapejs }}')" title="Подробности">
+                            <i class="fas fa-info-circle"></i>
+                        </button>
+                    </div>
+                    <div class="client-card-body">
+                        <div class="client-card-row">
+                            <span class="client-card-label">Телефон</span>
+                            <span class="client-card-value">{{ client.phone|default:"—" }}</span>
+                        </div>
+                        <div class="client-card-row">
+                            <span class="client-card-label">Визитов</span>
+                            <span class="client-card-value">
+                                <span class="badge bg-primary">{{ client.total_visits }}</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4 text-muted">Нет данных о клиентах</div>
+                {% endfor %}
+            </div>
+        </div>
+
         <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center pt-0 flex-wrap">
             <span class="text-muted small" id="clients-total">Показано {{ clients|length }} из {{ total_clients }}</span>
             <button id="load-more-clients" class="btn btn-sm btn-outline-primary" style="display: {% if has_more %}inline-block{% else %}none{% endif %};" onclick="loadMoreClients()">
@@ -377,13 +410,128 @@ function showConfirm(message, onConfirm) {
 
 let clientsPage = 1;
 let clientsHasMore = {{ has_more|yesno:"true,false" }};
-let clientsTotal = {{ total_clients }};
 let isLoadingClients = false;
 
-function loadMoreClients() {
-    if (isLoadingClients) return;
-    isLoadingClients = true;
+// Определяем, мобильное ли устройство
+function isMobile() {
+    return window.innerWidth <= 768;
+}
+
+// ----- ПОСТРОИТЕЛИ HTML -----
+
+function buildClientRow(client, index) {
+    return `
+        <td>${index + 1}</td>
+        <td>
+            <strong>${escapeHtml(client.name)}</strong>
+            ${client.is_blacklisted ? '<span class="badge bg-danger ms-1">В чёрном списке</span>' : ''}
+        </td>
+        <td>${client.phone || '—'}</td>
+        <td><span class="badge bg-primary">${client.total_visits}</span></td>
+        <td>
+            <div class="action-icons-desktop">
+                <button class="btn btn-sm" onclick="showClientDetails('${escapeHtml(client.key)}')" title="Подробности">
+                    <i class="fas fa-info-circle"></i>
+                </button>
+            </div>
+        </td>
+    `;
+}
+
+function buildClientCard(client) {
+    return `
+        <div class="client-card-header">
+            <div class="client-card-name">
+                <strong>${escapeHtml(client.name)}</strong>
+                ${client.is_blacklisted ? '<span class="badge bg-danger ms-1">В чёрном списке</span>' : ''}
+            </div>
+            <button class="btn-icon" onclick="showClientDetails('${escapeHtml(client.key)}')" title="Подробности">
+                <i class="fas fa-info-circle"></i>
+            </button>
+        </div>
+        <div class="client-card-body">
+            <div class="client-card-row">
+                <span class="client-card-label">Телефон</span>
+                <span class="client-card-value">${client.phone || '—'}</span>
+            </div>
+            <div class="client-card-row">
+                <span class="client-card-label">Визитов</span>
+                <span class="client-card-value"><span class="badge bg-primary">${client.total_visits}</span></span>
+            </div>
+        </div>
+    `;
+}
+
+// ----- СОХРАНЕНИЕ В clientsData -----
+
+function storeClient(client) {
+    clientsData[client.key] = {
+        name: client.name || 'Клиент',
+        phone: client.phone || '—',
+        total_visits: client.total_visits || 0,
+        first_visit: client.first_visit || '—',
+        last_visit: client.last_visit || '—',
+        all_names: client.all_names || [client.name || 'Клиент'],
+        services: client.services || {},
+        is_blacklisted: client.is_blacklisted || false
+    };
+}
+
+// ----- ОТРИСОВКА СПИСКА (desktop или mobile) -----
+
+function renderClientsDesktop(clients, append = false) {
+    const tbody = document.getElementById('clients-tbody');
+    if (!append) tbody.innerHTML = '';
     
+    if (!clients.length && !append) {
+        tbody.innerHTML = `<tr class="no-data"><td colspan="5" class="text-center py-4 text-muted">
+            <i class="fas fa-search me-2"></i>Ничего не найдено</td></tr>`;
+        return;
+    }
+    
+    const startIndex = tbody.querySelectorAll('tr:not(.no-data)').length;
+    
+    clients.forEach((client, index) => {
+        const tr = document.createElement('tr');
+        tr.setAttribute('data-client-key', client.key);
+        tr.innerHTML = buildClientRow(client, startIndex + index);
+        tbody.appendChild(tr);
+    });
+}
+
+function renderClientsMobile(clients, append = false) {
+    const mobileList = document.getElementById('clients-mobile-list');
+    if (!append) mobileList.innerHTML = '';
+    
+    if (!clients.length && !append) {
+        mobileList.innerHTML = `<div class="text-center py-4 text-muted">
+            <i class="fas fa-search me-2"></i>Ничего не найдено</div>`;
+        return;
+    }
+    
+    clients.forEach((client) => {
+        const card = document.createElement('div');
+        card.className = 'client-mobile-card';
+        card.setAttribute('data-client-key', client.key);
+        card.innerHTML = buildClientCard(client);
+        mobileList.appendChild(card);
+    });
+}
+
+// ----- ОБНОВЛЕНИЕ СЧЁТЧИКОВ И КНОПКИ -----
+
+function updateClientsFooter(total, shown, hasMore) {
+    document.getElementById('clients-total').textContent = `Показано ${shown} из ${total}`;
+    document.getElementById('total-clients-count').textContent = total;
+    clientsHasMore = hasMore;
+    document.getElementById('load-more-clients').style.display = hasMore ? 'inline-block' : 'none';
+}
+
+// ----- ЗАГРУЗИТЬ ЕЩЁ -----
+
+function loadMoreClients() {
+    if (isLoadingClients || !clientsHasMore) return;
+    isLoadingClients = true;
     clientsPage++;
     
     const btn = document.getElementById('load-more-clients');
@@ -394,57 +542,25 @@ function loadMoreClients() {
     fetch(`/api/clients-statistics/?page=${clientsPage}&limit=10`)
         .then(response => response.json())
         .then(data => {
-            const tbody = document.getElementById('clients-tbody');
-            const currentCount = tbody.querySelectorAll('tr:not(.no-data)').length;
-            
-            data.clients.forEach((client, index) => {
+            // Сохраняем клиентов
+            data.clients.forEach(client => {
                 if (!client.key) return;
-                
-                clientsData[client.key] = {
-                    name: client.name || 'Клиент',
-                    phone: client.phone || '—',
-                    total_visits: client.total_visits || 0,
-                    first_visit: client.first_visit || '—',
-                    last_visit: client.last_visit || '—',
-                    all_names: client.all_names || [client.name || 'Клиент'],
-                    services: client.services || {},
-                    is_blacklisted: client.is_blacklisted || false
-                };
-                
-                const tr = document.createElement('tr');
-                tr.setAttribute('data-client-key', client.key);
-                tr.innerHTML = `
-                    <td>${currentCount + index + 1}</td>
-                    <td>
-                        <strong>${escapeHtml(client.name)}</strong>
-                        ${client.is_blacklisted ? '<span class="badge bg-danger ms-1">В чёрном списке</span>' : ''}
-                        <span class="action-icons-mobile">
-                            <button class="btn btn-sm" onclick="showClientDetails('${escapeHtml(client.key)}')" title="Подробности">
-                                <i class="fas fa-info-circle"></i>
-                            </button>
-                        </span>
-                    </td>
-                    <td>${client.phone || '—'}</td>
-                    <td><span class="badge bg-primary">${client.total_visits}</span></td>
-                    <td>
-                        <div class="action-icons-desktop">
-                            <button class="btn btn-sm" onclick="showClientDetails('${escapeHtml(client.key)}')" title="Подробности">
-                                <i class="fas fa-info-circle"></i>
-                            </button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(tr);
+                storeClient(client);
             });
             
-            const newCount = tbody.querySelectorAll('tr:not(.no-data)').length;
-            document.getElementById('clients-total').textContent = `Показано ${newCount} из ${data.total}`;
-            document.getElementById('total-clients-count').textContent = data.total;
-            
-            clientsHasMore = data.has_more;
-            if (!data.has_more) {
-                document.getElementById('load-more-clients').style.display = 'none';
+            // Отрисовываем ТОЛЬКО ту версию, которая видна
+            if (isMobile()) {
+                renderClientsMobile(data.clients, true);
+            } else {
+                renderClientsDesktop(data.clients, true);
             }
+            
+            // Обновляем счётчик
+            const shown = isMobile()
+                ? document.querySelectorAll('.client-mobile-card').length
+                : document.querySelectorAll('#clients-tbody tr:not(.no-data)').length;
+            
+            updateClientsFooter(data.total, shown, data.has_more);
             
             isLoadingClients = false;
             btn.innerHTML = originalText;
@@ -456,6 +572,159 @@ function loadMoreClients() {
             btn.innerHTML = originalText;
             btn.disabled = false;
         });
+}
+
+// ============================================================
+// ПОИСК
+// ============================================================
+
+let searchTimeout = null;
+
+function searchClientsAPI(query) {
+    const totalSpan = document.getElementById('clients-total');
+    
+    if (!query || query.trim() === '') {
+        loadInitialClients();
+        return;
+    }
+    
+    // Заглушка загрузки — только для видимой версии
+    if (isMobile()) {
+        document.getElementById('clients-mobile-list').innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border spinner-border-sm" style="color: var(--primary);"></div>
+                <span class="ms-2">Поиск...</span>
+            </div>`;
+    } else {
+        document.getElementById('clients-tbody').innerHTML = `
+            <tr><td colspan="5" class="text-center py-4">
+                <div class="spinner-border spinner-border-sm" style="color: var(--primary);"></div>
+                <span class="ms-2">Поиск...</span>
+            </td></tr>`;
+    }
+    
+    fetch(`/api/clients/search/?q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+            // Сохраняем результаты
+            Object.keys(clientsData).forEach(key => delete clientsData[key]);
+            data.clients.forEach(client => {
+                if (client.key) storeClient(client);
+            });
+            
+            // Отрисовываем только видимую версию
+            if (isMobile()) {
+                renderClientsMobile(data.clients, false);
+            } else {
+                renderClientsDesktop(data.clients, false);
+            }
+            
+            if (totalSpan) {
+                totalSpan.textContent = `Найдено ${data.total}`;
+            }
+            
+            // Скрываем кнопку "Загрузить ещё" при поиске
+            document.getElementById('load-more-clients').style.display = 'none';
+        })
+        .catch(error => {
+            console.error('Ошибка поиска:', error);
+            if (isMobile()) {
+                document.getElementById('clients-mobile-list').innerHTML = `
+                    <div class="text-center py-4 text-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>Ошибка поиска
+                    </div>`;
+            } else {
+                document.getElementById('clients-tbody').innerHTML = `
+                    <tr><td colspan="5" class="text-center py-4 text-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>Ошибка поиска
+                    </td></tr>`;
+            }
+        });
+}
+
+// ----- ПЕРВАЯ ЗАГРУЗКА (при пустом поиске) -----
+
+function loadInitialClients() {
+    // Заглушка
+    if (isMobile()) {
+        document.getElementById('clients-mobile-list').innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border spinner-border-sm" style="color: var(--primary);"></div>
+                <span class="ms-2">Загрузка...</span>
+            </div>`;
+    } else {
+        document.getElementById('clients-tbody').innerHTML = `
+            <tr><td colspan="5" class="text-center py-4">
+                <div class="spinner-border spinner-border-sm" style="color: var(--primary);"></div>
+                <span class="ms-2">Загрузка...</span>
+            </td></tr>`;
+    }
+    
+    fetch('/api/clients-statistics/?page=1&limit=10')
+        .then(response => response.json())
+        .then(data => {
+            // Сбрасываем состояние
+            clientsPage = 1;
+            Object.keys(clientsData).forEach(key => delete clientsData[key]);
+            data.clients.forEach(client => {
+                if (client.key) storeClient(client);
+            });
+            
+            // Отрисовываем только видимую версию
+            if (isMobile()) {
+                renderClientsMobile(data.clients, false);
+            } else {
+                renderClientsDesktop(data.clients, false);
+            }
+            
+            // Считаем показанных
+            const shown = data.clients.length;
+            updateClientsFooter(data.total, shown, data.has_more);
+        })
+        .catch(error => {
+            console.error('Ошибка загрузки:', error);
+            if (isMobile()) {
+                document.getElementById('clients-mobile-list').innerHTML = `
+                    <div class="text-center py-4 text-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>Ошибка загрузки
+                    </div>`;
+            } else {
+                document.getElementById('clients-tbody').innerHTML = `
+                    <tr><td colspan="5" class="text-center py-4 text-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>Ошибка загрузки
+                    </td></tr>`;
+            }
+        });
+}
+
+// ============================================================
+// ИНИЦИАЛИЗАЦИЯ ПОИСКА
+// ============================================================
+
+function initSearch() {
+    const searchInput = document.getElementById('clients-search');
+    if (!searchInput) return;
+    
+    const newInput = searchInput.cloneNode(true);
+    searchInput.parentNode.replaceChild(newInput, searchInput);
+    
+    newInput.addEventListener('input', function() {
+        const query = this.value;
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => searchClientsAPI(query), 300);
+    });
+    
+    newInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            clearTimeout(searchTimeout);
+            searchClientsAPI(this.value);
+        }
+        if (e.key === 'Escape') {
+            this.value = '';
+            searchClientsAPI('');
+        }
+    });
 }
 
 // ============================================================
@@ -669,181 +938,7 @@ function phoneMask(input) {
     input.value = formatted;
 }
 
-// ============================================================
-// ПОИСК ПО ВСЕМ КЛИЕНТАМ (через API)
-// ============================================================
 
-let searchTimeout = null;
-let isSearching = false;
-
-function searchClientsAPI(query) {
-    const tbody = document.getElementById('clients-tbody');
-    const totalSpan = document.getElementById('clients-total');
-    
-    // Если поиск пустой — возвращаем исходный список
-    if (!query || query.trim() === '') {
-        loadInitialClients();
-        return;
-    }
-    
-    // Показываем индикатор поиска
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="5" class="text-center py-4">
-                <div class="spinner-border spinner-border-sm" style="color: var(--primary);"></div>
-                <span class="ms-2">Поиск...</span>
-            </td>
-        </tr>
-    `;
-    
-    fetch(`/api/clients/search/?q=${encodeURIComponent(query)}`)
-        .then(response => response.json())
-        .then(data => {
-            updateTableWithResults(data.clients);
-            
-            if (totalSpan) {
-                totalSpan.textContent = `Найдено ${data.total}`;
-            }
-            
-            // Скрываем кнопку "Загрузить ещё" при поиске
-            const loadBtn = document.getElementById('load-more-clients');
-            if (loadBtn) {
-                loadBtn.style.display = 'none';
-            }
-        })
-        .catch(error => {
-            console.error('Ошибка поиска:', error);
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="5" class="text-center py-4 text-danger">
-                        <i class="fas fa-exclamation-circle me-2"></i>Ошибка поиска
-                    </td>
-                </tr>
-            `;
-        });
-}
-
-// Функция для загрузки первых клиентов (при пустом поиске)
-function loadInitialClients() {
-    const tbody = document.getElementById('clients-tbody');
-    const totalSpan = document.getElementById('clients-total');
-    
-    tbody.innerHTML = `
-        <tr>
-            <td colspan="5" class="text-center py-4">
-                <div class="spinner-border spinner-border-sm" style="color: var(--primary);"></div>
-                <span class="ms-2">Загрузка...</span>
-            </td>
-        </tr>
-    `;
-    
-    fetch('/api/clients-statistics/?page=1&limit=10')
-        .then(response => response.json())
-        .then(data => {
-            // Очищаем clientsData и заполняем заново
-            Object.keys(clientsData).forEach(key => delete clientsData[key]);
-            
-            data.clients.forEach(client => {
-                clientsData[client.key] = client;
-            });
-            
-            updateTableWithResults(data.clients);
-            
-            if (totalSpan) {
-                totalSpan.textContent = `Показано ${data.clients.length} из ${data.total}`;
-            }
-            
-            const loadBtn = document.getElementById('load-more-clients');
-            if (loadBtn) {
-                clientsHasMore = data.has_more;
-                loadBtn.style.display = data.has_more ? 'inline-block' : 'none';
-            }
-        })
-        .catch(error => {
-            console.error('Ошибка загрузки:', error);
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="5" class="text-center py-4 text-danger">
-                        <i class="fas fa-exclamation-circle me-2"></i>Ошибка загрузки
-                    </td>
-                </tr>
-            `;
-        });
-}
-
-function updateTableWithResults(clients) {
-    const tbody = document.getElementById('clients-tbody');
-    tbody.innerHTML = '';
-    
-    if (!clients || clients.length === 0) {
-        tbody.innerHTML = `
-            <tr class="no-data">
-                <td colspan="5" class="text-center py-4 text-muted">
-                    <i class="fas fa-search me-2"></i>Ничего не найдено
-                </td>
-            </tr>
-        `;
-        return;
-    }
-    
-    clients.forEach((client, index) => {
-        const tr = document.createElement('tr');
-        tr.setAttribute('data-client-key', client.key);
-        tr.innerHTML = `
-            <td>${index + 1}</td>
-            <td>
-                <strong>${escapeHtml(client.name)}</strong>
-                ${client.is_blacklisted ? '<span class="badge bg-danger ms-1">В чёрном списке</span>' : ''}
-                <span class="action-icons-mobile">
-                    <button class="btn btn-sm" onclick="showClientDetails('${escapeHtml(client.key)}')" title="Подробности">
-                        <i class="fas fa-info-circle"></i>
-                    </button>
-                </span>
-            </td>
-            <td>${client.phone || '—'}</td>
-            <td><span class="badge bg-primary">${client.total_visits}</span></td>
-            <td>
-                <div class="action-icons-desktop">
-                    <button class="btn btn-sm" onclick="showClientDetails('${escapeHtml(client.key)}')" title="Подробности">
-                        <i class="fas fa-info-circle"></i>
-                    </button>
-                </div>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-function initSearch() {
-    const searchInput = document.getElementById('clients-search');
-    if (!searchInput) return;
-    
-    // Клонируем и заменяем, чтобы удалить старые обработчики
-    const newInput = searchInput.cloneNode(true);
-    searchInput.parentNode.replaceChild(newInput, searchInput);
-    
-    newInput.addEventListener('input', function() {
-        const query = this.value;
-        
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            searchClientsAPI(query);
-        }, 300);
-    });
-    
-    newInput.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            const query = this.value;
-            clearTimeout(searchTimeout);
-            searchClientsAPI(query);
-        }
-        if (e.key === 'Escape') {
-            this.value = '';
-            searchClientsAPI('');
-        }
-    });
-}
 
 // ============================================================
 // ИНИЦИАЛИЗАЦИЯ
