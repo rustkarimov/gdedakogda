@@ -4180,10 +4180,6 @@ body {
     margin: 0;
 }
 
-.statistics-page .page-header h2 i {
-    color: var(--primary);
-    margin-right: 10px;
-}
 
 /* ---- Статистика (3 карточки) ---- */
 .statistics-page .stats-grid {
@@ -4482,7 +4478,6 @@ body {
 }
 
 /* ---- Модальное окно деталей клиента ---- */
-/* ---- Модальное окно деталей клиента ---- */
 #clientDetailsModal .modal-dialog {
     max-width: 700px;
 }
@@ -4692,6 +4687,16 @@ body {
 /* ============================================================ */
 
 @media (max-width: 768px) {
+    
+    .statistics-page .page-header h2 {
+        font-size: 1.2rem;
+        text-align: left;
+    }
+
+    .statistics-page .stats-grid {
+        margin: 0;
+    }
+
     .statistics-page .stats-grid {
         grid-template-columns: repeat(3, 1fr);
         gap: 8px;
@@ -5164,12 +5169,20 @@ body {
 
 
 @media (max-width: 480px) {
-    .statistics-page .page-header h2 {
-        font-size: 1.2rem;
-        text-align: left;
-        margin-left: 10px;
+
+    .statistics-page {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
     }
-    
+
+    .statistics-page .card-header {
+       background-color: transparent;
+    }
+
+    .card-body {
+        background-color: transparent;
+    }
+
     .statistics-page .stats-grid {
         grid-template-columns: repeat(3, 1fr);
         gap: 6px;
@@ -5247,10 +5260,6 @@ body {
         padding: 10px 12px !important;
     }
 
-    .statistics-page {
-        margin: 0 10px;
-    }
-
     .statistics-page .card-footer {
         flex-direction: column !important;
         gap: 10px !important;
@@ -5262,6 +5271,7 @@ body {
         width: 100% !important;
         justify-content: center !important;
     }
+
 }
 
 
