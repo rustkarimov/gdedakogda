@@ -374,6 +374,59 @@ body {
     color: white !important;
 }
 
+@media (max-width: 768px) {
+    #confirmModal .modal-dialog,
+    #alertModal .modal-dialog {
+        margin: 16px auto !important;
+        max-width: calc(100% - 32px) !important;
+    }
+    
+    #confirmModal .modal-content,
+    #alertModal .modal-content {
+        border-radius: 16px !important;
+    }
+    
+    #confirmModal .modal-header,
+    #alertModal .modal-header {
+        padding: 12px 16px !important;
+    }
+    
+    #confirmModal .modal-header h5,
+    #alertModal .modal-header h5 {
+        font-size: 0.95rem !important;
+    }
+    
+    #confirmModal .modal-body,
+    #alertModal .modal-body {
+        padding: 14px 16px !important;
+        font-size: 0.85rem !important;
+    }
+    
+    /* Кнопки в ряд, обе одинаковой ширины */
+        #confirmModal .modal-footer,
+    #alertModal .modal-footer {
+        padding: 10px 16px !important;
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        flex-wrap: nowrap !important;  /* ← не переносить */
+    }
+    
+    #confirmModal .modal-footer .btn,
+    #alertModal .modal-footer .btn {
+        flex: 0 0 auto !important;      /* ← по размеру контента */
+        width: auto !important;
+        min-width: 100px !important;    /* ← минимальная ширина */
+        max-width: none !important;     /* ← убираем ограничение */
+        justify-content: center !important;
+        padding: 8px 20px !important;
+        font-size: 0.85rem !important;
+        border-radius: 30px !important;
+        white-space: nowrap !important;
+    }
+}
+
 /* ============================================================ */
 /* ========== 2. КОНТЕЙНЕР ПРИЛОЖЕНИЯ И САЙДБАР ========== */
 /* ============================================================ */
@@ -4347,6 +4400,20 @@ body {
     font-size: 0.8rem;
 }
 
+.badge-visits {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 10px;
+    background: var(--gray-100);
+    color: var(--gray-700);
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 30px;
+}
+
 /* ---- Action icons (как в других страницах) ---- */
 .statistics-page .action-icons {
     display: flex;
@@ -4382,6 +4449,8 @@ body {
 .statistics-page .action-icons .btn:last-child:hover i {
     color: #dc2626 !important;
 }
+
+
 
 /* ---- Модальное окно чёрного списка ---- */
 #blacklistModal .modal-dialog {
@@ -4477,6 +4546,8 @@ body {
     box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35);
     color: white;
 }
+
+
 
 /* ---- Модальное окно деталей клиента ---- */
 #clientDetailsModal .modal-dialog {
@@ -4611,9 +4682,9 @@ body {
 
 /* Кнопка "В чёрный список" — неброская */
 #clientDetailsModal .btn-outline-danger {
-    border: 1px solid var(--gray-300);
-    color: var(--gray-600);
-    background: transparent;
+    border: 1px solid var(--danger) !important;
+    color: var(--danger) !important;
+    background: transparent !important;
     padding: 8px 20px;
     border-radius: 30px;
     font-weight: 500;
@@ -4639,7 +4710,6 @@ body {
     align-items: center;
 }
 
-/* ---- Футер карточки с пагинацией (как на главной) ---- */
 /* ---- Футер карточки с пагинацией (как на главной) ---- */
 .statistics-page .card-footer {
     border-top: none !important;
@@ -4683,149 +4753,187 @@ body {
 }
 
 
-/* ============================================================ */
-/* ========== СТРАНИЦА СТАТИСТИКИ (МОБИЛЬНАЯ ВЕРСИЯ) ========== */
-/* ============================================================ */
-
 @media (max-width: 768px) {
+
+    .content-wrapper:has(.statistics-page) {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
     
     .statistics-page .page-header h2 {
         font-size: 1.2rem;
         text-align: left;
+        padding-left: 16px;
+        padding-right: 16px;
     }
 
     .statistics-page .stats-grid {
         margin: 0;
+        padding-left: 16px;
+        padding-right: 16px;
     }
 
     .statistics-page .stats-grid {
         grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
+        gap: 6px;
         margin-bottom: 16px;
     }
     
     .statistics-page .stat-card {
-        padding: 12px 8px;
+        padding: 10px 4px;
         border-radius: 12px;
     }
     
     .statistics-page .stat-card .stat-icon {
-        font-size: 1.5rem;
+        font-size: 1.2rem;
     }
     
     .statistics-page .stat-card .stat-number {
-        font-size: 1.3rem;
+        font-size: 1rem;
     }
     
     .statistics-page .stat-card .stat-label {
-        font-size: 0.65rem;
+        font-size: 0.55rem;
     }
+
+    .statistics-page .card {
+        background: white;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+
     
     .statistics-page .card-header {
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
         padding: 10px 12px;
+        background-color: transparent !important;
+        border: none !important;
     }
     
     .statistics-page .card-header .search-wrapper {
         max-width: 100%;
     }
-    
+     
+    .statistics-page .clients-mobile-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 0px;
+        background-color: transparent !important;
+    }
 
-    .clients-mobile-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 12px;
-}
+    .client-mobile-card {
+        background: white;
+        border: 0.5px solid rgb(95, 95, 95);
+        border-radius: 12px;
+        padding: 5px 14px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+        margin: 0 10px;
+    }
 
-.client-mobile-card {
-    background: white;
-    border: 1px solid var(--gray-200);
-    border-radius: 12px;
-    padding: 12px 14px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-}
+    .client-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        padding-bottom: 6px;
+        margin-bottom: 4px;
+        border-bottom: none;  /* ← убираем линию */
+    }
 
-.client-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-    padding-bottom: 8px;
-    margin-bottom: 8px;
-    border-bottom: 1px solid var(--gray-100);
-}
+    .client-card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
 
-.client-card-name {
-    font-size: 0.9rem;
-    color: var(--gray-800);
-    flex: 1;
-    min-width: 0;
-}
+    .client-card-name {
+        font-size: 0.9rem;
+        color: var(--gray-800);
+        flex: 1;
+        min-width: 0;
+    }
 
-.client-card-name strong {
-    display: inline;
-    word-break: break-word;
-}
+    .client-card-name strong {
+        display: inline;
+        word-break: break-word;
+    }
 
-.client-card-name .badge {
-    font-size: 0.6rem;
-    padding: 2px 8px;
-    vertical-align: middle;
-}
+    .client-card-name .badge {
+        font-size: 0.6rem;
+        padding: 2px 8px;
+        vertical-align: middle;
+    }
 
-.client-card-header .btn-icon {
-    background: transparent;
-    border: none;
-    padding: 4px 8px;
-    border-radius: 6px;
-    color: var(--gray-500);
-    flex-shrink: 0;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
+    .client-card-header .btn-icon {
+        background: transparent;
+        border: none;
+        padding: 4px 8px;
+        border-radius: 6px;
+        color: var(--gray-500);
+        flex-shrink: 0;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
 
-.client-card-header .btn-icon:hover {
-    background: var(--gray-100);
-    color: var(--gray-700);
-}
+    .client-card-header .btn-icon:hover {
+        background: var(--gray-100);
+        color: var(--gray-700);
+    }
 
-.client-card-header .btn-icon i {
-    font-size: 0.9rem;
-}
+    .client-card-header .btn-icon i {
+        font-size: 0.9rem;
+    }
 
-.client-card-body {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
+    .client-card-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.8rem;
+    }
 
-.client-card-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.8rem;
-}
+    /* Телефон — серым */
+    .client-card-phone {
+        color: var(--gray-600);
+        font-weight: 500;
+        font-size: 0.85rem;
+    }
 
-.client-card-label {
-    color: var(--gray-500);
-    font-weight: 500;
-}
+    /* Блок "Визитов N" прижат вправо */
+    .client-card-visits {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
 
-.client-card-value {
-    color: var(--gray-700);
-    font-weight: 500;
-}
+    .client-card-visits-label {
+        color: var(--gray-500);
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
 
-.client-card-value .badge {
-    font-size: 0.7rem;
-    padding: 2px 10px;
-    border-radius: 30px;
-}
+    /* Серый бейдж вместо синего */
+    .client-card-visits-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 8px;
+        background: var(--gray-100);  /* ← серый фон */
+        color: var(--gray-700);       /* ← тёмно-серый текст */
+        font-size: 0.7rem;
+        font-weight: 600;
+        border-radius: 30px;
+    }
 
-    
+    .statistics-page .card-footer {
+        background-color: transparent !important;
+    }
+
     /* Модальные окна на мобильных */
     #blacklistModal .modal-dialog,
     #clientDetailsModal .modal-dialog {
@@ -4875,178 +4983,130 @@ body {
         width: 100% !important;
         justify-content: center !important;
     }
+
+    /* Сокращаем ширину кнопки Добавить в черный список */
+    .statistics-page .card-header .btn-pink.btn-sm {
+        flex: 0 0 auto !important;
+        width: auto !important;
+        align-self: flex-start !important;
+        padding: 6px 14px !important;
+        font-size: 0.75rem !important;
+        border-radius: 20px !important;
+    }
     
     #blacklistModal .form-label {
         font-size: 0.8rem !important;
+        font-weight: 600 !important;
     }
     
+
     #blacklistModal .form-control {
-        font-size: 16px !important;
-        padding: 8px 12px !important;
-        border-radius: 8px !important;
-        height: 40px !important;
+        font-size: 12px !important;
+        padding: 0 10px !important;
+        border-radius: 10px !important;
+        height: 30px !important;
+        line-height: 36px !important;
+        border: 1px solid var(--gray-300) !important;
     }
     
     #blacklistModal textarea.form-control {
         min-height: 60px !important;
     }
+
+    #blacklistModal .text-muted {
+        font-size: 0.7rem !important;
+        margin-top: 2px !important;
+    }
     
-    #clientDetailsModal .detail-item {
+    .blacklist-mobile-list {
+        display: flex;
         flex-direction: column;
-        align-items: flex-start;
-        gap: 2px;
-        padding: 8px 0;
-    }
-    
-    #clientDetailsModal .detail-label {
-        min-width: auto;
-        font-size: 0.8rem;
-    }
-    
-    #clientDetailsModal .detail-value {
-        font-size: 0.9rem;
-    }
-    
-    #clientDetailsModal .services-list .service-item {
-        font-size: 0.8rem;
-        padding: 4px 10px;
-    }
-
-    /* ---- Чёрный список на мобильных ---- */
-    /* ---- Чёрный список на мобильных ---- */
-    .statistics-page #blacklist-table thead {
-        display: none;
-    }
-
-    .statistics-page #blacklist-table tbody tr {
-        display: block;
-        /* background: white; */
-        border-radius: 10px;
-        padding: 10px 12px;
-        margin-bottom: 8px;
-        border: 1px solid var(--gray-200);
-        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-    }
-
-    .statistics-page #blacklist-table tbody td {
-        display: flex !important;
-        justify-content: flex-start !important;
-        align-items: center;
-        padding: 4px 0 !important;
-        border: none !important;
-        font-size: 0.8rem;
         gap: 8px;
-        width: 100% !important;
+        padding: 8px 12px;
     }
 
-    /* Строка 1: Имя */
-    .statistics-page #blacklist-table tbody td:nth-child(1) {
-        font-weight: 600;
-        font-size: 0.9rem;
-        color: var(--gray-800);
-        padding: 4px 0 !important;
+    .blacklist-mobile-card {
+        background: white;
+        border: 1px solid var(--gray-500);
+        border-radius: 10px;
+        padding: 8px 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     }
 
-    .statistics-page #blacklist-table tbody td:nth-child(1):before {
-        content: "Имя:";
-        font-weight: 500;
-        color: var(--gray-500);
-        flex-shrink: 0;
-        min-width: 60px;
-    }
-
-    /* Строка 2: Телефон */
-    .statistics-page #blacklist-table tbody td:nth-child(2) {
-        font-size: 0.85rem;
-        color: var(--gray-700);
-        padding: 4px 0 !important;
-    }
-
-    .statistics-page #blacklist-table tbody td:nth-child(2):before {
-        content: "Телефон:";
-        font-weight: 500;
-        color: var(--gray-500);
-        flex-shrink: 0;
-        min-width: 60px;
-    }
-
-    /* Строка 3: Причина */
-    .statistics-page #blacklist-table tbody td:nth-child(3) {
-        font-size: 0.85rem;
-        color: var(--gray-700);
-        padding: 4px 0 !important;
-    }
-
-    .statistics-page #blacklist-table tbody td:nth-child(3):before {
-        content: "Причина:";
-        font-weight: 500;
-        color: var(--gray-500);
-        flex-shrink: 0;
-        min-width: 60px;
-    }
-
-    /* Строка 4: Дата добавления */
-    .statistics-page #blacklist-table tbody td:nth-child(4) {
-        font-size: 0.75rem;
-        color: var(--gray-500);
-        padding: 4px 0 !important;
-    }
-
-    .statistics-page #blacklist-table tbody td:nth-child(4):before {
-        content: "Добавлен:";
-        font-weight: 500;
-        color: var(--gray-500);
-        flex-shrink: 0;
-        min-width: 60px;
-    }
-
-    /* Строка 5: Действия (кнопка удалить) */
-    .statistics-page #blacklist-table tbody td:last-child {
-        border-top: 1px solid var(--gray-200) !important;
-        padding-top: 10px !important;
-        margin-top: 6px !important;
-        justify-content: flex-start !important;
-        display: flex !important;
-    }
-
-    .statistics-page #blacklist-table tbody td:last-child:before {
-        display: none !important;
-    }
-
-    .statistics-page #blacklist-table .action-icons {
-        display: flex !important;
-        gap: 6px;
+    .blacklist-mobile-header {
+        display: flex;
+        justify-content: space-between;
         align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
     }
 
-    .statistics-page #blacklist-table .action-icons .btn {
-        background: transparent !important;
-        border: none !important;
-        padding: 4px 8px !important;
-        border-radius: 6px !important;
-        transition: all 0.2s ease !important;
-        display: inline-flex !important;
+    .blacklist-mobile-name {
+        font-size: 0.85rem;
+        color: var(--gray-800);
+        flex: 1;
+        min-width: 0;
     }
 
-    .statistics-page #blacklist-table .action-icons .btn i {
-        color: #6b7280 !important;
-        font-size: 0.85rem !important;
+    .blacklist-mobile-name strong {
+        display: inline;
+        word-break: break-word;
     }
 
-    .statistics-page #blacklist-table .action-icons .btn:hover {
-        background: #f3f4f6 !important;
+    .blacklist-mobile-header .btn-icon-blacklist {
+        background: transparent;
+        border: none;
+        padding: 2px 6px;
+        border-radius: 6px;
+        color: var(--gray-500);
+        flex-shrink: 0;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        line-height: 1;
+        margin: -4px -6px -4px 0;  /* ← убираем визуальные отступы */
     }
 
-    .statistics-page #blacklist-table .action-icons .btn:hover i {
-        color: #374151 !important;
+    .blacklist-mobile-header .btn-icon-blacklist:hover {
+        background: #fef2f2;
+        color: var(--danger);
     }
 
-    .statistics-page #blacklist-table .action-icons .btn:last-child:hover {
-        background: #fef2f2 !important;
+    .blacklist-mobile-header .btn-icon-blacklist i {
+        font-size: 0.75rem;
     }
 
-    .statistics-page #blacklist-table .action-icons .btn:last-child:hover i {
-        color: #dc2626 !important;
+    .blacklist-mobile-body {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .blacklist-mobile-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.75rem;
+    }
+
+    .blacklist-mobile-phone {
+        color: var(--gray-600);
+        font-weight: 500;
+    }
+
+    .blacklist-mobile-date {
+        color: var(--gray-400);
+        font-size: 0.65rem;
+        white-space: nowrap;
+    }
+
+    .blacklist-mobile-reason {
+        color: var(--gray-500);
+        font-size: 0.7rem;
+        margin-top: 2px;
+        line-height: 1.3;
+        padding-top: 4px;
+        border-top: 1px solid var(--gray-100);
     }
 
     #clientDetailsModal .modal-dialog {
@@ -5083,19 +5143,6 @@ body {
         padding: 12px 16px !important;
     }
     
-    #clientDetailsModal .modal-footer {
-        padding: 10px 16px !important;
-        flex-shrink: 0 !important;
-        border-top: 1px solid var(--gray-200) !important;
-        flex-direction: column !important;
-        gap: 6px !important;
-    }
-    
-    #clientDetailsModal .modal-footer .btn {
-        width: 100% !important;
-        justify-content: center !important;
-    }
-    
     #clientDetailsModal .col-md-6 {
         width: 100% !important;
         flex: 0 0 100% !important;
@@ -5119,109 +5166,6 @@ body {
         padding: 4px 10px;
     }
 }
-
-
-
-
-/* @media (max-width: 480px) {
-
-    .statistics-page {
-        margin-left: 0 !important;
-        margin-right: 0 !important;
-    }
-
-
-
-    .statistics-page .stats-grid {
-        grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
-    }
-    
-    .statistics-page .stat-card {
-        padding: 10px 4px;
-    }
-    
-    .statistics-page .stat-card .stat-icon {
-        font-size: 1.2rem;
-    }
-    
-    .statistics-page .stat-card .stat-number {
-        font-size: 1rem;
-    }
-    
-    .statistics-page .stat-card .stat-label {
-        font-size: 0.55rem;
-    }
-    
-    .statistics-page .table tbody tr {
-        padding: 8px 10px;
-    }
-    
-    .statistics-page .table tbody td:nth-child(2) {
-        font-size: 0.8rem;
-    }
-    
-    .statistics-page .table tbody td:nth-child(4) {
-        font-size: 0.7rem;
-    }
-    
-    .statistics-page .table tbody td:nth-child(4) .badge {
-        font-size: 0.6rem;
-        padding: 1px 8px;
-    }
-    
-    .statistics-page .action-icons .btn {
-        padding: 2px 6px !important;
-    }
-    
-    .statistics-page .action-icons .btn i {
-        font-size: 0.75rem !important;
-    }
-    
-    #blacklistModal .modal-header h5,
-    #clientDetailsModal .modal-header h5 {
-        font-size: 0.85rem !important;
-    }
-    
-    #blacklistModal .modal-body,
-    #clientDetailsModal .modal-body {
-        padding: 10px 12px !important;
-    }
-    
-    #blacklistModal .form-label {
-        font-size: 0.75rem !important;
-    }
-    
-    #blacklistModal .form-control {
-        font-size: 14px !important;
-        padding: 6px 10px !important;
-        height: 36px !important;
-    }
-    #clientDetailsModal .modal-header {
-        padding: 10px 12px !important;
-    }
-    
-    #clientDetailsModal .modal-header h5 {
-        font-size: 0.85rem !important;
-    }
-    
-    #clientDetailsModal .modal-body {
-        padding: 10px 12px !important;
-    }
-
-    .statistics-page .card-footer {
-        flex-direction: column !important;
-        gap: 10px !important;
-        align-items: stretch !important;
-        padding-top: 8px !important;
-    }
-    
-    .statistics-page .card-footer .btn-outline-primary {
-        width: 100% !important;
-        justify-content: center !important;
-    }
-
-} */
 
 
 /* ============================================================ */

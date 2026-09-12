@@ -34,7 +34,7 @@
         <div class="card-header">
             <h5>Список клиентов</h5>
             <div class="search-wrapper">
-                <input type="text" id="clients-search" class="form-control form-control-sm" placeholder="🔍 Поиск по имени или телефону...">
+                <input type="text" id="clients-search" class="form-control form-control-sm" placeholder="Поиск по имени или телефону...">
             </div>
         </div>
 
@@ -62,7 +62,7 @@
                                 {% endif %}
                             </td>
                             <td>{{ client.phone|default:"—" }}</td>
-                            <td><span class="badge bg-primary">{{ client.total_visits }}</span></td>
+                            <td><span class="badge badge-visits">{{ client.total_visits }}</span></td>
                             <td>
                                 <div class="action-icons-desktop">
                                     <button class="btn btn-sm" onclick="showClientDetails('{{ client.key|escapejs }}')" title="Подробности">
@@ -99,13 +99,10 @@
                     </div>
                     <div class="client-card-body">
                         <div class="client-card-row">
-                            <span class="client-card-label">Телефон</span>
-                            <span class="client-card-value">{{ client.phone|default:"—" }}</span>
-                        </div>
-                        <div class="client-card-row">
-                            <span class="client-card-label">Визитов</span>
-                            <span class="client-card-value">
-                                <span class="badge bg-primary">{{ client.total_visits }}</span>
+                            <span class="client-card-phone">{{ client.phone|default:"—" }}</span>
+                            <span class="client-card-visits">
+                                <span class="client-card-visits-label">Визитов</span>
+                                <span class="client-card-visits-count">{{ client.total_visits }}</span>
                             </span>
                         </div>
                     </div>
@@ -127,13 +124,15 @@
     <!-- Чёрный список -->
     <div class="card">
         <div class="card-header">
-            <h5><i class="fas fa-ban me-2"></i>Чёрный список клиентов</h5>
+            <h5><i class="fas fa-ban me-2"></i>Чёрный список</h5>
             <button class="btn btn-pink btn-sm" data-bs-toggle="modal" data-bs-target="#blacklistModal">
                 <i class="fas fa-plus me-1"></i>Добавить
             </button>
         </div>
-        <div class="card-body p-0">
-            <div id="blacklist-container">
+
+        <!-- ДЕСКТОП: таблица -->
+        <div class="card-body p-0 d-none d-md-block">
+            <div id="blacklist-container-desktop">
                 {% if blacklisted_clients %}
                     <div class="table-responsive">
                         <table class="table" id="blacklist-table">
@@ -168,6 +167,33 @@
                 {% else %}
                     <div class="text-center py-4 text-muted">Чёрный список пуст</div>
                 {% endif %}
+            </div>
+        </div>
+
+        <!-- МОБИЛЬНЫЙ: список карточек -->
+        <div class="card-body p-0 d-md-none">
+            <div class="blacklist-mobile-list" id="blacklist-mobile-list">
+                {% for client in blacklisted_clients %}
+                <div class="blacklist-mobile-card" id="blacklist-mobile-row-{{ client.id }}">
+                    <div class="blacklist-mobile-header">
+                        <div class="blacklist-mobile-name">
+                            <strong>{{ client.name|default:"Без имени" }}</strong>
+                        </div>
+                        <button class="btn-icon-blacklist" onclick="deleteFromBlacklist({{ client.id }})" title="Удалить">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="blacklist-mobile-body">
+                        <div class="blacklist-mobile-row">
+                            <span class="blacklist-mobile-phone">{{ client.phone }}</span>
+                            <span class="blacklist-mobile-date">{{ client.created_at|date:"d.m.Y H:i" }}</span>
+                        </div>
+                        <div class="blacklist-mobile-reason">{{ client.reason|default:"—" }}</div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4 text-muted">Чёрный список пуст</div>
+                {% endfor %}
             </div>
         </div>
     </div>
@@ -427,7 +453,7 @@ function buildClientRow(client, index) {
             ${client.is_blacklisted ? '<span class="badge bg-danger ms-1">В чёрном списке</span>' : ''}
         </td>
         <td>${client.phone || '—'}</td>
-        <td><span class="badge bg-primary">${client.total_visits}</span></td>
+        <td><span class="badge badge-visits">${client.total_visits}</span></td>
         <td>
             <div class="action-icons-desktop">
                 <button class="btn btn-sm" onclick="showClientDetails('${escapeHtml(client.key)}')" title="Подробности">
@@ -451,12 +477,11 @@ function buildClientCard(client) {
         </div>
         <div class="client-card-body">
             <div class="client-card-row">
-                <span class="client-card-label">Телефон</span>
-                <span class="client-card-value">${client.phone || '—'}</span>
-            </div>
-            <div class="client-card-row">
-                <span class="client-card-label">Визитов</span>
-                <span class="client-card-value"><span class="badge bg-primary">${client.total_visits}</span></span>
+                <span class="client-card-phone">${client.phone || '—'}</span>
+                <span class="client-card-visits">
+                    <span class="client-card-visits-label">Визитов</span>
+                    <span class="client-card-visits-count">${client.total_visits}</span>
+                </span>
             </div>
         </div>
     `;
@@ -766,7 +791,7 @@ function showClientDetails(clientKey) {
             li.className = 'service-item';
             li.innerHTML = `
                 <span>${escapeHtml(serviceName)}</span>
-                <span class="badge bg-primary">${count} раз</span>
+                <span class="badge badge-visits">${count} раз</span>
             `;
             servicesList.appendChild(li);
         });
